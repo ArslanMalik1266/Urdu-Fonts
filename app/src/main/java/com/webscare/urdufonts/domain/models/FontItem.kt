@@ -6,6 +6,4 @@ data class FontItem(
     val style: String,
     val category: String,
     val weightCount: Int,
-    val previewText: String,
-    val isDownloaded: Boolean = false
-)
+    val previewText: String, )
