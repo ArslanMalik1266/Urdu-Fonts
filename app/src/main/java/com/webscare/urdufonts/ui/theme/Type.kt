@@ -13,6 +13,8 @@ import com.webscare.urdufonts.R
 val NunitoFontFamily = FontFamily(
     Font(R.font.nunito_regular, FontWeight.Normal),
     Font(R.font.nunito_bold, FontWeight.Bold),
+    Font(R.font.nunito_semi_bold, FontWeight.SemiBold),
+    Font(R.font.nunito_medium, FontWeight.Medium),
 )
 
 val Typography = Typography(

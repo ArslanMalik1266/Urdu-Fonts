@@ -6,4 +6,5 @@ data class FontItem(
     val style: String,
     val category: String,
     val weightCount: Int,
-    val previewText: String, )
+    val previewImage: Int
+)

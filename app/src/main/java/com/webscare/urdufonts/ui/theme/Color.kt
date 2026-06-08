@@ -16,3 +16,6 @@ val GreyColor = Color(0xFF808080)
 val HeadingBlackColor = Color(0xFF1E1E1E)
 val YellowColor = Color(0xFFFFCD4E)
 val DarkGreen = Color(0xFF006C2D)
+
+val BackgroundLight = Color(0xFFDEF7E9)
+val BackgroundCream = Color(0xFFFFF6DE)
