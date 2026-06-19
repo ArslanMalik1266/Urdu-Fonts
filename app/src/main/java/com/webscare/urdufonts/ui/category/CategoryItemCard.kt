@@ -37,7 +37,9 @@ fun CategoryItemCard(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .addPressEffect()
+            .addPressEffect(){
+                onClick()
+            }
             .clip(RoundedCornerShape(16.dp))
             .drawWithCache {
                 val glowCenter = Offset(size.width / 2f, size.height / 2f)

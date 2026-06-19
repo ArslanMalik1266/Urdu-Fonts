@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.webscare.urdufonts.ui.fontList.FontListScreen
 import com.webscare.urdufonts.ui.baseScreen.BaseScreen
 import com.webscare.urdufonts.ui.baseScreen.MyBottomNavigationBar
 import com.webscare.urdufonts.ui.category.CategoriesScreen
@@ -84,13 +85,32 @@ fun AppNavigation() {
                             })
                     }
                     composable(Screen.styles.route) {
-                        StylesScreen()
+                        StylesScreen(
+                            onCartClick = { },
+                            onStyleClick = {
+                                navController.navigate(Screen.fontListScreen.route)
+                            }
+                        )
                     }
                     composable(Screen.categories.route) {
-                        CategoriesScreen()
+                        CategoriesScreen(
+                            onCartClick = { },
+                            onCategoryClick = {
+                                navController.navigate(Screen.fontListScreen.route)
+                            }
+                        )
                     }
                     composable(Screen.fontDetail.route) {
                         FontDetailScreen()
+                    }
+                    composable(Screen.fontListScreen.route) {
+                        FontListScreen(
+                            title = "Urdu Fonts",
+                            onBackClick = { navController.popBackStack() },
+                            onFontClick = {
+                                navController.navigate(Screen.fontDetail.route)
+                            }
+                        )
                     }
                 }
             }

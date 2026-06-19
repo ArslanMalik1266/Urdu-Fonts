@@ -20,21 +20,32 @@ import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 @Composable
 fun SimpleTopAppBar(
     title: String,
+    onBackClick: (() -> Unit)? = null,
     onCartClick: () -> Unit = {}
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = Color.White
         ),
-        title = {
-            Box(modifier = Modifier.padding(start = 8.dp)) {
-                Text(
-                    text = title,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = HeadingBlackColor
-                )
+        navigationIcon = {
+            if (onBackClick != null) {
+                Box(modifier = Modifier.padding(end = 8.dp)) {
+                    TopBarButton(
+                        iconRes = R.drawable.ic_back,
+                        onClick = onBackClick,
+                        contentDescription = "Cart"
+                    )
+                }
             }
+        },
+        title = {
+            Text(
+                text = title,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = HeadingBlackColor
+            )
+
         },
         actions = {
             Box(modifier = Modifier.padding(end = 8.dp)) {

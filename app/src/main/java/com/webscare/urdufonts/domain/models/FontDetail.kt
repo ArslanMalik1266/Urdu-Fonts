@@ -15,4 +15,8 @@ data class FontDetail(
     val fontFamily: String,        // e.g. "Urdu Font Family"
     val weightSamples: List<FontWeightSample> = emptyList(),
     val aboutText: String = "",
+    val language: String = "Urdu",
+    val developer: String = "R.Balvardi",
+    val fileSize: String = "52KB",
+    val format: String = "True Type Font"
 )

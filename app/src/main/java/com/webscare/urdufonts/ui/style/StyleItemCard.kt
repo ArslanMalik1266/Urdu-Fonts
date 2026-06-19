@@ -47,7 +47,9 @@ fun StyleItemCard(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .addPressEffect()
+            .addPressEffect{
+                onClick()
+            }
             .clip(RoundedCornerShape(12.dp))
             .background(
                 brush = Brush.horizontalGradient(

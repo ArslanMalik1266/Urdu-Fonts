@@ -25,7 +25,7 @@ fun CustomSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
-    valueRange: ClosedFloatingPointRange<Float> = 12f..48f
+    valueRange: ClosedFloatingPointRange<Float> = 12f..40f
 ) {
     Slider(
         value = value,

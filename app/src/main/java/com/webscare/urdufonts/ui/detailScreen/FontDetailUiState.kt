@@ -7,6 +7,7 @@ enum class DetailTab(val label: String) {
     PREVIEW("Preview"),
     STYLES("Styles"),
     ABOUT("About"),
+    INFO("Info")
 }
 
 data class FontDetailUiState(
