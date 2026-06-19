@@ -26,7 +26,7 @@ fun TopBarButton(
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconSize: Int = 24
+    iconSize: Int = 16
 ) {
     Box(
         contentAlignment = Alignment.Center,

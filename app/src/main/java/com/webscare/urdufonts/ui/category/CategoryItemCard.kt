@@ -1,0 +1,85 @@
+package com.webscare.urdufonts.ui.category
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Text
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import com.webscare.urdufonts.domain.models.CategoryItem
+import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.theme.GreyColor
+import com.webscare.urdufonts.ui.util.addPressEffect
+
+@Composable
+fun CategoryItemCard(
+    category: CategoryItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .addPressEffect()
+            .clip(RoundedCornerShape(16.dp))
+            .drawWithCache {
+                val glowCenter = Offset(size.width / 2f, size.height / 2f)
+                val glowRadius = size.maxDimension * 0.62f
+                val brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF57C073).copy(alpha = 0.0f),
+                        Color(0xFF57C073).copy(alpha = 0.0f),
+                        Color(0xFF57C073).copy(alpha = 0.05f),
+                        Color(0xFF57C073).copy(alpha = 0.1f)
+                    ),
+                    center = glowCenter,
+                    radius = glowRadius
+                )
+                onDrawBehind {
+                    drawRect(brush = brush)
+                }
+            }
+            .border(
+                width = 1.dp,
+                color = GreyColor.copy(alpha = 0.05f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+    ) {
+        Text(
+            text = category.title,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            color = GreyColor,
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp
+        )
+
+        Text(
+            text = category.urduText,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = AppColor,
+            textAlign = TextAlign.Center
+        )
+    }
+}

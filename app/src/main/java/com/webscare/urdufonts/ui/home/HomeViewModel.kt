@@ -1,4 +1,4 @@
-package com.webscare.urdufonts.ui
+package com.webscare.urdufonts.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,14 +6,13 @@ import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.domain.usecases.BuildFontListUseCase
 import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
-import com.webscare.urdufonts.ui.home.HomeUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MainViewModel(
+class HomeViewModel(
     private val getFontsUseCase: GetFontsUseCase,
     private val buildFontListUseCase: BuildFontListUseCase,
     private val getBannersUseCase: GetBannersUseCase

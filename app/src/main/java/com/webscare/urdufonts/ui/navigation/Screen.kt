@@ -5,4 +5,5 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object styles : Screen("styles")
     object categories : Screen("categories")
+    object fontDetail : Screen("fontDetail")
 }

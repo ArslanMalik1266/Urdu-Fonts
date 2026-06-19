@@ -32,14 +32,21 @@ import com.webscare.urdufonts.ui.util.addPressEffect
 fun FontItemCard(
     fontItem: FontItem,
     onDownloadClick: (FontItem) -> Unit,
+    onFontClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .addPressEffect { onFontClick() },
         shape = RoundedCornerShape(12.dp),
+
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp).addPressEffect()) {
+        Column(
+            modifier = Modifier
+                .padding(vertical = 16.dp, horizontal = 8.dp)
+        ) {
             FontItemHeader(fontItem = fontItem)
             FontItemPreview(fontItem = fontItem, onDownloadClick = onDownloadClick)
 
@@ -120,7 +127,9 @@ private fun FontItemPreview(
         Image(
             painter = painterResource(id = fontItem.previewImage),
             contentDescription = fontItem.name,
-            modifier = Modifier.weight(1f).height(32.dp),
+            modifier = Modifier
+                .weight(1f)
+                .height(32.dp),
             alignment = Alignment.CenterEnd,
         )
     }
