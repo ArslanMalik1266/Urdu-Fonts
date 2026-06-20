@@ -26,6 +26,7 @@ class StylesViewModel(
 
             getStylesUseCase()
                 .onSuccess { styles ->
+                    println("Styles: $styles")
                     _uiState.update {
                         it.copy(
                             isLoading = false,

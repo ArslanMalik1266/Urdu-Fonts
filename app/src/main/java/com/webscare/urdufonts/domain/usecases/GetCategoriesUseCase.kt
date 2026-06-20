@@ -6,7 +6,5 @@ import com.webscare.urdufonts.domain.repo.CategoriesRepository
 class GetCategoriesUseCase(
     private val repository: CategoriesRepository
 ) {
-    suspend operator fun invoke(): Result<List<CategoryItem>> {
-        return repository.getCategories()
-    }
+    suspend operator fun invoke(): Result<List<CategoryItem>> = repository.getCategories()
 }

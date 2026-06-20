@@ -13,9 +13,9 @@ import com.webscare.urdufonts.domain.repo.StylesRepository
 import org.koin.dsl.module
 
 val dataModule = module {
-    single<FontRepository> { FontRepositoryImpl() }
-    single <BannerRepository>{ BannerRepositoryImpl() }
-    single<StylesRepository> { StylesRepositoryImpl() }
-    single<CategoriesRepository> { CategoriesRepositoryImpl() }
+    single<FontRepository> { FontRepositoryImpl(apiService = get()) }
+    single<BannerRepository> { BannerRepositoryImpl() }
+    single<StylesRepository> { StylesRepositoryImpl(apiService = get()) }
+    single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get()) }
     single<FontDetailRepository> { FontDetailRepositoryImpl() }
 }

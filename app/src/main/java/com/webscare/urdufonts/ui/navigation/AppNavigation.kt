@@ -1,16 +1,11 @@
 package com.webscare.urdufonts.ui.navigation
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,8 +17,11 @@ import com.webscare.urdufonts.ui.baseScreen.MyBottomNavigationBar
 import com.webscare.urdufonts.ui.category.CategoriesScreen
 import com.webscare.urdufonts.ui.detailScreen.FontDetailScreen
 import com.webscare.urdufonts.ui.home.HomeScreen
+import com.webscare.urdufonts.ui.home.drawer.AppDrawerContent
+import com.webscare.urdufonts.ui.home.drawer.DrawerMenuItem
 import com.webscare.urdufonts.ui.onboarding.OnboardingScreen
 import com.webscare.urdufonts.ui.onboarding.OnboardingViewModel
+import com.webscare.urdufonts.ui.profile.ProfileScreen
 import com.webscare.urdufonts.ui.style.StylesScreen
 import kotlinx.coroutines.launch
 
@@ -49,10 +47,17 @@ fun AppNavigation() {
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                Text("Drawer Item 1", modifier = Modifier.padding(16.dp))
-                Text("Drawer Item 2", modifier = Modifier.padding(16.dp))
-            }
+            AppDrawerContent(
+                onCloseDrawer   = { scope.launch { drawerState.close() } },
+                onMenuItemClick = { item ->
+                    scope.launch { drawerState.close() }
+                    when (item) {
+                        is DrawerMenuItem.Profile -> navController.navigate("profile")
+                        else -> {}
+                    }
+                },
+                onLoginClick = { navController.navigate("profile") }
+            )
         }
     ) {
         BaseScreen(
@@ -110,6 +115,11 @@ fun AppNavigation() {
                             onFontClick = {
                                 navController.navigate(Screen.fontDetail.route)
                             }
+                        )
+                    }
+                    composable(Screen.Profile.route) {
+                        ProfileScreen(
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
                 }

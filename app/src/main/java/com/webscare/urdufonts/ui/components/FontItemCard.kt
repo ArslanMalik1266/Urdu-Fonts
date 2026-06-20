@@ -1,7 +1,5 @@
 package com.webscare.urdufonts.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.content.MediaType.Companion.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,16 +14,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.ui.theme.GreyColor
-import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.util.addPressEffect
 
 @Composable
@@ -40,7 +35,6 @@ fun FontItemCard(
             .fillMaxWidth()
             .addPressEffect { onFontClick() },
         shape = RoundedCornerShape(12.dp),
-
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
@@ -49,7 +43,6 @@ fun FontItemCard(
         ) {
             FontItemHeader(fontItem = fontItem)
             FontItemPreview(fontItem = fontItem, onDownloadClick = onDownloadClick)
-
         }
         HorizontalDivider(
             thickness = 0.5.dp,
@@ -77,7 +70,7 @@ private fun FontItemHeader(fontItem: FontItem) {
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = fontItem.style,
+                text = fontItem.primaryStyleName,
                 fontSize = 10.sp,
                 color = GreyColor.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Medium
@@ -89,7 +82,7 @@ private fun FontItemHeader(fontItem: FontItem) {
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = fontItem.category,
+                text = fontItem.primaryCategoryName,
                 fontSize = 10.sp,
                 color = GreyColor.copy(alpha = 0.5f),
                 fontWeight = FontWeight.Medium
@@ -124,13 +117,13 @@ private fun FontItemPreview(
             onDownloadClick = false,
             onClick = { onDownloadClick(fontItem) }
         )
-        Image(
-            painter = painterResource(id = fontItem.previewImage),
+        AsyncImage(
+            model = fontItem.featureImageUrl,
             contentDescription = fontItem.name,
             modifier = Modifier
                 .weight(1f)
                 .height(32.dp),
-            alignment = Alignment.CenterEnd,
+            alignment = Alignment.CenterEnd
         )
     }
 }
