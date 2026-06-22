@@ -5,7 +5,12 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object styles : Screen("styles")
     object categories : Screen("categories")
-    object fontDetail : Screen("fontDetail")
-    object fontListScreen : Screen("fontListScreen")
+    object fontDetail : Screen("fontDetail/{fontId}") {
+        fun createRoute(fontId: String) = "fontDetail/$fontId"
+    }
+    object fontListScreen : Screen("fontListScreen/{filterType}/{filterValue}/{title}") {
+        fun createRoute(filterType: String, filterValue: String, title: String) =
+            "fontListScreen/$filterType/$filterValue/$title"
+    }
     object Profile : Screen("profile")
 }

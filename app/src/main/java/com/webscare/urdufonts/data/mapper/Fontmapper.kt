@@ -1,16 +1,23 @@
 package com.webscare.urdufonts.data.mapper
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.webscare.urdufonts.data.local.entity.FontEntity
 import com.webscare.urdufonts.data.remote.NetworkConstants
-import com.webscare.urdufonts.data.remote.dto.FontDto
 import com.webscare.urdufonts.data.remote.dto.FontClassifierDto
-import com.webscare.urdufonts.domain.models.FontItem
+import com.webscare.urdufonts.data.remote.dto.FontDto
 import com.webscare.urdufonts.domain.models.FontClassifier
+import com.webscare.urdufonts.domain.models.FontItem
 
+private val gson = Gson()
 
 private fun String?.toFullImageUrl(): String? {
     if (this.isNullOrBlank()) return null
     return NetworkConstants.IMAGE_BASE_URL + this
 }
+
+// ── Network DTO → Domain ──────────────────────────────────────────────────────
+
 fun FontClassifierDto.toDomain(): FontClassifier {
     return FontClassifier(
         id = id,
@@ -35,8 +42,51 @@ fun FontDto.toDomain(): FontItem {
         cardImageUrl = cardImage.toFullImageUrl(),
         fontFileUrl = fontFile.toFullImageUrl(),
         previewFileUrl = previewFile.toFullImageUrl(),
-        weightCount = fontWeight?.toIntOrNull() ?: 1,
-        categories = categories?.map { it.toDomain() },   // ← safe call
+        weightCount = fontWeight ?: "1",
+        categories = categories?.map { it.toDomain() },
         styles = styles?.map { it.toDomain() }
+    )
+}
+
+// ── Domain → Room Entity ──────────────────────────────────────────────────────
+
+fun FontItem.toEntity(): FontEntity = FontEntity(
+    id             = id,
+    name           = name,
+    slug           = slug,
+    language       = language,
+    description    = description,
+    developer      = developer,
+    fontFamily     = fontFamily,
+    tags           = tags.joinToString(","),
+    featureImageUrl = featureImageUrl,
+    cardImageUrl   = cardImageUrl,
+    fontFileUrl    = fontFileUrl,
+    previewFileUrl = previewFileUrl,
+    weightCount    = weightCount,
+    categoriesJson = gson.toJson(categories ?: emptyList<FontClassifier>()),
+    stylesJson     = gson.toJson(styles ?: emptyList<FontClassifier>())
+)
+
+// ── Room Entity → Domain ──────────────────────────────────────────────────────
+
+fun FontEntity.toDomain(): FontItem {
+    val classifierType = object : TypeToken<List<FontClassifier>>() {}.type
+    return FontItem(
+        id             = id,
+        name           = name,
+        slug           = slug,
+        language       = language,
+        description    = description,
+        developer      = developer,
+        fontFamily     = fontFamily,
+        tags           = if (tags.isBlank()) emptyList() else tags.split(",").map { it.trim() },
+        featureImageUrl = featureImageUrl,
+        cardImageUrl   = cardImageUrl,
+        fontFileUrl    = fontFileUrl,
+        previewFileUrl = previewFileUrl,
+        weightCount    = weightCount,
+        categories     = gson.fromJson(categoriesJson, classifierType),
+        styles         = gson.fromJson(stylesJson, classifierType)
     )
 }

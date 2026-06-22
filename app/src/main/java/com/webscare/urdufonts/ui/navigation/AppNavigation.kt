@@ -7,10 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.webscare.urdufonts.ui.fontList.FontListScreen
 import com.webscare.urdufonts.ui.baseScreen.BaseScreen
 import com.webscare.urdufonts.ui.baseScreen.MyBottomNavigationBar
@@ -48,7 +50,7 @@ fun AppNavigation() {
         drawerState = drawerState,
         drawerContent = {
             AppDrawerContent(
-                onCloseDrawer   = { scope.launch { drawerState.close() } },
+                onCloseDrawer = { scope.launch { drawerState.close() } },
                 onMenuItemClick = { item ->
                     scope.launch { drawerState.close() }
                     when (item) {
@@ -85,35 +87,65 @@ fun AppNavigation() {
                     composable(Screen.Home.route) {
                         HomeScreen(
                             onMenuClick = { scope.launch { drawerState.open() } },
-                            onFontClick = {
-                                navController.navigate(Screen.fontDetail.route)
-                            })
+                            onFontClick = { fontId ->
+                                navController.navigate(Screen.fontDetail.createRoute(fontId))
+                            }
+                        )
                     }
                     composable(Screen.styles.route) {
                         StylesScreen(
                             onCartClick = { },
-                            onStyleClick = {
-                                navController.navigate(Screen.fontListScreen.route)
+                            onStyleClick = { styleItem ->
+                                navController.navigate(
+                                    Screen.fontListScreen.createRoute(
+                                        filterType = "style",
+                                        filterValue = styleItem.slug,
+                                        title = "${styleItem.title} Fonts"
+                                    )
+                                )
                             }
                         )
                     }
                     composable(Screen.categories.route) {
                         CategoriesScreen(
                             onCartClick = { },
-                            onCategoryClick = {
-                                navController.navigate(Screen.fontListScreen.route)
+                            onCategoryClick = { categoryItem ->
+                                navController.navigate(
+                                    Screen.fontListScreen.createRoute(
+                                        filterType = "category",
+                                        filterValue = categoryItem.slug,
+                                        title = "${categoryItem.title} Fonts"
+                                    )
+                                )
                             }
                         )
                     }
-                    composable(Screen.fontDetail.route) {
-                        FontDetailScreen()
+                    composable(
+                        route = Screen.fontDetail.route,
+                        arguments = listOf(
+                            navArgument("fontId") {
+                                type = NavType.StringType
+                            }
+                        )
+                    ) {
+                        FontDetailScreen(
+                            onBackClick = { navController.popBackStack() }
+                        )
                     }
-                    composable(Screen.fontListScreen.route) {
+                    composable(
+                        route = Screen.fontListScreen.route,
+                        arguments = listOf(
+                            navArgument("filterType") { type = NavType.StringType },
+                            navArgument("filterValue") { type = NavType.StringType },
+                            navArgument("title") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val title = backStackEntry.arguments?.getString("title") ?: "Urdu Fonts"
                         FontListScreen(
-                            title = "Urdu Fonts",
+                            title = title,
                             onBackClick = { navController.popBackStack() },
-                            onFontClick = {
-                                navController.navigate(Screen.fontDetail.route)
+                            onFontClick = { fontId ->
+                                navController.navigate(Screen.fontDetail.createRoute(fontId))
                             }
                         )
                     }

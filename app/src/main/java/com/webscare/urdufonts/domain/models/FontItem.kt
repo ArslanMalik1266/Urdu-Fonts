@@ -13,7 +13,7 @@ data class FontItem(
     val cardImageUrl: String?,
     val fontFileUrl: String?,
     val previewFileUrl: String?,
-    val weightCount: Int,
+    val weightCount: String,
     val categories: List<FontClassifier>?,
     val styles: List<FontClassifier>?
 ) {

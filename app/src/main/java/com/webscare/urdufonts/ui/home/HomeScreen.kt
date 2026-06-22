@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,12 +44,17 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeScreen(
     onMenuClick: () -> Unit,
-    onFontClick: () -> Unit,
+    onFontClick: (fontId: String) -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val focusManager = LocalFocusManager.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures(onTap = { focusManager.clearFocus() })
+        }) {
 
         Scaffold(
             topBar = {
@@ -65,8 +73,11 @@ fun HomeScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     CustomSearchBar(
                         query = uiState.searchQuery,
-                        onQueryChange = {},
-                        modifier = Modifier.padding(horizontal = 0.dp)
+                        onQueryChange = { viewModel.updateSearchQuery(it) },
+                        modifier = Modifier.padding(horizontal = 0.dp),
+                        onDone = {
+                            focusManager.clearFocus() // This is the command that clears the focus
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -133,9 +144,8 @@ fun HomeScreen(
                                     is FontListItem.Font -> FontItemCard(
                                         fontItem = item.fontItem,
                                         onDownloadClick = {},
-                                        onFontClick = { onFontClick() },
+                                        onFontClick = { onFontClick(item.fontItem.id.toString()) },
                                         modifier = Modifier.padding(horizontal = 16.dp)
-
                                     )
 
                                     is FontListItem.Banner -> BannerCard(
@@ -144,7 +154,7 @@ fun HomeScreen(
                                     )
                                 }
                             }
-                            item{
+                            item {
                                 Spacer(modifier = Modifier.height(40.dp))
                             }
                         }

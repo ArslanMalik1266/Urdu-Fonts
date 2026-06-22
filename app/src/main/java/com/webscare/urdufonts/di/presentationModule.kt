@@ -1,5 +1,6 @@
 package com.webscare.urdufonts.di
 
+import com.webscare.urdufonts.ui.AppInitViewModel
 import com.webscare.urdufonts.ui.category.CategoriesViewModel
 import com.webscare.urdufonts.ui.detailScreen.FontDetailViewModel
 import com.webscare.urdufonts.ui.fontList.FontListViewModel
@@ -10,10 +11,12 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val presentationModule = module {
+    single { AppInitViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get()) }
     viewModel { StylesViewModel(get()) }
     viewModel { CategoriesViewModel(get()) }
-    viewModel { FontDetailViewModel(get()) }
-    viewModel { FontListViewModel() }
+    // Pass get() to resolve SavedStateHandle injection automatically
+    viewModel { FontDetailViewModel(get(), get()) }
+    viewModel { FontListViewModel(get(), get()) } // Only needs GetFontsUseCase and SavedStateHandle
     viewModel { ProfileViewModel() }
 }

@@ -55,7 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.webscare.urdufonts.R
-import com.webscare.urdufonts.domain.models.FontDetail
+import com.webscare.urdufonts.domain.models.FontClassifier
+import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.ui.components.AnimatedDownloadButton
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.DarkGreen
@@ -64,6 +65,10 @@ import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.util.CustomSlider
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+
+// Default preview sample shown when the font item has no dedicated preview string.
+// (FontItem only carries previewFileUrl — a file link — not raw display text.)
+private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,7 +157,6 @@ fun FontDetailScreen(
 }
 
 // ─── Visible fraction helper ────────────────────────────────────────────────
-// Returns 0..1: how much of the section is currently visible on screen
 private fun visibleFraction(
     sectionY: Float,
     sectionH: Float,
@@ -208,7 +212,7 @@ private fun FontDetailContent(
 
     val scrollDerivedTab = fractions.maxByOrNull { it.value }?.key ?: DetailTab.FONT
 
-    // ✅ User tap overrides scroll spy; null means scroll spy is in control
+    // User tap overrides scroll spy; null means scroll spy is in control
     val activeTab = userSelectedTab ?: scrollDerivedTab
 
     var lastScrollValue by remember { mutableStateOf(0) }
@@ -232,6 +236,10 @@ private fun FontDetailContent(
         onTabSelected(activeTab)
     }
 
+    // FontItem doesn't carry a dedicated "previewText" field (only a file URL),
+    // so we fall back to a standard Urdu sample sentence for the live preview.
+    val previewText = DEFAULT_PREVIEW_TEXT
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -241,8 +249,8 @@ private fun FontDetailContent(
             selectedTab = activeTab,
             onTabSelected = { tab ->
                 onTabSelected(tab)
-                userSelectedTab = tab       // ✅ lock immediately on tap
-                isUserScrolling = true      // ✅ mark programmatic scroll started
+                userSelectedTab = tab       // lock immediately on tap
+                isUserScrolling = true      // mark programmatic scroll started
                 coroutineScope.launch {
                     val target = when (tab) {
                         DetailTab.FONT    -> 0
@@ -271,16 +279,15 @@ private fun FontDetailContent(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 FontPreviewCard(
-                    previewText = detail.previewText,
+                    previewText = previewText,
                     fontSizePx = uiState.previewFontSizePx,
                     isBoldEnabled = uiState.isBoldEnabled,
                     isUnderlineEnabled = uiState.isUnderlineEnabled
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 MetadataRow(
-                    weightsCount = detail.weightsCount,
-                    category = detail.category,
-                    fontFamily = detail.fontFamily
+                    fontWeight = detail.weightCount.toString(),
+                    categories = detail.categories ?: emptyList()
                 )
             }
 
@@ -297,7 +304,7 @@ private fun FontDetailContent(
                 SectionHeading(text = "Preview")
                 Spacer(modifier = Modifier.height(8.dp))
                 PreviewControlsSection(
-                    previewText = detail.previewText,
+                    previewText = previewText,
                     fontSizePx = uiState.previewFontSizePx,
                     isBoldEnabled = uiState.isBoldEnabled,
                     isUnderlineEnabled = uiState.isUnderlineEnabled,
@@ -319,8 +326,10 @@ private fun FontDetailContent(
             ) {
                 SectionHeading(text = "Styles")
                 Spacer(modifier = Modifier.height(8.dp))
-                detail.weightSamples.forEach { sample ->
-                    WeightSampleRow(label = sample.label, urduText = sample.urduText)
+                // Real style names from the API (e.g. "Black", "Bold") —
+                // no fake/numbered placeholders.
+                detail.styles?.forEach { style ->
+                    WeightSampleRow(label = style.title, urduText = previewText)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -335,7 +344,7 @@ private fun FontDetailContent(
                         aboutSectionH = coords.size.height.toFloat()
                     }
             ) {
-                AboutSection(aboutText = detail.aboutText)
+                AboutSection(aboutText = detail.description)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -425,9 +434,8 @@ private fun FontPreviewCard(
 
 @Composable
 private fun MetadataRow(
-    weightsCount: Int,
-    category: String,
-    fontFamily: String,
+    fontWeight: String,
+    categories: List<FontClassifier>,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -435,10 +443,12 @@ private fun MetadataRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = "$weightsCount Weights", fontSize = 12.sp, color = GreyColor)
+        Text(text = "Weight: $fontWeight", fontSize = 12.sp, color = GreyColor)
         Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f))
-        MetadataChip(text = category)
-        MetadataChip(text = fontFamily)
+
+        categories.forEach { category ->
+            MetadataChip(text = category.title)
+        }
     }
 }
 
@@ -613,7 +623,7 @@ private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun InfoSection(detail: FontDetail, modifier: Modifier = Modifier) {
+private fun InfoSection(detail: FontItem, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         SectionHeading(text = "Info")
         Spacer(modifier = Modifier.height(8.dp))
@@ -625,7 +635,7 @@ private fun InfoSection(detail: FontDetail, modifier: Modifier = Modifier) {
                 .padding(vertical = 4.dp)
         ) {
             Column {
-                InfoRow(iconRes = R.drawable.ic_weights,     label = "Weights",        value = detail.weightsCount.toString())
+                InfoRow(iconRes = R.drawable.ic_weights,     label = "Weight",         value = detail.weightCount.toString())
                 InfoDivider()
                 InfoRow(iconRes = R.drawable.ic_language,    label = "Language",       value = detail.language)
                 InfoDivider()
@@ -633,9 +643,7 @@ private fun InfoSection(detail: FontDetail, modifier: Modifier = Modifier) {
                 InfoDivider()
                 InfoRow(iconRes = R.drawable.ic_font_family, label = "Font Family",    value = detail.fontFamily)
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_file_size,   label = "File Size",      value = detail.fileSize)
-                InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_format,      label = "Format",         value = detail.format)
+                InfoRow(iconRes = R.drawable.ic_format,      label = "Format",         value = "TTF")
             }
         }
     }

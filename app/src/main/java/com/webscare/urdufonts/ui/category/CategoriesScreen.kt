@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.category
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.webscare.urdufonts.domain.models.CategoryItem
@@ -38,6 +41,8 @@ fun CategoriesScreen(
     viewModel: CategoriesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val focusManager = LocalFocusManager.current
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -50,12 +55,18 @@ fun CategoriesScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .background(Color.White)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    }
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     CustomSearchBar(
                         query = uiState.searchQuery,
                         onQueryChange = viewModel::onSearchQueryChange,
-                        modifier = Modifier.padding(horizontal = 0.dp)
+                        modifier = Modifier.padding(horizontal = 0.dp),
+                        onDone = {
+                            focusManager.clearFocus() // This is the command that clears the focus
+                        }
                     )
                 }
 
@@ -108,7 +119,7 @@ fun CategoriesScreen(
                                     onClick = { onCategoryClick(category) }
                                 )
                             }
-                            item{
+                            item {
                                 Spacer(modifier = Modifier.height(40.dp))
                             }
                         }

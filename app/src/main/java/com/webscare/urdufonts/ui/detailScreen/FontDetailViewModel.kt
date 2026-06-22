@@ -1,5 +1,6 @@
 package com.webscare.urdufonts.ui.detailScreen
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.webscare.urdufonts.domain.usecases.GetFontDetailUseCase
@@ -10,14 +11,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FontDetailViewModel(
-    private val getFontDetailUseCase: GetFontDetailUseCase
+    private val getFontDetailUseCase: GetFontDetailUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FontDetailUiState())
     val uiState: StateFlow<FontDetailUiState> = _uiState.asStateFlow()
-
-    // TODO: replace with fontId passed via navigation once nav is wired up
-    private val placeholderFontId = "aref_ruqaa"
+    private val fontId: String = checkNotNull(savedStateHandle["fontId"])
 
     init {
         loadFontDetail()
@@ -26,8 +26,7 @@ class FontDetailViewModel(
     private fun loadFontDetail() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-            getFontDetailUseCase(placeholderFontId)
+            getFontDetailUseCase(fontId) // Fetches specific font details
                 .onSuccess { detail ->
                     _uiState.update {
                         it.copy(isLoading = false, fontDetail = detail)

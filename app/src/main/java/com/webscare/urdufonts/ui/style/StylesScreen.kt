@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.style
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,8 +46,14 @@ fun StylesScreen(
     viewModel: StylesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val focusManager = LocalFocusManager.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures(onTap = { focusManager.clearFocus() })
+        }) {
         Scaffold(
             topBar = {
                 SimpleTopAppBar(title = "Styles", onCartClick = onCartClick)
@@ -60,7 +69,10 @@ fun StylesScreen(
                     CustomSearchBar(
                         query = uiState.searchQuery,
                         onQueryChange = viewModel::onSearchQueryChange,
-                        modifier = Modifier.padding(horizontal = 0.dp)
+                        modifier = Modifier.padding(horizontal = 0.dp),
+                        onDone = {
+                            focusManager.clearFocus() // This is the command that clears the focus
+                        }
                     )
                 }
 
@@ -111,7 +123,7 @@ fun StylesScreen(
                                     onClick = { onStyleClick(style) }
                                 )
                             }
-                            item{
+                            item {
                                 Spacer(modifier = Modifier.height(40.dp))
                             }
                         }

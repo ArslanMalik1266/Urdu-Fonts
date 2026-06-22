@@ -3,6 +3,7 @@ package com.webscare.urdufonts.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.webscare.urdufonts.domain.models.FontItem
+import com.webscare.urdufonts.domain.models.FontListItem
 import com.webscare.urdufonts.domain.usecases.BuildFontListUseCase
 import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
@@ -37,10 +38,12 @@ class HomeViewModel(
             try {
                 allFonts = getFontsUseCase()
                 val banners = getBannersUseCase()
+                val processedList = buildFontListUseCase(allFonts, banners)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        fonts = buildFontListUseCase(allFonts, banners)
+                        allFonts = processedList,
+                        fonts = processedList
                     )
                 }
             } catch (e: Exception) {
@@ -51,6 +54,22 @@ class HomeViewModel(
                     it.copy(isLoading = false, errorMessage = e.message ?: "Something went wrong")
                 }
             }
+        }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _uiState.update { current ->
+            val filtered = if (query.isBlank()) {
+                current.allFonts // Use the existing processed list
+            } else {
+                current.allFonts.filter { item ->
+                    when (item) {
+                        is FontListItem.Font -> item.fontItem.name.contains(query, ignoreCase = true)
+                        is FontListItem.Banner -> false
+                    }
+                }
+            }
+            current.copy(searchQuery = query, fonts = filtered)
         }
     }
 

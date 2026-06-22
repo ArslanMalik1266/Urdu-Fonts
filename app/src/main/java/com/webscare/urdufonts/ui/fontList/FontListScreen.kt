@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.fontList
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.webscare.urdufonts.domain.models.FontListItem
@@ -36,10 +39,12 @@ import org.koin.androidx.compose.koinViewModel
 fun FontListScreen(
     title: String,
     onBackClick: () -> Unit,
-    onFontClick: () -> Unit,
-    viewModel: HomeViewModel = koinViewModel()
+    onFontClick: (fontId: String) -> Unit,
+    viewModel: FontListViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val focusManager = LocalFocusManager.current
+
 
     Scaffold(
         topBar = {
@@ -54,11 +59,17 @@ fun FontListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .background(Color.White)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { focusManager.clearFocus() })
+                }
         ) {
             CustomSearchBar(
                 query = uiState.searchQuery,
-                onQueryChange = {},
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                onQueryChange = viewModel::onSearchQueryChange,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                onDone = {
+                    focusManager.clearFocus() // This is the command that clears the focus
+                }
             )
 
             // ADD THIS: Handle loading and empty states like in HomeScreen
@@ -82,29 +93,16 @@ fun FontListScreen(
                     ) {
                         items(
                             items = uiState.fonts,
-                            key = { item ->
-                                when (item) {
-                                    is FontListItem.Font -> item.fontItem.id
-                                    is FontListItem.Banner -> item.bannerItem.id
-                                }
-                            }
-                        ) { item ->
-                            when (item) {
-                                is FontListItem.Font -> FontItemCard(
-                                    fontItem = item.fontItem,
-                                    onDownloadClick = {},
-                                    onFontClick = { onFontClick() },
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-
-                                )
-
-                                is FontListItem.Banner -> BannerCard(
-                                    bannerItem = item.bannerItem,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
+                            key   = { it.id }
+                        ) { fontItem ->
+                            FontItemCard(
+                                fontItem        = fontItem,
+                                onDownloadClick = {},
+                                onFontClick     = { onFontClick(fontItem.id.toString()) },
+                                modifier        = Modifier.padding(horizontal = 16.dp)
+                            )
                         }
-                        item{
+                        item {
                             Spacer(modifier = Modifier.height(40.dp))
                         }
                     }

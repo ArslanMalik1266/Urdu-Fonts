@@ -4,4 +4,5 @@ import com.webscare.urdufonts.domain.models.FontItem
 
 interface FontRepository {
     suspend fun getFonts(): List<FontItem>
+    suspend fun getFontById(fontId: String): FontItem?
 }

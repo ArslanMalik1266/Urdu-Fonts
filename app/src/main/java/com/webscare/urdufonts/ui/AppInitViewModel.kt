@@ -1,0 +1,42 @@
+package com.webscare.urdufonts.ui
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.webscare.urdufonts.domain.usecases.GetCategoriesUseCase
+import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
+import com.webscare.urdufonts.domain.usecases.GetStylesUseCase
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+class AppInitViewModel(
+    private val getFontsUseCase: GetFontsUseCase,
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val getStylesUseCase: GetStylesUseCase
+) : ViewModel() {
+
+    private val _isReady = MutableStateFlow(false)
+    val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
+
+    init {
+        preloadAll()
+    }
+
+    private fun preloadAll() {
+        viewModelScope.launch {
+            // All 3 run in parallel
+            val fontsDeferred      = async { runCatching { getFontsUseCase() } }
+            val categoriesDeferred = async { getCategoriesUseCase() }
+            val stylesDeferred     = async { getStylesUseCase() }
+
+            fontsDeferred.await()
+            categoriesDeferred.await()
+            stylesDeferred.await()
+
+            // Data is now cached in Room — all screens will load instantly
+            _isReady.value = true
+        }
+    }
+}

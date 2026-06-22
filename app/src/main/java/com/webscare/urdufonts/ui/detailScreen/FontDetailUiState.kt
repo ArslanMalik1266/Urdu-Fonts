@@ -1,6 +1,6 @@
 package com.webscare.urdufonts.ui.detailScreen
 
-import com.webscare.urdufonts.domain.models.FontDetail
+import com.webscare.urdufonts.domain.models.FontItem
 
 enum class DetailTab(val label: String) {
     FONT("Font"),
@@ -13,7 +13,7 @@ enum class DetailTab(val label: String) {
 data class FontDetailUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val fontDetail: FontDetail? = null,
+    val fontDetail: FontItem? = null,
     val selectedTab: DetailTab = DetailTab.FONT,
     // Preview controls — visual scaffolding only for now, not yet wired to live render
     val previewFontSizePx: Float = 20f,
