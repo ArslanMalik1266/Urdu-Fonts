@@ -60,6 +60,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -592,46 +593,6 @@ private fun PreviewControlsSection(
 
     Column(modifier = modifier.fillMaxWidth()) {
 
-        // ── Sample text chips ────────────────────────────────────────
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 2.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(URDU_SAMPLE_TEXTS) { sample ->
-                val isSelected = previewText == sample
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            if (isSelected) AppColor.copy(alpha = 0.12f)
-                            else GreyColor.copy(alpha = 0.07f)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = if (isSelected) AppColor.copy(alpha = 0.5f)
-                            else Color.Transparent,
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onPreviewTextChange(sample) }
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = sample,
-                        fontSize = 13.sp,
-                        color = if (isSelected) AppColor else GreyColor,
-                        fontFamily = fontFamily
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // ── Keyboard tip banner (only when focused) ──────────────────
         AnimatedVisibility(
             visible = isFocused,
             enter = fadeIn() + expandVertically(),
@@ -647,7 +608,7 @@ private fun PreviewControlsSection(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text(text = "💡", fontSize = 12.sp)
+//                    Text(text = "💡", fontSize = 12.sp)
                     Text(
                         text = "Go to Settings → Language → Add Urdu keyboard",
                         fontSize = 11.sp,
@@ -660,6 +621,8 @@ private fun PreviewControlsSection(
         }
 
         // ── Editable text field ──────────────────────────────────────
+        val focusManager = LocalFocusManager.current
+
         BasicTextField(
             value = previewText,
             onValueChange = onPreviewTextChange,
@@ -673,7 +636,11 @@ private fun PreviewControlsSection(
                 lineHeight = 28.sp
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { focusRequester.freeFocus() }),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                }
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))

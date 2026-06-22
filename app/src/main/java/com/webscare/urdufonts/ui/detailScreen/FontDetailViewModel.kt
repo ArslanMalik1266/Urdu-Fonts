@@ -81,21 +81,35 @@ class FontDetailViewModel(
     private fun loadWeights(fontItem: FontItem) {
         viewModelScope.launch {
             getFontWeightsUseCase(fontItem).onSuccess { weightFiles ->
-                Log.d("FontDebug", "Weights found: ${weightFiles.size} → ${weightFiles.map { it.first }}")
-                val weightFamilies = weightFiles.map { (name, file) ->
+                val weightFamilies = weightFiles.map { (originalName, file) ->
+
+                    // 1. Clean the domain prefix
+                    val cleanName = originalName.replace("urdufonts.com", "", ignoreCase = true)
+
+                    // 2. Remove any trailing hyphen or space at the very end of the string
+                    val sanitizedString = cleanName.trimEnd('-', ' ')
+
+                    // 3. Split by hyphen
+                    val parts = sanitizedString.split("-")
+
+                    // 4. Find the last part that contains actual text
+                    // We filter out blank parts, so if you have "Spirit - Medium",
+                    // it finds "Medium". If you have "Spirit - ", it finds "Spirit".
+                    val weightName = parts.lastOrNull { it.isNotBlank() }?.trim() ?: "Regular"
+
                     val typeface = Typeface.createFromFile(file)
-                    Pair(name, FontFamily(typeface))
+                    Pair(weightName.replaceFirstChar { it.uppercase() }, FontFamily(typeface))
                 }
+
                 _fontWeightsState.value = weightFamilies
 
-                // Auto-select Regular if exists, otherwise first
+                // Auto-select "Regular" if exists, otherwise first
                 val regularIndex = weightFamilies.indexOfFirst {
                     it.first.equals("Regular", ignoreCase = true)
                 }
                 val autoIndex = if (regularIndex >= 0) regularIndex else 0
                 _selectedWeightIndex.value = autoIndex
 
-                // Update preview font to the auto-selected weight
                 if (weightFamilies.isNotEmpty()) {
                     _fontFamilyState.value = weightFamilies[autoIndex].second
                 }
