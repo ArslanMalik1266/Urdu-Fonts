@@ -30,7 +30,7 @@ val dataModule = module {
     single { get<AppDatabase>().styleDao() }
 
     // ── Repositories ───────────────────────────────────────────────────────
-    single<FontRepository>       { FontRepositoryImpl(apiService = get(), fontDao = get()) }
+    single<FontRepository>       { FontRepositoryImpl(apiService = get(), fontDao = get(), context = get() ) }
     single<BannerRepository>     { BannerRepositoryImpl() }
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }
     single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get(), categoryDao = get()) }

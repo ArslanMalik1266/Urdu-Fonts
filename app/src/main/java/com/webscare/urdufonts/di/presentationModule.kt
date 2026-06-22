@@ -16,7 +16,7 @@ val presentationModule = module {
     viewModel { StylesViewModel(get()) }
     viewModel { CategoriesViewModel(get()) }
     // Pass get() to resolve SavedStateHandle injection automatically
-    viewModel { FontDetailViewModel(get(), get()) }
+    viewModel { FontDetailViewModel(get(), get(), get(), get()) }
     viewModel { FontListViewModel(get(), get()) } // Only needs GetFontsUseCase and SavedStateHandle
     viewModel { ProfileViewModel() }
 }

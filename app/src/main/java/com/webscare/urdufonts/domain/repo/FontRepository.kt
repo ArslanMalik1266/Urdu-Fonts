@@ -1,8 +1,13 @@
 package com.webscare.urdufonts.domain.repo
 
 import com.webscare.urdufonts.domain.models.FontItem
+import java.io.File
 
 interface FontRepository {
     suspend fun getFonts(): List<FontItem>
     suspend fun getFontById(fontId: String): FontItem?
+
+    suspend fun getFontFile(fontItem: FontItem): Result<File>
+    suspend fun getFontWeightFiles(fontItem: FontItem): Result<List<Pair<String, File>>>  // ← ADD
+
 }

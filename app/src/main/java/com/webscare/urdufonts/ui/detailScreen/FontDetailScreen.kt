@@ -1,5 +1,10 @@
 package com.webscare.urdufonts.ui.detailScreen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -10,6 +15,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,8 +25,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +51,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -47,7 +61,12 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,12 +82,17 @@ import com.webscare.urdufonts.ui.theme.DarkGreen
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.util.CustomSlider
+import com.webscare.urdufonts.ui.util.ShimmerBox
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-// Default preview sample shown when the font item has no dedicated preview string.
-// (FontItem only carries previewFileUrl — a file link — not raw display text.)
 private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
+private val URDU_SAMPLE_TEXTS = listOf(
+    "بہتر کل کی امید",
+    "اللہ اکبر",
+    "پاکستان زندہ باد",
+    "محبت کی راہ میں"
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +106,9 @@ fun FontDetailScreen(
     var lastScrollValue by remember { mutableStateOf(0) }
     val scrollState = rememberScrollState()
     var isExpanded by remember { mutableStateOf(true) }
+    val fontFamily by viewModel.fontFamilyState.collectAsStateWithLifecycle()
+    val fontWeights by viewModel.fontWeightsState.collectAsStateWithLifecycle()
+    val selectedWeightIndex by viewModel.selectedWeightIndex.collectAsStateWithLifecycle()
 
     LaunchedEffect(scrollState.value) {
         val currentScroll = scrollState.value
@@ -145,6 +172,10 @@ fun FontDetailScreen(
                 FontDetailContent(
                     modifier = Modifier.padding(innerPadding),
                     uiState = uiState,
+                    fontFamily = fontFamily,
+                    fontWeights = fontWeights,
+                    selectedWeightIndex = selectedWeightIndex,
+                    onWeightSelected = viewModel::onWeightSelected,
                     onTabSelected = viewModel::onTabSelected,
                     onPreviewFontSizeChange = viewModel::onPreviewFontSizeChange,
                     onBoldToggle = viewModel::onBoldToggle,
@@ -156,7 +187,7 @@ fun FontDetailScreen(
     }
 }
 
-// ─── Visible fraction helper ────────────────────────────────────────────────
+// ─── Visible fraction helper ─────────────────────────────────────────────────
 private fun visibleFraction(
     sectionY: Float,
     sectionH: Float,
@@ -174,6 +205,10 @@ private fun visibleFraction(
 @Composable
 private fun FontDetailContent(
     uiState: FontDetailUiState,
+    fontFamily: FontFamily?,
+    fontWeights: List<Pair<String, FontFamily>>,
+    selectedWeightIndex: Int,
+    onWeightSelected: (Int) -> Unit,
     onTabSelected: (DetailTab) -> Unit,
     onPreviewFontSizeChange: (Float) -> Unit,
     onBoldToggle: () -> Unit,
@@ -211,8 +246,6 @@ private fun FontDetailContent(
     )
 
     val scrollDerivedTab = fractions.maxByOrNull { it.value }?.key ?: DetailTab.FONT
-
-    // User tap overrides scroll spy; null means scroll spy is in control
     val activeTab = userSelectedTab ?: scrollDerivedTab
 
     var lastScrollValue by remember { mutableStateOf(0) }
@@ -228,7 +261,6 @@ private fun FontDetailContent(
     LaunchedEffect(scrollState.isScrollInProgress) {
         if (!scrollState.isScrollInProgress && isUserScrolling) {
             isUserScrolling = false
-            // keep userSelectedTab locked
         }
     }
 
@@ -236,9 +268,7 @@ private fun FontDetailContent(
         onTabSelected(activeTab)
     }
 
-    // FontItem doesn't carry a dedicated "previewText" field (only a file URL),
-    // so we fall back to a standard Urdu sample sentence for the live preview.
-    val previewText = DEFAULT_PREVIEW_TEXT
+    var previewText by remember { mutableStateOf(DEFAULT_PREVIEW_TEXT) }
 
     Column(
         modifier = modifier
@@ -249,8 +279,8 @@ private fun FontDetailContent(
             selectedTab = activeTab,
             onTabSelected = { tab ->
                 onTabSelected(tab)
-                userSelectedTab = tab       // lock immediately on tap
-                isUserScrolling = true      // mark programmatic scroll started
+                userSelectedTab = tab
+                isUserScrolling = true
                 coroutineScope.launch {
                     val target = when (tab) {
                         DetailTab.FONT    -> 0
@@ -269,6 +299,7 @@ private fun FontDetailContent(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
+            // ── FONT section ─────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -281,6 +312,7 @@ private fun FontDetailContent(
                 FontPreviewCard(
                     previewText = previewText,
                     fontSizePx = uiState.previewFontSizePx,
+                    fontFamily = fontFamily,
                     isBoldEnabled = uiState.isBoldEnabled,
                     isUnderlineEnabled = uiState.isUnderlineEnabled
                 )
@@ -293,6 +325,7 @@ private fun FontDetailContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // ── PREVIEW section ──────────────────────────────────────
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -305,7 +338,9 @@ private fun FontDetailContent(
                 Spacer(modifier = Modifier.height(8.dp))
                 PreviewControlsSection(
                     previewText = previewText,
+                    onPreviewTextChange = { previewText = it },
                     fontSizePx = uiState.previewFontSizePx,
+                    fontFamily = fontFamily,
                     isBoldEnabled = uiState.isBoldEnabled,
                     isUnderlineEnabled = uiState.isUnderlineEnabled,
                     onFontSizeChange = onPreviewFontSizeChange,
@@ -316,6 +351,7 @@ private fun FontDetailContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // ── WEIGHTS section ──────────────────────────────────────
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -324,18 +360,65 @@ private fun FontDetailContent(
                         stylesSectionH = coords.size.height.toFloat()
                     }
             ) {
-                SectionHeading(text = "Styles")
-                Spacer(modifier = Modifier.height(8.dp))
-                // Real style names from the API (e.g. "Black", "Bold") —
-                // no fake/numbered placeholders.
-                detail.styles?.forEach { style ->
-                    WeightSampleRow(label = style.title, urduText = previewText)
-                    Spacer(modifier = Modifier.height(12.dp))
+                SectionHeading(text = "Weights")
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (fontWeights.isEmpty()) {
+                    // Shimmer while weights are loading
+                    repeat(3) {
+                        ShimmerBox(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                } else {
+                    fontWeights.forEachIndexed { index, (weightName, weightFamily) ->
+                        val isSelected = index == selectedWeightIndex
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (isSelected) AppColor.copy(alpha = 0.08f)
+                                    else GreyColor.copy(alpha = 0.05f)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isSelected) AppColor.copy(alpha = 0.4f)
+                                    else Color.Transparent,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { onWeightSelected(index) }
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = weightName,
+                                fontSize = 13.sp,
+                                color = if (isSelected) AppColor else GreyColor,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                            Text(
+                                text = previewText,
+                                fontSize = 16.sp,
+                                fontFamily = weightFamily,
+                                color = HeadingBlackColor
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // ── ABOUT section ────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -349,6 +432,7 @@ private fun FontDetailContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // ── INFO section ─────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
@@ -408,6 +492,7 @@ private fun DetailTabRow(
 private fun FontPreviewCard(
     previewText: String,
     fontSizePx: Float,
+    fontFamily: FontFamily?,
     isBoldEnabled: Boolean,
     isUnderlineEnabled: Boolean,
     modifier: Modifier = Modifier
@@ -421,14 +506,28 @@ private fun FontPreviewCard(
             .padding(horizontal = 8.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = previewText,
-            fontSize = fontSizePx.sp,
-            fontWeight = if (isBoldEnabled) FontWeight.Bold else FontWeight.Normal,
-            textDecoration = if (isUnderlineEnabled) TextDecoration.Underline else null,
-            color = HeadingBlackColor,
-            textAlign = TextAlign.Center
-        )
+        if (fontFamily == null) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                ShimmerBox(modifier = Modifier.fillMaxWidth(0.8f).height(20.dp))
+                ShimmerBox(modifier = Modifier.fillMaxWidth(0.5f).height(20.dp))
+            }
+        } else {
+            Text(
+                text = previewText,
+                fontSize = fontSizePx.sp,
+                fontFamily = fontFamily,
+                fontWeight = if (isBoldEnabled) FontWeight.Bold else FontWeight.Normal,
+                textDecoration = if (isUnderlineEnabled) TextDecoration.Underline else null,
+                color = HeadingBlackColor,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -445,7 +544,6 @@ private fun MetadataRow(
     ) {
         Text(text = "Weight: $fontWeight", fontSize = 12.sp, color = GreyColor)
         Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f))
-
         categories.forEach { category ->
             MetadataChip(text = category.title)
         }
@@ -479,7 +577,9 @@ private fun SectionHeading(text: String, modifier: Modifier = Modifier) {
 @Composable
 private fun PreviewControlsSection(
     previewText: String,
+    onPreviewTextChange: (String) -> Unit,
     fontSizePx: Float,
+    fontFamily: FontFamily?,
     isBoldEnabled: Boolean,
     isUnderlineEnabled: Boolean,
     onFontSizeChange: (Float) -> Unit,
@@ -487,25 +587,127 @@ private fun PreviewControlsSection(
     onUnderlineToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val focusRequester = remember { FocusRequester() }
+    var isFocused by remember { mutableStateOf(false) }
+
     Column(modifier = modifier.fillMaxWidth()) {
-        Box(
+
+        // ── Sample text chips ────────────────────────────────────────
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 2.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(URDU_SAMPLE_TEXTS) { sample ->
+                val isSelected = previewText == sample
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            if (isSelected) AppColor.copy(alpha = 0.12f)
+                            else GreyColor.copy(alpha = 0.07f)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = if (isSelected) AppColor.copy(alpha = 0.5f)
+                            else Color.Transparent,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onPreviewTextChange(sample) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = sample,
+                        fontSize = 13.sp,
+                        color = if (isSelected) AppColor else GreyColor,
+                        fontFamily = fontFamily
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // ── Keyboard tip banner (only when focused) ──────────────────
+        AnimatedVisibility(
+            visible = isFocused,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(AppColor.copy(alpha = 0.07f))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(text = "💡", fontSize = 12.sp)
+                    Text(
+                        text = "Go to Settings → Language → Add Urdu keyboard",
+                        fontSize = 11.sp,
+                        color = AppColor,
+                        lineHeight = 16.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
+        // ── Editable text field ──────────────────────────────────────
+        BasicTextField(
+            value = previewText,
+            onValueChange = onPreviewTextChange,
+            textStyle = TextStyle(
+                fontSize = 18.sp,
+                fontFamily = fontFamily,
+                fontWeight = if (isBoldEnabled) FontWeight.Bold else FontWeight.Normal,
+                textDecoration = if (isUnderlineEnabled) TextDecoration.Underline else null,
+                color = HeadingBlackColor,
+                textAlign = TextAlign.Center,
+                lineHeight = 28.sp
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { focusRequester.freeFocus() }),
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .background(GreyColor.copy(alpha = 0.06f))
-                .padding(horizontal = 12.dp, vertical = 14.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = previewText,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = GreyColor.copy(alpha = 0.5f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+                .background(
+                    if (isFocused) AppColor.copy(alpha = 0.04f)
+                    else GreyColor.copy(alpha = 0.06f)
+                )
+                .border(
+                    width = 1.dp,
+                    color = if (isFocused) AppColor.copy(alpha = 0.3f) else Color.Transparent,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 14.dp)
+                .focusRequester(focusRequester)
+                .onFocusChanged { isFocused = it.isFocused },
+            decorationBox = { innerTextField ->
+                Box(contentAlignment = Alignment.Center) {
+                    if (previewText.isEmpty()) {
+                        Text(
+                            text = "یہاں لکھیں...",
+                            fontSize = 16.sp,
+                            color = GreyColor.copy(alpha = 0.4f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
+
         Spacer(modifier = Modifier.height(12.dp))
+
+        // ── Size slider + bold/underline toggles ─────────────────────
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -562,32 +764,6 @@ private fun StyleToggleIcon(
 }
 
 @Composable
-private fun WeightSampleRow(
-    label: String,
-    urduText: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Box(
-            modifier = Modifier
-                .wrapContentSize()
-                .clip(RoundedCornerShape(12.dp))
-                .background(GreyColor.copy(alpha = 0.05f))
-                .padding(12.dp)
-        ) {
-            Text(text = label, fontSize = 13.sp, color = GreyColor)
-        }
-        Text(text = urduText, fontSize = 18.sp, fontWeight = FontWeight.Medium, color = HeadingBlackColor)
-    }
-}
-
-@Composable
 private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
     var isExpanded by remember { mutableStateOf(false) }
     var hasOverflow by remember { mutableStateOf(false) }
@@ -596,7 +772,7 @@ private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
         SectionHeading(text = "About")
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = aboutText,
+            text = AnnotatedString.fromHtml(aboutText),
             fontSize = 14.sp,
             lineHeight = 21.sp,
             color = GreyColor,
@@ -637,13 +813,13 @@ private fun InfoSection(detail: FontItem, modifier: Modifier = Modifier) {
             Column {
                 InfoRow(iconRes = R.drawable.ic_weights,     label = "Weight",         value = detail.weightCount.toString())
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_language,    label = "Language",       value = detail.language)
+                InfoRow(iconRes = R.drawable.ic_language,    label = "Language",        value = detail.language)
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_developer,   label = "Font Developer", value = detail.developer)
+                InfoRow(iconRes = R.drawable.ic_developer,   label = "Font Developer",  value = detail.developer)
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_font_family, label = "Font Family",    value = detail.fontFamily)
+                InfoRow(iconRes = R.drawable.ic_font_family, label = "Font Family",     value = detail.fontFamily)
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_format,      label = "Format",         value = "TTF")
+                InfoRow(iconRes = R.drawable.ic_format,      label = "Format",          value = "TTF")
             }
         }
     }

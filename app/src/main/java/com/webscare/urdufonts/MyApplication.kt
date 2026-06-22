@@ -11,6 +11,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.java.KoinJavaComponent.getKoin
+import java.io.File
 
 class MyApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
@@ -20,6 +21,7 @@ class MyApplication : Application(), ImageLoaderFactory {
             androidContext(this@MyApplication)
             modules(appModule)
         }
+        File(cacheDir, "font_previews").deleteRecursively()
         getKoin().get<AppInitViewModel>()
     }
 
