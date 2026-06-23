@@ -2,6 +2,7 @@ package com.webscare.urdufonts.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.webscare.urdufonts.domain.models.FontClassifier
 import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.domain.models.FontListItem
 import com.webscare.urdufonts.domain.usecases.BuildFontListUseCase
@@ -26,11 +27,13 @@ class HomeViewModel(
 
     private val _drawerUiState = MutableStateFlow(DrawerUiState())
     val drawerUiState: StateFlow<DrawerUiState> = _drawerUiState.asStateFlow()
+
     private var allFonts: List<FontItem> = emptyList()
 
     init {
         loadFonts()
     }
+
 
     private fun loadFonts() {
         viewModelScope.launch {
@@ -39,15 +42,24 @@ class HomeViewModel(
                 allFonts = getFontsUseCase()
                 val banners = getBannersUseCase()
                 val processedList = buildFontListUseCase(allFonts, banners)
+                val uniqueCategories = allFonts
+                    .flatMap { it.categories.orEmpty() }
+                    .distinctBy { it.slug }
+
+                val uniqueStyles = allFonts
+                    .flatMap { it.styles.orEmpty() }
+                    .distinctBy { it.slug }
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         allFonts = processedList,
-                        fonts = processedList
+                        fonts = processedList,
+                        availableCategories = uniqueCategories,
+                        availableStyles = uniqueStyles
                     )
                 }
             } catch (e: Exception) {
-                // 🔍 DEBUG — print full stack trace
                 e.printStackTrace()
                 println("=== CRASH DETAIL: ${e::class.java.name}: ${e.message} ===")
                 _uiState.update {
@@ -57,30 +69,117 @@ class HomeViewModel(
         }
     }
 
+    fun retry() = loadFonts()
+
+
     fun updateSearchQuery(query: String) {
         _uiState.update { current ->
-            val filtered = if (query.isBlank()) {
-                current.allFonts // Use the existing processed list
-            } else {
-                current.allFonts.filter { item ->
-                    when (item) {
-                        is FontListItem.Font -> item.fontItem.name.contains(query, ignoreCase = true)
-                        is FontListItem.Banner -> false
-                    }
-                }
-            }
-            current.copy(searchQuery = query, fonts = filtered)
+            current.copy(
+                searchQuery = query,
+                fonts = applyFilters(current.allFonts, query, current.selectedCategories, current.selectedStyles)
+            )
         }
     }
 
-    fun retry() {
-        loadFonts()
+    fun clearSearch() {
+        _uiState.update { current ->
+            current.copy(
+                searchQuery = "",
+                fonts = applyFilters(current.allFonts, "", current.selectedCategories, current.selectedStyles)
+            )
+        }
     }
+
+
+    fun showFilterSheet() {
+        _uiState.update { it.copy(isFilterSheetVisible = true) }
+    }
+
+    fun hideFilterSheet() {
+        _uiState.update {
+            it.copy(isFilterSheetVisible = false, expandedFilterSection = FilterSection.NONE)
+        }
+    }
+
+
+    fun toggleFilterSection(section: FilterSection) {
+        _uiState.update { current ->
+            val next = if (current.expandedFilterSection == section) FilterSection.NONE else section
+            current.copy(expandedFilterSection = next)
+        }
+    }
+
+
+    fun toggleCategory(slug: String) {
+        _uiState.update { current ->
+            current.copy(selectedCategories = current.selectedCategories.toggle(slug))
+        }
+    }
+
+    fun toggleStyle(slug: String) {
+        _uiState.update { current ->
+            current.copy(selectedStyles = current.selectedStyles.toggle(slug))
+        }
+    }
+
+
+    fun clearAllFilters() {
+        _uiState.update { current ->
+            current.copy(
+                selectedCategories = emptySet(),
+                selectedStyles = emptySet(),
+                expandedFilterSection = FilterSection.NONE,
+                fonts = applyFilters(current.allFonts, current.searchQuery, emptySet(), emptySet())
+            )
+        }
+    }
+
+    fun applyFiltersAndClose() {
+        _uiState.update { current ->
+            current.copy(
+                isFilterSheetVisible = false,
+                expandedFilterSection = FilterSection.NONE,
+                fonts = applyFilters(
+                    current.allFonts,
+                    current.searchQuery,
+                    current.selectedCategories,
+                    current.selectedStyles
+                )
+            )
+        }
+    }
+
+
     fun onDrawerMenuItemSelected(item: DrawerMenuItem) {
         _drawerUiState.update { it.copy(selectedItem = item) }
     }
 
-    fun clearSearch() {
-        _uiState.update { it.copy(searchQuery = "", fonts = it.allFonts) }
+
+    private fun applyFilters(
+        source: List<FontListItem>,
+        query: String,
+        categories: Set<String>,  // FontClassifier.slug values
+        styles: Set<String>,      // FontClassifier.slug values
+    ): List<FontListItem> {
+        val hasFilters = categories.isNotEmpty() || styles.isNotEmpty()
+
+        return source.filter { item ->
+            when (item) {
+                is FontListItem.Banner -> !hasFilters
+                is FontListItem.Font -> {
+                    val font = item.fontItem
+                    val matchesQuery = query.isBlank() ||
+                            font.name.contains(query, ignoreCase = true)
+                    val matchesCategory = categories.isEmpty() ||
+                            font.categories.orEmpty().any { it.slug in categories }
+                    val matchesStyle = styles.isEmpty() ||
+                            font.styles.orEmpty().any { it.slug in styles }
+                    matchesQuery && matchesCategory && matchesStyle
+                }
+            }
+        }
     }
+
+    private fun Set<String>.toggle(id: String): Set<String> =
+        if (id in this) this - id else this + id
 }
