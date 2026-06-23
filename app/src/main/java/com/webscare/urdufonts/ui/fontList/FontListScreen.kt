@@ -32,6 +32,7 @@ import com.webscare.urdufonts.ui.components.CustomSearchBar
 import com.webscare.urdufonts.ui.components.FontItemCard
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
 import com.webscare.urdufonts.ui.home.HomeViewModel
+import com.webscare.urdufonts.ui.theme.AppColor
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,16 +77,23 @@ fun FontListScreen(
             when {
                 uiState.isLoading -> {
                     // Show a loading indicator
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = AppColor)
                     }
                 }
+
                 uiState.fonts.isEmpty() -> {
                     // Show empty state
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("No fonts found")
                     }
                 }
+
                 else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
@@ -93,13 +101,13 @@ fun FontListScreen(
                     ) {
                         items(
                             items = uiState.fonts,
-                            key   = { it.id }
+                            key = { it.id }
                         ) { fontItem ->
                             FontItemCard(
-                                fontItem        = fontItem,
+                                fontItem = fontItem,
                                 onDownloadClick = {},
-                                onFontClick     = { onFontClick(fontItem.id.toString()) },
-                                modifier        = Modifier.padding(horizontal = 16.dp)
+                                onFontClick = { onFontClick(fontItem.id.toString()) },
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
                         }
                         item {

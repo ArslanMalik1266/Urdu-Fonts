@@ -79,4 +79,8 @@ class HomeViewModel(
     fun onDrawerMenuItemSelected(item: DrawerMenuItem) {
         _drawerUiState.update { it.copy(selectedItem = item) }
     }
+
+    fun clearSearch() {
+        _uiState.update { it.copy(searchQuery = "", fonts = it.allFonts) }
+    }
 }

@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.di
 
 import androidx.room.Room
+import com.webscare.urdufonts.data.local.UserPreferences
 import com.webscare.urdufonts.data.local.db.AppDatabase
 import com.webscare.urdufonts.data.repository.BannerRepositoryImpl
 import com.webscare.urdufonts.data.repository.CategoriesRepositoryImpl
@@ -14,6 +15,8 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
+
+    single { UserPreferences(androidContext()) }
 
     // ── Room Database ──────────────────────────────────────────────────────
     single {

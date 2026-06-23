@@ -5,6 +5,7 @@ import com.webscare.urdufonts.ui.category.CategoriesViewModel
 import com.webscare.urdufonts.ui.detailScreen.FontDetailViewModel
 import com.webscare.urdufonts.ui.fontList.FontListViewModel
 import com.webscare.urdufonts.ui.home.HomeViewModel
+import com.webscare.urdufonts.ui.onboarding.OnboardingViewModel
 import com.webscare.urdufonts.ui.profile.ProfileViewModel
 import com.webscare.urdufonts.ui.style.StylesViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -19,4 +20,5 @@ val presentationModule = module {
     viewModel { FontDetailViewModel(get(), get(), get(), get()) }
     viewModel { FontListViewModel(get(), get()) } // Only needs GetFontsUseCase and SavedStateHandle
     viewModel { ProfileViewModel() }
+    viewModel { OnboardingViewModel(get()) }
 }

@@ -35,7 +35,9 @@ import com.webscare.urdufonts.ui.components.CustomSearchBar
 import com.webscare.urdufonts.ui.components.TopBarButton
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.domain.models.StyleItem
+import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
+import com.webscare.urdufonts.ui.theme.AppColor
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,29 +81,19 @@ fun StylesScreen(
                 when {
                     uiState.isLoading -> {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize()
+                                .background(Color.White),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(color = AppColor)
                         }
                     }
 
                     uiState.errorMessage != null -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = uiState.errorMessage!!,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = viewModel::retry) {
-                                    Text("Retry")
-                                }
-                            }
-                        }
+                        OfflineErrorState(
+                            message = uiState.errorMessage!!,
+                            onRetry = viewModel::retry
+                        )
                     }
 
                     else -> {

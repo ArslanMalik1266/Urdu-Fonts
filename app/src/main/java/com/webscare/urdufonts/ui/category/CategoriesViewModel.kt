@@ -59,4 +59,7 @@ class CategoriesViewModel(
     fun retry() {
         loadCategories()
     }
+    fun clearSearch() {
+        _uiState.update { it.copy(searchQuery = "", categories = it.allCategories) }
+    }
 }

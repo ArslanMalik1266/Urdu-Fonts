@@ -9,12 +9,16 @@ import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.domain.usecases.GetFontDetailUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontPreviewUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontWeightsUseCase
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import androidx.compose.ui.text.font.FontFamily
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class FontDetailViewModel(
     private val getFontDetailUseCase: GetFontDetailUseCase,
@@ -44,36 +48,59 @@ class FontDetailViewModel(
     private fun loadFontDetail() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            getFontDetailUseCase(fontId)
-                .onSuccess { detail ->
-                    _uiState.update {
-                        it.copy(isLoading = false, fontDetail = detail)
-                    }
-                    loadPreview(detail)
-                    loadWeights(detail)
+            try {
+                withTimeout(10_000L) {
+                    getFontDetailUseCase(fontId)
+                        .onSuccess { detail ->
+                            _uiState.update { it.copy(isLoading = false, fontDetail = detail) }
+                            loadPreview(detail)
+                            loadWeights(detail)
+                        }
+                        .onFailure { e ->
+                            _uiState.update {
+                                it.copy(isLoading = false, errorMessage = friendlyError(e))
+                            }
+                        }
                 }
-                .onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = e.message ?: "Failed to load font detail"
-                        )
-                    }
+            } catch (e: TimeoutCancellationException) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "Request timed out. Check your connection.")
                 }
+            } catch (e: UnknownHostException) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "No internet connection.")
+                }
+            } catch (e: SocketTimeoutException) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = "Connection timed out. Try again.")
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = friendlyError(e))
+                }
+            }
         }
+    }
+
+    private fun friendlyError(e: Throwable): String = when (e) {
+        is UnknownHostException -> "No internet connection."
+        is SocketTimeoutException -> "Connection timed out. Try again."
+        is TimeoutCancellationException -> "Request timed out. Check your connection."
+        else -> e.message?.takeIf { it.isNotBlank() } ?: "Something went wrong."
     }
 
     private fun loadPreview(fontItem: FontItem) {
         viewModelScope.launch {
-            Log.d("FontDebug", "loadPreview called for: ${fontItem.name}, url: ${fontItem.fontFileUrl}")
             getFontPreviewUseCase(fontItem).onSuccess { file ->
-                Log.d("FontDebug", "File downloaded: ${file.absolutePath}, exists: ${file.exists()}, size: ${file.length()}")
                 val typeface = Typeface.createFromFile(file)
                 _fontFamilyState.value = FontFamily(typeface)
-                Log.d("FontDebug", "FontFamily set successfully")
             }.onFailure { e ->
                 Log.e("FontDebug", "loadPreview FAILED: ${e.message}", e)
                 _fontFamilyState.value = null
+                // Show error with retry if font file can't be loaded (e.g. offline, no cache)
+                _uiState.update {
+                    it.copy(errorMessage = friendlyError(e))
+                }
             }
         }
     }
@@ -83,19 +110,32 @@ class FontDetailViewModel(
             getFontWeightsUseCase(fontItem).onSuccess { weightFiles ->
                 val weightFamilies = weightFiles.map { (originalName, file) ->
 
-                    // 1. Clean the domain prefix
-                    val cleanName = originalName.replace("urdufonts.com", "", ignoreCase = true)
+                    val knownWeights = listOf(
+                        // Compound weights MUST come before their components
+                        "Bold Regular", "Bold Italic", "BoldItalic",
+                        "Light Italic", "LightItalic",
+                        "Extra Light", "ExtraLight",
+                        "Ultra Light", "UltraLight",
+                        "Extra Bold", "ExtraBold",
+                        "Ultra Bold", "UltraBold",
+                        "Semi Bold", "SemiBold",
+                        "Demi Bold", "DemiBold",
+                        // Simple weights after compounds
+                        "Thin", "Light", "Regular", "Normal", "Medium",
+                        "Bold", "Black", "Heavy", "Italic"
+                    )
 
-                    // 2. Remove any trailing hyphen or space at the very end of the string
-                    val sanitizedString = cleanName.trimEnd('-', ' ')
+                    // Use file.name (actual filename) instead of originalName (which is just "[UrduFonts.com]")
+                    val stripped = file.name
+                        .replace(Regex("\\[.*?\\]"), "")   // remove [anything]
+                        .replace(Regex("\\.ttf$", RegexOption.IGNORE_CASE), "")
+                        .replace(Regex("\\.otf$", RegexOption.IGNORE_CASE), "")
+                        .trim()
 
-                    // 3. Split by hyphen
-                    val parts = sanitizedString.split("-")
-
-                    // 4. Find the last part that contains actual text
-                    // We filter out blank parts, so if you have "Spirit - Medium",
-                    // it finds "Medium". If you have "Spirit - ", it finds "Spirit".
-                    val weightName = parts.lastOrNull { it.isNotBlank() }?.trim() ?: "Regular"
+                    // Find the first known weight that appears in the cleaned filename
+                    val weightName = knownWeights.firstOrNull { weight ->
+                        stripped.contains(weight, ignoreCase = true)
+                    } ?: "Regular"
 
                     val typeface = Typeface.createFromFile(file)
                     Pair(weightName.replaceFirstChar { it.uppercase() }, FontFamily(typeface))

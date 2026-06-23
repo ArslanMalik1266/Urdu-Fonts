@@ -60,4 +60,7 @@ class StylesViewModel(
     fun retry() {
         loadStyles()
     }
+    fun clearSearch() {
+        _uiState.update { it.copy(searchQuery = "", styles = it.allStyles) }
+    }
 }

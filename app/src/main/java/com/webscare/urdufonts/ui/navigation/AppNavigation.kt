@@ -4,28 +4,36 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.webscare.urdufonts.data.local.UserPreferences
 import com.webscare.urdufonts.ui.fontList.FontListScreen
 import com.webscare.urdufonts.ui.baseScreen.BaseScreen
 import com.webscare.urdufonts.ui.baseScreen.MyBottomNavigationBar
 import com.webscare.urdufonts.ui.category.CategoriesScreen
+import com.webscare.urdufonts.ui.category.CategoriesViewModel
 import com.webscare.urdufonts.ui.detailScreen.FontDetailScreen
+import com.webscare.urdufonts.ui.fontList.FontListViewModel
 import com.webscare.urdufonts.ui.home.HomeScreen
+import com.webscare.urdufonts.ui.home.HomeViewModel
 import com.webscare.urdufonts.ui.home.drawer.AppDrawerContent
 import com.webscare.urdufonts.ui.home.drawer.DrawerMenuItem
 import com.webscare.urdufonts.ui.onboarding.OnboardingScreen
 import com.webscare.urdufonts.ui.onboarding.OnboardingViewModel
 import com.webscare.urdufonts.ui.profile.ProfileScreen
 import com.webscare.urdufonts.ui.style.StylesScreen
+import com.webscare.urdufonts.ui.style.StylesViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 
 private val bottomBarRoutes = setOf(
@@ -39,6 +47,9 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val userPreferences: UserPreferences = koinInject()
+    val isOnboardingCompleted by remember { userPreferences.isOnboardingCompleted }
+        .collectAsState(initial = null)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute != null && currentRoute in setOf(
@@ -46,11 +57,22 @@ fun AppNavigation() {
         Screen.styles.route,
         Screen.categories.route
     )
+    if (isOnboardingCompleted == null) {
+        // You can show a blank screen or a loading splash here
+        return
+    }
+    val startDestination = if (isOnboardingCompleted == true) {
+        Screen.Home.route
+    } else {
+        Screen.Onboarding.route
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = currentRoute == Screen.Home.route,
         drawerContent = {
             AppDrawerContent(
                 onCloseDrawer = { scope.launch { drawerState.close() } },
+
                 onMenuItemClick = { item ->
                     scope.launch { drawerState.close() }
                     when (item) {
@@ -71,10 +93,10 @@ fun AppNavigation() {
             content = {
                 NavHost(
                     navController = navController,
-                    startDestination = Screen.Onboarding.route
+                    startDestination = startDestination
                 ) {
                     composable(Screen.Onboarding.route) {
-                        val viewModel: OnboardingViewModel = viewModel()
+                        val viewModel: OnboardingViewModel = koinViewModel()
                         OnboardingScreen(
                             viewModel = viewModel,
                             onNavigateToHome = {
@@ -85,14 +107,17 @@ fun AppNavigation() {
                         )
                     }
                     composable(Screen.Home.route) {
+                        val viewModel: HomeViewModel = koinViewModel()
                         HomeScreen(
                             onMenuClick = { scope.launch { drawerState.open() } },
                             onFontClick = { fontId ->
                                 navController.navigate(Screen.fontDetail.createRoute(fontId))
+                                viewModel.clearSearch()
                             }
                         )
                     }
                     composable(Screen.styles.route) {
+                        val viewModel: StylesViewModel = koinViewModel()
                         StylesScreen(
                             onCartClick = { },
                             onStyleClick = { styleItem ->
@@ -103,10 +128,12 @@ fun AppNavigation() {
                                         title = "${styleItem.title} Fonts"
                                     )
                                 )
+                                viewModel.clearSearch()
                             }
                         )
                     }
                     composable(Screen.categories.route) {
+                        val viewModel: CategoriesViewModel = koinViewModel()
                         CategoriesScreen(
                             onCartClick = { },
                             onCategoryClick = { categoryItem ->
@@ -117,6 +144,7 @@ fun AppNavigation() {
                                         title = "${categoryItem.title} Fonts"
                                     )
                                 )
+                                viewModel.clearSearch()
                             }
                         )
                     }
@@ -141,11 +169,13 @@ fun AppNavigation() {
                         )
                     ) { backStackEntry ->
                         val title = backStackEntry.arguments?.getString("title") ?: "Urdu Fonts"
+                        val viewModel: FontListViewModel = koinViewModel()
                         FontListScreen(
                             title = title,
                             onBackClick = { navController.popBackStack() },
                             onFontClick = { fontId ->
                                 navController.navigate(Screen.fontDetail.createRoute(fontId))
+                                viewModel.clearSearch()
                             }
                         )
                     }

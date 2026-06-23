@@ -84,8 +84,20 @@ import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.util.CustomSlider
 import com.webscare.urdufonts.ui.util.ShimmerBox
+import com.webscare.urdufonts.ui.util.addPressEffect
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.runtime.LaunchedEffect
 
 private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
 private val URDU_SAMPLE_TEXTS = listOf(
@@ -106,6 +118,7 @@ fun FontDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var lastScrollValue by remember { mutableStateOf(0) }
     val scrollState = rememberScrollState()
+
     var isExpanded by remember { mutableStateOf(true) }
     val fontFamily by viewModel.fontFamilyState.collectAsStateWithLifecycle()
     val fontWeights by viewModel.fontWeightsState.collectAsStateWithLifecycle()
@@ -130,10 +143,12 @@ fun FontDetailScreen(
             )
         },
         floatingActionButton = {
-            AnimatedDownloadButton(
-                isExpanded = isExpanded,
-                onClick = onDownloadClick
-            )
+            if (uiState.errorMessage == null && !uiState.isLoading) {
+                AnimatedDownloadButton(
+                    isExpanded = isExpanded,
+                    onClick = onDownloadClick
+                )
+            }
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
@@ -142,31 +157,23 @@ fun FontDetailScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
+                        .padding(innerPadding)
+                        .background(Color.White),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = AppColor)
                 }
             }
 
             uiState.errorMessage != null -> {
-                Box(
+                OfflineErrorState(
+                    message = uiState.errorMessage!!,
+                    onRetry = viewModel::retry,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = uiState.errorMessage!!,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = viewModel::retry) {
-                            Text("Retry")
-                        }
-                    }
-                }
+                        .padding(innerPadding)
+                        .background(Color.White)
+                )
             }
 
             uiState.fontDetail != null -> {
@@ -239,11 +246,21 @@ private fun FontDetailContent(
     val scrollY = scrollState.value.toFloat()
 
     val fractions = mapOf(
-        DetailTab.FONT    to visibleFraction(fontSectionY,    fontSectionH,    scrollY, screenHeightPx),
-        DetailTab.PREVIEW to visibleFraction(previewSectionY, previewSectionH, scrollY, screenHeightPx),
-        DetailTab.STYLES  to visibleFraction(stylesSectionY,  stylesSectionH,  scrollY, screenHeightPx),
-        DetailTab.ABOUT   to visibleFraction(aboutSectionY,   aboutSectionH,   scrollY, screenHeightPx),
-        DetailTab.INFO    to visibleFraction(infoSectionY,    infoSectionH,    scrollY, screenHeightPx),
+        DetailTab.FONT to visibleFraction(fontSectionY, fontSectionH, scrollY, screenHeightPx),
+        DetailTab.PREVIEW to visibleFraction(
+            previewSectionY,
+            previewSectionH,
+            scrollY,
+            screenHeightPx
+        ),
+        DetailTab.STYLES to visibleFraction(
+            stylesSectionY,
+            stylesSectionH,
+            scrollY,
+            screenHeightPx
+        ),
+        DetailTab.ABOUT to visibleFraction(aboutSectionY, aboutSectionH, scrollY, screenHeightPx),
+        DetailTab.INFO to visibleFraction(infoSectionY, infoSectionH, scrollY, screenHeightPx),
     )
 
     val scrollDerivedTab = fractions.maxByOrNull { it.value }?.key ?: DetailTab.FONT
@@ -284,11 +301,11 @@ private fun FontDetailContent(
                 isUserScrolling = true
                 coroutineScope.launch {
                     val target = when (tab) {
-                        DetailTab.FONT    -> 0
+                        DetailTab.FONT -> 0
                         DetailTab.PREVIEW -> previewSectionY.toInt()
-                        DetailTab.STYLES  -> stylesSectionY.toInt()
-                        DetailTab.ABOUT   -> aboutSectionY.toInt()
-                        DetailTab.INFO    -> infoSectionY.toInt()
+                        DetailTab.STYLES -> stylesSectionY.toInt()
+                        DetailTab.ABOUT -> aboutSectionY.toInt()
+                        DetailTab.INFO -> infoSectionY.toInt()
                     }
                     scrollState.animateScrollTo(target.coerceAtLeast(0))
                 }
@@ -315,7 +332,7 @@ private fun FontDetailContent(
                     fontSizePx = uiState.previewFontSizePx,
                     fontFamily = fontFamily,
                     isBoldEnabled = uiState.isBoldEnabled,
-                    isUnderlineEnabled = uiState.isUnderlineEnabled
+                    isUnderlineEnabled = uiState.isUnderlineEnabled,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 MetadataRow(
@@ -380,6 +397,9 @@ private fun FontDetailContent(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .addPressEffect {
+                                    onWeightSelected(index)
+                                }
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     if (isSelected) AppColor.copy(alpha = 0.08f)
@@ -391,10 +411,7 @@ private fun FontDetailContent(
                                     else Color.Transparent,
                                     shape = RoundedCornerShape(10.dp)
                                 )
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) { onWeightSelected(index) }
+
                                 .padding(horizontal = 14.dp, vertical = 12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -496,16 +513,18 @@ private fun FontPreviewCard(
     fontFamily: FontFamily?,
     isBoldEnabled: Boolean,
     isUnderlineEnabled: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
+    val cardScrollState = rememberScrollState()
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(150.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(color = GreyColor.copy(alpha = 0.06f))
+            .verticalScroll(cardScrollState)
             .padding(horizontal = 8.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (fontFamily == null) {
             Column(
@@ -515,8 +534,12 @@ private fun FontPreviewCard(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
             ) {
-                ShimmerBox(modifier = Modifier.fillMaxWidth(0.8f).height(20.dp))
-                ShimmerBox(modifier = Modifier.fillMaxWidth(0.5f).height(20.dp))
+                ShimmerBox(modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(20.dp))
+                ShimmerBox(modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(20.dp))
             }
         } else {
             Text(
@@ -756,10 +779,12 @@ private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
                 fontSize = 13.sp,
                 color = AppColor,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { isExpanded = !isExpanded }
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .addPressEffect(
+                        onClick = { isExpanded = !isExpanded }
+                    )
+                    .padding(4.dp)
             )
         }
     }
@@ -778,15 +803,31 @@ private fun InfoSection(detail: FontItem, modifier: Modifier = Modifier) {
                 .padding(vertical = 4.dp)
         ) {
             Column {
-                InfoRow(iconRes = R.drawable.ic_weights,     label = "Weight",         value = detail.weightCount.toString())
+                InfoRow(
+                    iconRes = R.drawable.ic_weights,
+                    label = "Weight",
+                    value = detail.weightCount.toString()
+                )
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_language,    label = "Language",        value = detail.language)
+                InfoRow(
+                    iconRes = R.drawable.ic_language,
+                    label = "Language",
+                    value = detail.language
+                )
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_developer,   label = "Font Developer",  value = detail.developer)
+                InfoRow(
+                    iconRes = R.drawable.ic_developer,
+                    label = "Font Developer",
+                    value = detail.developer
+                )
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_font_family, label = "Font Family",     value = detail.fontFamily)
+                InfoRow(
+                    iconRes = R.drawable.ic_font_family,
+                    label = "Font Family",
+                    value = detail.fontFamily
+                )
                 InfoDivider()
-                InfoRow(iconRes = R.drawable.ic_format,      label = "Format",          value = "TTF")
+                InfoRow(iconRes = R.drawable.ic_format, label = "Format", value = "TTF")
             }
         }
     }
@@ -831,4 +872,107 @@ private fun InfoDivider() {
         thickness = 0.5.dp,
         color = GreyColor.copy(alpha = 0.15f)
     )
+}
+
+@Composable
+private fun OfflineErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isNoInternet = message.contains("internet", ignoreCase = true) ||
+            message.contains("connection", ignoreCase = true) ||
+            message.contains("timed out", ignoreCase = true)
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Icon circle
+            Box(
+                modifier = Modifier
+                    .size(88.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(AppColor.copy(alpha = 0.08f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(AppColor.copy(alpha = 0.12f))
+                        .alpha(if (isNoInternet) pulseAlpha else 1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(
+                            id = if (isNoInternet) R.drawable.ic_no_wifi
+                            else R.drawable.ic_error
+                        ),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(AppColor),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = if (isNoInternet) "You're Offline" else "Something Went Wrong",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = HeadingBlackColor,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = if (isNoInternet)
+                    "Check your connection and tap retry to load the font."
+                else message,
+                fontSize = 14.sp,
+                color = GreyColor.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(AppColor)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onRetry
+                    )
+                    .padding(horizontal = 36.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    text = "Try Again",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
+            }
+        }
+    }
 }

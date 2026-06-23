@@ -37,6 +37,8 @@ import com.webscare.urdufonts.ui.components.BannerCard
 import com.webscare.urdufonts.ui.components.CustomSearchBar
 import com.webscare.urdufonts.ui.components.FilterButton
 import com.webscare.urdufonts.ui.components.FontItemCard
+import com.webscare.urdufonts.ui.components.OfflineErrorState
+import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import org.koin.androidx.compose.koinViewModel
 
@@ -50,11 +52,12 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(Unit) {
-            detectTapGestures(onTap = { focusManager.clearFocus() })
-        }) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            }) {
 
         Scaffold(
             topBar = {
@@ -101,29 +104,20 @@ fun HomeScreen(
                 when {
                     uiState.isLoading -> {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(color = AppColor)
                         }
                     }
 
                     uiState.errorMessage != null -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = uiState.errorMessage!!,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = viewModel::retry) {
-                                    Text("Retry")
-                                }
-                            }
-                        }
+                        OfflineErrorState(
+                            message = uiState.errorMessage!!,
+                            onRetry = viewModel::retry
+                        )
                     }
 
                     else -> {

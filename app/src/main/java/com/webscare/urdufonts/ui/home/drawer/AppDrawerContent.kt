@@ -238,8 +238,8 @@ private fun DrawerMenuRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
+            .addPressEffect(onClick = onClick)
             .background(bgColor)
-            .clickable(onClick = onClick)
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

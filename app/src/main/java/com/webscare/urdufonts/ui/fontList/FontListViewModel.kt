@@ -81,4 +81,8 @@ class FontListViewModel(
     fun retry() {
         loadFonts()
     }
+    fun clearSearch() {
+        _uiState.update { it.copy(searchQuery = "", fonts = allFilteredFonts) }
+    }
+
 }
