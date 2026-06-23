@@ -19,11 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +49,9 @@ import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.domain.models.FontClassifier
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.util.addPressEffect
 
 // ─── Enum: which accordion section is open ────────────────────────────────────
 
@@ -68,6 +71,7 @@ fun FilterBottomSheet(
     onApplyFilters: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -84,10 +88,7 @@ fun FilterBottomSheet(
             )
         }
     ) {
-        // ── Scrollable content area ────────────────────────────────────────────
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
 
             // ── Header ────────────────────────────────────────────────────────
             Row(
@@ -115,65 +116,46 @@ fun FilterBottomSheet(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
-
-            // ── Scrollable accordion box (Categories + Styles) ───────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()               // height = content ka size
-                    .verticalScroll(rememberScrollState())
+            // ── Categories — data comes from uiState.availableCategories ──────
+            FilterSectionHeader(
+                title = "Categories",
+                isExpanded = uiState.expandedFilterSection == FilterSection.CATEGORIES,
+                selectedCount = uiState.selectedCategories.size,
+                onClick = { onToggleSection(FilterSection.CATEGORIES) }
+            )
+            AnimatedVisibility(
+                visible = uiState.expandedFilterSection == FilterSection.CATEGORIES,
+                enter = expandVertically(animationSpec = tween(280)),
+                exit = shrinkVertically(animationSpec = tween(220)),
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                FilterOptionGrid(
+                    classifiers = uiState.availableCategories,
+                    selectedSlugs = uiState.selectedCategories,
+                    onToggle = onToggleCategory,
+                )
+            }
 
-                    // ── Categories ────────────────────────────────────────────
-                    FilterSectionHeader(
-                        title = "Categories",
-                        isExpanded = uiState.expandedFilterSection == FilterSection.CATEGORIES,
-                        selectedCount = uiState.selectedCategories.size,
-                        onClick = { onToggleSection(FilterSection.CATEGORIES) }
-                    )
-                    AnimatedVisibility(
-                        visible = uiState.expandedFilterSection == FilterSection.CATEGORIES,
-                        enter = expandVertically(animationSpec = tween(280)),
-                        exit = shrinkVertically(animationSpec = tween(220)),
-                    ) {
-                        FilterOptionNonLazyGrid(
-                            classifiers = uiState.availableCategories,
-                            selectedSlugs = uiState.selectedCategories,
-                            onToggle = onToggleCategory,
-                        )
-                    }
 
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = Color(0xFFF0F0F0),
-                        thickness = 1.dp
-                    )
-
-                    // ── Styles ────────────────────────────────────────────────
-                    FilterSectionHeader(
-                        title = "Styles",
-                        isExpanded = uiState.expandedFilterSection == FilterSection.STYLES,
-                        selectedCount = uiState.selectedStyles.size,
-                        onClick = { onToggleSection(FilterSection.STYLES) }
-                    )
-                    AnimatedVisibility(
-                        visible = uiState.expandedFilterSection == FilterSection.STYLES,
-                        enter = expandVertically(animationSpec = tween(280)),
-                        exit = shrinkVertically(animationSpec = tween(220)),
-                    ) {
-                        FilterOptionNonLazyGrid(
-                            classifiers = uiState.availableStyles,
-                            selectedSlugs = uiState.selectedStyles,
-                            onToggle = onToggleStyle,
-                        )
-                    }
-                }
+            // ── Styles — data comes from uiState.availableStyles ──────────────
+            FilterSectionHeader(
+                title = "Styles",
+                isExpanded = uiState.expandedFilterSection == FilterSection.STYLES,
+                selectedCount = uiState.selectedStyles.size,
+                onClick = { onToggleSection(FilterSection.STYLES) }
+            )
+            AnimatedVisibility(
+                visible = uiState.expandedFilterSection == FilterSection.STYLES,
+                enter = expandVertically(animationSpec = tween(280)),
+                exit = shrinkVertically(animationSpec = tween(220)),
+            ) {
+                FilterOptionGrid(
+                    classifiers = uiState.availableStyles,
+                    selectedSlugs = uiState.selectedStyles,
+                    onToggle = onToggleStyle,
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0xFFF0F0F0), thickness = 1.dp)
 
             // ── Apply button ──────────────────────────────────────────────────
             Box(
@@ -181,13 +163,14 @@ fun FilterBottomSheet(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
-                Button(
-                    onClick = onApplyFilters,
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColor)
+                        .height(52.dp)
+                        .addPressEffect{ onApplyFilters() }
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(AppColor),
+                    contentAlignment = Alignment.Center
                 ) {
                     val total = uiState.totalSelectedFilters
                     Text(
@@ -202,7 +185,7 @@ fun FilterBottomSheet(
     }
 }
 
-// ─── Section header ───────────────────────────────────────────────────────────
+// ─── Section header with ic_arrow_up / ic_arrow_down drawable ─────────────────
 
 @Composable
 private fun FilterSectionHeader(
@@ -260,96 +243,87 @@ private fun FilterSectionHeader(
     }
 }
 
-// ─── Non-lazy 2-column grid (works inside verticalScroll) ─────────────────────
-// LazyVerticalGrid nested inside verticalScroll crashes — this replaces it.
+// ─── 2-column grid — receives real FontClassifier list from API ───────────────
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FilterOptionNonLazyGrid(
+private fun FilterOptionGrid(
     classifiers: List<FontClassifier>,
     selectedSlugs: Set<String>,
     onToggle: (String) -> Unit,
 ) {
     if (classifiers.isEmpty()) return
 
-    // Split list into rows of 2
-    val rows = classifiers.chunked(2)
-
-    Column(
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        rows.forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                rowItems.forEach { classifier ->
-                    FilterChipItem(
-                        modifier = Modifier.weight(1f),
-                        label = classifier.title,
-                        slug = classifier.slug,
-                        isSelected = classifier.slug in selectedSlugs,
-                        onToggle = { onToggle(classifier.slug) }
-                    )
-                }
-                // If odd number of items, fill remaining space
-                if (rowItems.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
+        classifiers.forEach { classifier ->
+            FilterChipItem(
+                label = classifier.title,
+                slug = classifier.slug,
+                isSelected = classifier.slug in selectedSlugs,
+                onToggle = { onToggle(classifier.slug) }
+            )
         }
     }
 }
 
-// ─── Single chip ──────────────────────────────────────────────────────────────
+// ─── Single chip — solid AppColor circle, no icon ─────────────────────────────
 
 @Composable
 private fun FilterChipItem(
-    modifier: Modifier = Modifier,
     label: String,
     slug: String,
     isSelected: Boolean,
     onToggle: () -> Unit,
 ) {
-    val borderColor = if (isSelected) AppColor else Color(0xFFE0E0E0)
-    val textColor = if (isSelected) AppColor else Color(0xFF555555)
+    val bgColor =  Color.White
+    val borderColor = if (isSelected) AppColor else GreyColor.copy(0.15f)
+    val textColor = if (isSelected) AppColor else GreyColor
 
     Row(
-        modifier = modifier
-            .height(44.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White)
-            .border(1.dp, borderColor, RoundedCornerShape(10.dp)) // 👈 border shows selection
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 12.dp),
+        modifier = Modifier
+            .wrapContentWidth()
+            .wrapContentHeight()
+            .addPressEffect{
+                onToggle()
+            }
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (isSelected) AppColor.copy(alpha = 0.08f) else Color.White)
+            .border(1.dp, borderColor, RoundedCornerShape(20.dp))
+
+            .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) Color(0xFF4CAF50) else Color.White)
-                .border(
-                    width = if (isSelected) 0.dp else 1.5.dp,
-                    color = if (isSelected) Color.Transparent else Color(0xFFCCCCCC),
-                    shape = CircleShape
-                )
-        ) {
-            if (isSelected) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_tick),
-                    contentDescription = "Selected",
-                    colorFilter = ColorFilter.tint(Color.White),
-                    modifier = Modifier.size(12.dp)
-                )
-            }
-        }
+//        Box(
+//            contentAlignment = Alignment.Center,
+//            modifier = Modifier
+//                .size(20.dp)
+//                .clip(CircleShape)
+//                .background(if (isSelected) Color(0xFF4CAF50) else Color.White) // Green when selected
+//                .border(
+//                    width = if (isSelected) 0.dp else 1.5.dp,
+//                    color = if (isSelected) Color.Transparent else Color(0xFFCCCCCC),
+//                    shape = CircleShape
+//                )
+//        ) {
+//            if (isSelected) {
+//                Image(
+//                    painter = painterResource(id = R.drawable.ic_tick),
+//                    contentDescription = "Selected",
+//                    colorFilter = ColorFilter.tint(Color.White),
+//                    modifier = Modifier.size(12.dp)
+//                )
+//            }
+//        }
 
         Text(
+            modifier = Modifier.padding(horizontal = 4.dp,  vertical = 4.dp),
             text = label,
             fontSize = 13.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,

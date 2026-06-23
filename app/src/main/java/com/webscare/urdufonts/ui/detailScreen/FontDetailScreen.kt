@@ -578,6 +578,7 @@ private fun MetadataRow(
 private fun MetadataChip(text: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
+            .addPressEffect()
             .clip(RoundedCornerShape(14.dp))
             .background(AppColor.copy(alpha = 0.05f))
             .border(BorderStroke(0.5.dp, AppColor.copy(alpha = 0.5f)), RoundedCornerShape(14.dp))
