@@ -40,6 +40,8 @@ class FontDetailViewModel(
     val selectedWeightIndex = _selectedWeightIndex.asStateFlow()
 
     private val fontId: String = checkNotNull(savedStateHandle["fontId"])
+    private val _initialFontFamily = MutableStateFlow<FontFamily?>(null)
+    val initialFontFamily: StateFlow<FontFamily?> = _initialFontFamily.asStateFlow()
 
     init {
         loadFontDetail()
@@ -111,7 +113,6 @@ class FontDetailViewModel(
                 val weightFamilies = weightFiles.map { (originalName, file) ->
 
                     val knownWeights = listOf(
-                        // Compound weights MUST come before their components
                         "Bold Regular", "Bold Italic", "BoldItalic",
                         "Light Italic", "LightItalic",
                         "Extra Light", "ExtraLight",
@@ -120,38 +121,60 @@ class FontDetailViewModel(
                         "Ultra Bold", "UltraBold",
                         "Semi Bold", "SemiBold",
                         "Demi Bold", "DemiBold",
-                        // Simple weights after compounds
                         "Thin", "Light", "Regular", "Normal", "Medium",
                         "Bold", "Black", "Heavy", "Italic"
                     )
 
-                    // Use file.name (actual filename) instead of originalName (which is just "[UrduFonts.com]")
                     val stripped = file.name
-                        .replace(Regex("\\[.*?\\]"), "")   // remove [anything]
+                        .replace(Regex("\\[.*?\\]"), "")
                         .replace(Regex("\\.ttf$", RegexOption.IGNORE_CASE), "")
                         .replace(Regex("\\.otf$", RegexOption.IGNORE_CASE), "")
                         .trim()
 
-                    // Find the first known weight that appears in the cleaned filename
                     val weightName = knownWeights.firstOrNull { weight ->
                         stripped.contains(weight, ignoreCase = true)
                     } ?: "Regular"
 
+                    val weightNumber = when (weightName.lowercase()) {
+                        "thin"                              -> 100
+                        "extra light", "extralight",
+                        "ultra light", "ultralight"         -> 200
+                        "light"                             -> 300
+                        "light italic", "lightitalic"       -> 300
+                        "regular", "normal"                 -> 400
+                        "italic"                            -> 400
+                        "bold regular"                      -> 400
+                        "medium"                            -> 500
+                        "semi bold", "semibold",
+                        "demi bold", "demibold"             -> 600
+                        "bold"                              -> 700
+                        "bold italic", "bolditalic"         -> 700
+                        "extra bold", "extrabold",
+                        "ultra bold", "ultrabold"           -> 800
+                        "black", "heavy"                    -> 900
+                        else                                -> 400
+                    }
+
                     val typeface = Typeface.createFromFile(file)
-                    Pair(weightName.replaceFirstChar { it.uppercase() }, FontFamily(typeface))
+                    Pair(
+                        "${weightName.replaceFirstChar { it.uppercase() }}  $weightNumber",
+                        FontFamily(typeface)
+                    )
                 }
 
                 _fontWeightsState.value = weightFamilies
 
-                // Auto-select "Regular" if exists, otherwise first
                 val regularIndex = weightFamilies.indexOfFirst {
-                    it.first.equals("Regular", ignoreCase = true)
+                    it.first.contains("Regular", ignoreCase = true)
                 }
                 val autoIndex = if (regularIndex >= 0) regularIndex else 0
                 _selectedWeightIndex.value = autoIndex
 
                 if (weightFamilies.isNotEmpty()) {
                     _fontFamilyState.value = weightFamilies[autoIndex].second
+                    if (_initialFontFamily.value == null) {
+                        _initialFontFamily.value = weightFamilies[0].second
+                    }
                 }
             }.onFailure { e ->
                 Log.e("FontDebug", "loadWeights FAILED: ${e.message}", e)

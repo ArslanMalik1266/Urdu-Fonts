@@ -40,6 +40,7 @@ import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.DarkGreen
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 import org.koin.androidx.compose.koinViewModel
 
@@ -147,7 +148,9 @@ private fun DrawerHeader(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = HeadingBlackColor,
-                modifier = Modifier.weight(1f)
+                fontFamily = NunitoFontFamily,
+                modifier = Modifier.weight(1f),
+
             )
             Box(modifier = Modifier.padding(end = 8.dp)) {
                 TopBarButton(
@@ -186,6 +189,7 @@ private fun DrawerHeader(
             fontWeight = FontWeight.SemiBold,
             color = GreyColor.copy(alpha = 0.5f),
             textAlign = TextAlign.Center,
+            fontFamily = NunitoFontFamily,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -196,6 +200,7 @@ private fun DrawerHeader(
             text = userSubtitle,
             fontSize = 12.sp,
             color = GreyColor,
+            fontFamily = NunitoFontFamily,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -213,6 +218,7 @@ private fun DrawerHeader(
             Text(
                 text = "Login/Signup",
                 color = Color.White,
+                fontFamily = NunitoFontFamily,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -254,7 +260,8 @@ private fun DrawerMenuRow(
             text = item.label,
             fontSize = 14.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            color = textColor
+            color = textColor,
+            fontFamily = NunitoFontFamily,
         )
     }
 }

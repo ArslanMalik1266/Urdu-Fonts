@@ -97,7 +97,13 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
+import com.webscare.urdufonts.ui.theme.YellowColor
 
 private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
 private val URDU_SAMPLE_TEXTS = listOf(
@@ -123,6 +129,8 @@ fun FontDetailScreen(
     val fontFamily by viewModel.fontFamilyState.collectAsStateWithLifecycle()
     val fontWeights by viewModel.fontWeightsState.collectAsStateWithLifecycle()
     val selectedWeightIndex by viewModel.selectedWeightIndex.collectAsStateWithLifecycle()
+    val initialFontFamily by viewModel.initialFontFamily.collectAsStateWithLifecycle()
+
 
     LaunchedEffect(scrollState.value) {
         val currentScroll = scrollState.value
@@ -182,6 +190,7 @@ fun FontDetailScreen(
                     uiState = uiState,
                     fontFamily = fontFamily,
                     fontWeights = fontWeights,
+                    initialFontFamily = initialFontFamily,
                     selectedWeightIndex = selectedWeightIndex,
                     onWeightSelected = viewModel::onWeightSelected,
                     onTabSelected = viewModel::onTabSelected,
@@ -214,6 +223,7 @@ private fun visibleFraction(
 private fun FontDetailContent(
     uiState: FontDetailUiState,
     fontFamily: FontFamily?,
+    initialFontFamily: FontFamily?,
     fontWeights: List<Pair<String, FontFamily>>,
     selectedWeightIndex: Int,
     onWeightSelected: (Int) -> Unit,
@@ -328,9 +338,9 @@ private fun FontDetailContent(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 FontPreviewCard(
+                    fontFamily = initialFontFamily,
                     previewText = previewText,
                     fontSizePx = uiState.previewFontSizePx,
-                    fontFamily = fontFamily,
                     isBoldEnabled = uiState.isBoldEnabled,
                     isUnderlineEnabled = uiState.isUnderlineEnabled,
                 )
@@ -402,13 +412,11 @@ private fun FontDetailContent(
                                 }
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
-                                    if (isSelected) AppColor.copy(alpha = 0.08f)
-                                    else GreyColor.copy(alpha = 0.05f)
+                                    GreyColor.copy(alpha = 0.05f)
                                 )
                                 .border(
                                     width = 1.dp,
-                                    color = if (isSelected) AppColor.copy(alpha = 0.4f)
-                                    else Color.Transparent,
+                                    color = Color.Transparent,
                                     shape = RoundedCornerShape(10.dp)
                                 )
 
@@ -419,8 +427,9 @@ private fun FontDetailContent(
                             Text(
                                 text = weightName,
                                 fontSize = 13.sp,
-                                color = if (isSelected) AppColor else GreyColor,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                                color =  GreyColor,
+                                fontWeight = FontWeight.Normal,
+                                fontFamily = NunitoFontFamily
                             )
                             Text(
                                 text = previewText,
@@ -485,8 +494,9 @@ private fun DetailTabRow(
                 Text(
                     text = tab.label,
                     fontSize = 14.sp,
+                    fontFamily = NunitoFontFamily,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (isSelected) AppColor else GreyColor,
+                    color = if (isSelected) HeadingBlackColor else GreyColor,
                     modifier = Modifier.clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -566,7 +576,7 @@ private fun MetadataRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = "Weight: $fontWeight", fontSize = 12.sp, color = GreyColor)
+        Text(text = "Weight: $fontWeight", fontSize = 12.sp, color = GreyColor, fontFamily = NunitoFontFamily)
         Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f))
         categories.forEach { category ->
             MetadataChip(text = category.title)
@@ -582,9 +592,9 @@ private fun MetadataChip(text: String, modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(14.dp))
             .background(AppColor.copy(alpha = 0.05f))
             .border(BorderStroke(0.5.dp, AppColor.copy(alpha = 0.5f)), RoundedCornerShape(14.dp))
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Text(text = text, fontSize = 12.sp, color = AppColor)
+        Text(text = text, fontSize = 10.sp, color = HeadingBlackColor, fontFamily =  NunitoFontFamily)
     }
 }
 
@@ -594,8 +604,9 @@ private fun SectionHeading(text: String, modifier: Modifier = Modifier) {
         text = text,
         fontSize = 16.sp,
         fontWeight = FontWeight.SemiBold,
-        color = HeadingBlackColor,
-        modifier = modifier
+        color = GreyColor,
+        modifier = modifier,
+        fontFamily =  NunitoFontFamily
     )
 }
 
@@ -651,12 +662,12 @@ private fun PreviewControlsSection(
             value = previewText,
             onValueChange = onPreviewTextChange,
             textStyle = TextStyle(
-                fontSize = 18.sp,
-                fontFamily = fontFamily,
+                fontSize = 16.sp,
+                fontFamily = NunitoFontFamily,
                 fontWeight = if (isBoldEnabled) FontWeight.Bold else FontWeight.Normal,
                 textDecoration = if (isUnderlineEnabled) TextDecoration.Underline else null,
-                color = HeadingBlackColor,
-                textAlign = TextAlign.Center,
+                color = GreyColor.copy(0.5f),
+                textAlign = TextAlign.Right,
                 lineHeight = 28.sp
             ),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -667,7 +678,7 @@ private fun PreviewControlsSection(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(
                     if (isFocused) AppColor.copy(alpha = 0.04f)
                     else GreyColor.copy(alpha = 0.06f)
@@ -675,19 +686,19 @@ private fun PreviewControlsSection(
                 .border(
                     width = 1.dp,
                     color = if (isFocused) AppColor.copy(alpha = 0.3f) else Color.Transparent,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
-                .padding(horizontal = 12.dp, vertical = 14.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
                 .focusRequester(focusRequester)
                 .onFocusChanged { isFocused = it.isFocused },
             decorationBox = { innerTextField ->
-                Box(contentAlignment = Alignment.Center) {
+                Box(contentAlignment = Alignment.CenterEnd) {
                     if (previewText.isEmpty()) {
                         Text(
                             text = "یہاں لکھیں...",
                             fontSize = 16.sp,
                             color = GreyColor.copy(alpha = 0.4f),
-                            textAlign = TextAlign.Center,
+                            textAlign = TextAlign.End,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -735,9 +746,9 @@ private fun StyleToggleIcon(
 ) {
     Box(
         modifier = modifier
-            .size(28.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (isActive) AppColor.copy(alpha = 0.15f) else Color.Transparent)
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(if (isActive) YellowColor.copy(0.8f) else Color.Transparent)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -748,8 +759,8 @@ private fun StyleToggleIcon(
         Image(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(if (isActive) AppColor else GreyColor),
-            modifier = Modifier.size(16.dp)
+            colorFilter = ColorFilter.tint(if (isActive) HeadingBlackColor else GreyColor),
+            modifier = Modifier.size(14.dp)
         )
     }
 }
@@ -757,37 +768,63 @@ private fun StyleToggleIcon(
 @Composable
 private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
     var isExpanded by remember { mutableStateOf(false) }
-    var hasOverflow by remember { mutableStateOf(false) }
+    var cutIndex by remember { mutableStateOf<Int?>(null) }
+
+    val plainText = remember(aboutText) {
+        AnnotatedString.fromHtml(aboutText).text
+            .trimEnd()
+            .replace(Regex("\\n+$"), "") // ✅ remove trailing newlines from HTML
+            .trimEnd()
+    }
+    val displayText = buildAnnotatedString {
+        if (isExpanded) {
+            append(plainText)
+            withStyle(
+                SpanStyle(
+                    color = AppColor,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = NunitoFontFamily,
+                    fontSize = 13.sp
+                )
+            ) {
+                append("  see less")
+            }
+        } else {
+            val cut = cutIndex
+            if (cut != null) {
+                // trim to last word boundary before cutIndex
+                val trimmed = plainText.take(cut).trimEnd().trimEnd { !it.isWhitespace() }.trimEnd()
+                append(trimmed)
+                withStyle(SpanStyle(color = AppColor, fontWeight = FontWeight.Medium, fontFamily = NunitoFontFamily, fontSize = 13.sp)) {
+                    append("... see more")
+                }
+            } else {
+                append(plainText)
+            }
+        }
+    }
 
     Column(modifier = modifier) {
         SectionHeading(text = "About")
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
-            text = AnnotatedString.fromHtml(aboutText),
+            text = displayText,
             fontSize = 14.sp,
             lineHeight = 21.sp,
             color = GreyColor,
+            fontFamily = NunitoFontFamily,
             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Clip,  // ✅ Clip not Ellipsis — we handle truncation manually
             onTextLayout = { result ->
-                if (!isExpanded) hasOverflow = result.hasVisualOverflow
-            }
+                if (!isExpanded && cutIndex == null && result.hasVisualOverflow) {
+                    val lastLine = result.lineCount - 1
+                    val lineEnd = result.getLineEnd(lastLine, visibleEnd = true)
+                    cutIndex = (lineEnd - 25).coerceAtLeast(0)
+                }
+            },
+            modifier = Modifier.addPressEffect { isExpanded = !isExpanded }
         )
-        if (hasOverflow || isExpanded) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = if (isExpanded) "see less" else "see more",
-                fontSize = 13.sp,
-                color = AppColor,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .addPressEffect(
-                        onClick = { isExpanded = !isExpanded }
-                    )
-                    .padding(4.dp)
-            )
-        }
     }
 }
 
@@ -860,9 +897,9 @@ private fun InfoRow(
                 colorFilter = ColorFilter.tint(GreyColor.copy(alpha = 0.5f)),
                 modifier = Modifier.size(18.dp)
             )
-            Text(text = label, fontSize = 14.sp, color = GreyColor)
+            Text(text = label, fontSize = 14.sp, color = GreyColor, fontFamily = NunitoFontFamily)
         }
-        Text(text = value, fontSize = 14.sp, color = valueColor, fontWeight = valueFontWeight)
+        Text(text = value, fontSize = 14.sp, color = valueColor, fontWeight = valueFontWeight, fontFamily =  NunitoFontFamily)
     }
 }
 

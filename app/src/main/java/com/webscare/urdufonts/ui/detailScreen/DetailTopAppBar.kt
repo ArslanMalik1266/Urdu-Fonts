@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.components.TopBarButton
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +34,8 @@ fun DetailTopAppBar(
                 text = title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = HeadingBlackColor
+                color = HeadingBlackColor,
+                fontFamily = NunitoFontFamily
             )
         },
         navigationIcon = {

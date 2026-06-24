@@ -51,7 +51,8 @@ fun FontListScreen(
         topBar = {
             SimpleTopAppBar(
                 title = title,
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                containerColor = Color.White
             )
         }
     ) { innerPadding ->

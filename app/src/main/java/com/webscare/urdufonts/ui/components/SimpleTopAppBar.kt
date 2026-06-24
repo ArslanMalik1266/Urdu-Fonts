@@ -22,11 +22,12 @@ import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 fun SimpleTopAppBar(
     title: String,
     onBackClick: (() -> Unit)? = null,
-    onCartClick: () -> Unit = {}
+    onCartClick: () -> Unit = {},
+    containerColor: Color = Color.Transparent
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.Transparent
+            containerColor = containerColor
         ),
         navigationIcon = {
             if (onBackClick != null) {
