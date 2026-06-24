@@ -33,6 +33,7 @@ import com.webscare.urdufonts.ui.components.CustomSearchBar
 import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +49,7 @@ fun CategoriesScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 SimpleTopAppBar(title = "Categories", onCartClick = onCartClick)
             }
@@ -56,7 +58,6 @@ fun CategoriesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color.White)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { focusManager.clearFocus() })
                     }
@@ -93,11 +94,12 @@ fun CategoriesScreen(
                     else -> {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(2),
+                            modifier = Modifier.springOverscroll(),
                             contentPadding = PaddingValues(
-                                start = 16.dp,
+                                start = 18.dp,
                                 end = 16.dp,
                                 top = 16.dp,
-                                bottom = 16.dp
+                                bottom = 18.dp
                             ),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)

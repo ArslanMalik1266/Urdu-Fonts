@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,7 +26,7 @@ fun SimpleTopAppBar(
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.White
+            containerColor = Color.Transparent
         ),
         navigationIcon = {
             if (onBackClick != null) {
@@ -43,18 +44,13 @@ fun SimpleTopAppBar(
                 text = title,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = HeadingBlackColor
+                color = HeadingBlackColor.copy(0.8f),
+                fontFamily = NunitoFontFamily
             )
 
         },
         actions = {
-            Box(modifier = Modifier.padding(end = 8.dp)) {
-                TopBarButton(
-                    iconRes = R.drawable.ic_app_bar_cart,
-                    onClick = onCartClick,
-                    contentDescription = "Cart"
-                )
-            }
+
         },
     )
 }

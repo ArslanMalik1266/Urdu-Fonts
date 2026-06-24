@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.ui.theme.GreyColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 
 @Composable
@@ -28,7 +29,8 @@ fun FontItemCard(
     fontItem: FontItem,
     onDownloadClick: (FontItem) -> Unit,
     onFontClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showDivider: Boolean = true
 ) {
     Card(
         modifier = modifier
@@ -44,17 +46,21 @@ fun FontItemCard(
             FontItemHeader(fontItem = fontItem)
             FontItemPreview(fontItem = fontItem, onDownloadClick = onDownloadClick)
         }
-        HorizontalDivider(
-            thickness = 0.5.dp,
-            color = GreyColor.copy(alpha = 0.2f)
-        )
+        if (showDivider) {
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = GreyColor.copy(alpha = 0.2f)
+            )
+        }
     }
 }
 
 @Composable
 private fun FontItemHeader(fontItem: FontItem) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -63,7 +69,8 @@ private fun FontItemHeader(fontItem: FontItem) {
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = GreyColor,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            fontFamily = NunitoFontFamily
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -72,32 +79,35 @@ private fun FontItemHeader(fontItem: FontItem) {
             Text(
                 text = fontItem.primaryStyleName,
                 fontSize = 10.sp,
-                color = GreyColor.copy(alpha = 0.5f),
-                fontWeight = FontWeight.Medium
+                color = GreyColor,
+                fontWeight = FontWeight.Medium,
+                fontFamily = NunitoFontFamily
             )
             Text(
                 text = "·",
                 fontSize = 10.sp,
-                color = GreyColor.copy(alpha = 0.5f),
+                color = GreyColor,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = fontItem.primaryCategoryName,
                 fontSize = 10.sp,
-                color = GreyColor.copy(alpha = 0.5f),
-                fontWeight = FontWeight.Medium
+                color = GreyColor,
+                fontWeight = FontWeight.Medium,
+                fontFamily = NunitoFontFamily
             )
             Text(
                 text = "|",
                 fontSize = 10.sp,
-                color = GreyColor.copy(alpha = 0.5f),
+                color = GreyColor,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = "Weights: ${fontItem.weightCount}",
                 fontSize = 10.sp,
-                color = GreyColor.copy(alpha = 0.5f),
-                fontWeight = FontWeight.Medium
+                color = GreyColor,
+                fontWeight = FontWeight.Medium,
+                fontFamily = NunitoFontFamily
             )
         }
     }

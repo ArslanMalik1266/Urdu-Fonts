@@ -52,7 +52,7 @@ fun CurvedNavBar(
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    barColor: Color = Color(0xFFFFFFFF),       // ← GLASS: ~78% alpha white 0xC8FFFFFF
+    barColor: Color = Color(0xFFFFFFFF),
     indicatorColor: Color = AppColor,
     iconTint: Color = Color(0xFF888888),
     selectedIconTint: Color = Color.White,
@@ -114,28 +114,49 @@ fun CurvedNavBar(
     }
 
     // ── Animate cradle to selected item ──
+    // lastBarLeft tracks the bar's root position so we detect hide/show re-layouts
+    var lastBarLeft by remember { mutableStateOf<Float?>(null) }
     var lastAnimatedIndex by remember { mutableStateOf(-1) }
-    LaunchedEffect(positionsReady, selectedIndex, itemCentersX.toList()) {
+
+    LaunchedEffect(positionsReady, selectedIndex, itemCentersX.toList(), barLeftXInRoot) {
         if (!positionsReady) return@LaunchedEffect
         val targetX = itemCentersX[selectedIndex] ?: return@LaunchedEffect
-        if (lastAnimatedIndex == -1) {
-            cradleCenterX.snapTo(targetX)
-            lastAnimatedIndex = selectedIndex
-        } else if (lastAnimatedIndex != selectedIndex) {
-            lastAnimatedIndex = selectedIndex
-            cradleCenterX.animateTo(
-                targetX,
-                spring(
-                    dampingRatio = Spring.DampingRatioHighBouncy,
-                    stiffness = 100f // Default MediumLow is usually ~400f, try 50f - 100f for much slower
+        val currentBarLeft = barLeftXInRoot ?: return@LaunchedEffect
+
+        // If barLeftXInRoot changed it means the bar was hidden and re-appeared
+        // (layout remeasured with new position). Snap immediately — never animate.
+        val barJustReappeared = lastBarLeft != currentBarLeft
+        lastBarLeft = currentBarLeft
+
+        when {
+            lastAnimatedIndex == -1 || barJustReappeared -> {
+                // First layout OR bar re-appeared — snap silently to correct position
+                cradleCenterX.snapTo(targetX)
+                lastAnimatedIndex = selectedIndex
+            }
+            lastAnimatedIndex != selectedIndex -> {
+                // User switched tabs — animate normally
+                lastAnimatedIndex = selectedIndex
+                cradleCenterX.animateTo(
+                    targetX,
+                    spring(
+                        dampingRatio = Spring.DampingRatioHighBouncy,
+                        stiffness = 100f
+                    )
                 )
-            )
+            }
+            else -> {
+                // Same index, positions updated — snap silently to stay in sync
+                if (!cradleCenterX.isRunning) {
+                    cradleCenterX.snapTo(targetX)
+                }
+            }
         }
     }
 
     var isDragging by remember { mutableStateOf(false) }
 
-    // ── ENHANCEMENT #2: Lift on press — scale + shadow animate ──
+    // ── Lift on press — scale + shadow animate ──
     val indicatorScale by animateFloatAsState(
         targetValue = if (isDragging) 1.1f else 1f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
@@ -152,7 +173,7 @@ fun CurvedNavBar(
     }
     val totalHeight = barHeight + indicatorAbove
 
-    // ── ENHANCEMENT #4: Pre-compute gradient colors for indicator ──
+    // ── Pre-compute gradient colors for indicator ──
     val gradientLight = remember(indicatorColor) { lerp(indicatorColor, Color.White, 0.28f) }
     val gradientDark = remember(indicatorColor) { lerp(indicatorColor, Color.Black, 0.12f) }
 
@@ -276,7 +297,7 @@ fun CurvedNavBar(
                                         targetX,
                                         spring(
                                             dampingRatio = Spring.DampingRatioLowBouncy,
-                                            stiffness = 50f // Change this to match your new slow speed
+                                            stiffness = 50f
                                         )
                                     )
                                 }
@@ -316,16 +337,13 @@ fun CurvedNavBar(
                             y = indicatorTopPx.toInt()
                         )
                     }
-                    // ENHANCEMENT #2: scale on drag
                     .graphicsLayer {
                         scaleX = indicatorScale
                         scaleY = indicatorScale
                     }
                     .size(indicatorSize)
-                    // ENHANCEMENT #2: animated shadow depth
                     .shadow(indicatorShadow.dp, CircleShape)
                     .clip(CircleShape)
-                    // ENHANCEMENT #4: radial gradient background
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(gradientLight, indicatorColor, gradientDark),
@@ -339,7 +357,7 @@ fun CurvedNavBar(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                // ENHANCEMENT #4: glossy light reflection spot
+                // Glossy light reflection spot
                 Canvas(modifier = Modifier.matchParentSize()) {
                     drawCircle(
                         brush = Brush.radialGradient(
@@ -368,7 +386,8 @@ fun CurvedNavBar(
         }
     }
 }
-// ── ENHANCEMENT #6: Glassmorphism bar drawing ──
+
+// ── Glassmorphism bar drawing ──
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassBar(
     cx: Float,
     barColor: Color,
@@ -416,10 +435,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassBar(
         close()
     }
 
-    // ── Layer 1: Semi-transparent glass fill ──
+    // Layer 1: Semi-transparent glass fill
     drawPath(path = path, color = barColor)
 
-    // ── Layer 2: Frosted gradient overlay (top = bright, bottom = transparent) ──
+    // Layer 2: Frosted gradient overlay (top = bright, bottom = transparent)
     drawPath(
         path = path,
         brush = Brush.verticalGradient(
@@ -433,7 +452,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassBar(
         )
     )
 
-    // ── Layer 3: Subtle inner horizontal sheen (iOS-like light band) ──
+    // Layer 3: Subtle inner horizontal sheen (iOS-like light band)
     drawPath(
         path = path,
         brush = Brush.horizontalGradient(
@@ -447,7 +466,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassBar(
         )
     )
 
-    // ── Strokes: glass edge ──
+    // Strokes: glass edge
     val strokePath = Path().apply {
         moveTo(0f, barCornerRadius)
         quadraticTo(0f, 0f, barCornerRadius, 0f)
@@ -472,6 +491,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassBar(
 
     // Outer subtle definition stroke
     drawPath(strokePath, color = Color(0x18000000), style = Stroke(width = 1.5f))
-    // Inner white glass-edge highlight (on top, slightly thinner)
+    // Inner white glass-edge highlight
     drawPath(strokePath, color = Color.White.copy(alpha = 0.55f), style = Stroke(width = 1f))
 }

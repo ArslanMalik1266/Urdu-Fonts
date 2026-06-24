@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.util
 
 import android.graphics.BlurMaskFilter
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -44,3 +45,16 @@ fun Modifier.softShadow(
         }
     }
 }
+fun Modifier.softBlur(color: Color, radius: Float): Modifier =
+    this.drawBehind {
+        val paint = android.graphics.Paint()
+        paint.isAntiAlias = true
+        paint.color = android.graphics.Color.TRANSPARENT
+        paint.setShadowLayer(radius, 0f, 0f, color.toArgb())
+        drawContext.canvas.nativeCanvas.drawCircle(
+            size.width / 2,
+            size.height / 2,
+            size.width / 2,
+            paint
+        )
+    }

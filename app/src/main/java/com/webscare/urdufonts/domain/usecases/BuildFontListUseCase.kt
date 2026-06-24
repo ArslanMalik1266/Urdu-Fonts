@@ -5,7 +5,6 @@ import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.domain.models.FontListItem
 
 class BuildFontListUseCase {
-
     operator fun invoke(
         fonts: List<FontItem>,
         banners: List<BannerItem>
@@ -18,11 +17,11 @@ class BuildFontListUseCase {
         fonts.forEachIndexed { index, font ->
             result.add(FontListItem.Font(font))
 
-            val isIntervalHit = (index + 1) % 7 == 0
-            val hasMoreBanners = fonts.size > 26|| bannerIndex < banners.size
-
-            if (isIntervalHit && hasMoreBanners) {
-                result.add(FontListItem.Banner(banners[bannerIndex % banners.size]))
+            // Every 10 fonts, insert a banner
+            if ((index + 1) % 10 == 0) {
+                val banner = banners[bannerIndex % banners.size]
+                // ✅ Unique id using bannerIndex to avoid duplicate key crash
+                result.add(FontListItem.Banner(banner.copy(id = "${banner.id}_$bannerIndex")))
                 bannerIndex++
             }
         }

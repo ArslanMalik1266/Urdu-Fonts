@@ -158,24 +158,34 @@ class HomeViewModel(
     private fun applyFilters(
         source: List<FontListItem>,
         query: String,
-        categories: Set<String>,  // FontClassifier.slug values
-        styles: Set<String>,      // FontClassifier.slug values
+        categories: Set<String>,
+        styles: Set<String>,
     ): List<FontListItem> {
         val hasFilters = categories.isNotEmpty() || styles.isNotEmpty()
+
+        // 1. Extract only fonts and filter them
+        val filteredFonts = source
+            .filterIsInstance<FontListItem.Font>()
+            .filter { item ->
+                val font = item.fontItem
+                val matchesQuery = query.isBlank() ||
+                        font.name.contains(query, ignoreCase = true)
+                val matchesCategory = categories.isEmpty() ||
+                        font.categories.orEmpty().any { it.slug in categories }
+                val matchesStyle = styles.isEmpty() ||
+                        font.styles.orEmpty().any { it.slug in styles }
+                matchesQuery && matchesCategory && matchesStyle
+            }
+
+        // 2. Re-insert banners every 10 items on the filtered result
+        if (hasFilters || query.isNotBlank()) {
+            return buildFontListUseCase(filteredFonts.map { it.fontItem }, getBannersUseCase())
+        }
 
         return source.filter { item ->
             when (item) {
                 is FontListItem.Banner -> !hasFilters
-                is FontListItem.Font -> {
-                    val font = item.fontItem
-                    val matchesQuery = query.isBlank() ||
-                            font.name.contains(query, ignoreCase = true)
-                    val matchesCategory = categories.isEmpty() ||
-                            font.categories.orEmpty().any { it.slug in categories }
-                    val matchesStyle = styles.isEmpty() ||
-                            font.styles.orEmpty().any { it.slug in styles }
-                    matchesQuery && matchesCategory && matchesStyle
-                }
+                is FontListItem.Font -> true
             }
         }
     }

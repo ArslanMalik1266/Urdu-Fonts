@@ -23,7 +23,7 @@ fun AppTopBar(
 ) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color.White
+            containerColor = Color.Transparent
         ),
         title = {
             Image(
@@ -42,13 +42,7 @@ fun AppTopBar(
             }
         },
         actions = {
-            Box(modifier = Modifier.padding(end = 8.dp)) {
-                TopBarButton(
-                    iconRes = R.drawable.ic_app_bar_cart,
-                    onClick = onCartClick,
-                    contentDescription = "Cart"
-                )
-            }
+
         }
     )
 }

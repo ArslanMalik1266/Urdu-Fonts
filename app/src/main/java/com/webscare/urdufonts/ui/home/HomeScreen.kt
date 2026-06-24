@@ -39,6 +39,8 @@ import com.webscare.urdufonts.ui.components.FontItemCard
 import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
+import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +62,7 @@ fun HomeScreen(
             }
     ) {
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 AppTopBar(
                     onMenuClick = onMenuClick,
@@ -71,7 +74,6 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color.White)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     CustomSearchBar(
@@ -90,10 +92,11 @@ fun HomeScreen(
                     ) {
                         Text(
                             text = "Explore Fonts",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 18.sp,
-                            color = HeadingBlackColor
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 20.sp,
+                            fontFamily = NunitoFontFamily,
+                            color = HeadingBlackColor.copy(alpha = 0.8f)
                         )
                         // FilterButton now opens the bottom sheet
                         FilterButton(onClick = { viewModel.showFilterSheet() })
@@ -121,6 +124,7 @@ fun HomeScreen(
 
                     else -> {
                         LazyColumn(
+                            modifier = Modifier.springOverscroll(),
                             contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
@@ -129,21 +133,32 @@ fun HomeScreen(
                                 key = { item ->
                                     when (item) {
                                         is FontListItem.Font -> item.fontItem.id
-                                        is FontListItem.Banner -> item.bannerItem.id
+                                        is FontListItem.Banner -> {
+                                            "banner_${uiState.fonts.indexOf(item)}"
+                                        }
                                     }
                                 }
                             ) { item ->
+                                val index = uiState.fonts.indexOf(item)
+                                val nextItem = uiState.fonts.getOrNull(index + 1)
+                                val prevItem = uiState.fonts.getOrNull(index - 1)
                                 when (item) {
-                                    is FontListItem.Font -> FontItemCard(
-                                        fontItem = item.fontItem,
-                                        onDownloadClick = {},
-                                        onFontClick = { onFontClick(item.fontItem.id.toString()) },
-                                        modifier = Modifier.padding(horizontal = 16.dp)
-                                    )
-                                    is FontListItem.Banner -> BannerCard(
+
+                                    is FontListItem.Font -> {
+                                        val showDivider = nextItem !is FontListItem.Banner
+                                        FontItemCard(
+                                            fontItem = item.fontItem,
+                                            onDownloadClick = {},
+                                            onFontClick = { onFontClick(item.fontItem.id.toString()) },
+                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                            showDivider = showDivider
+                                        )
+                                    }
+                                        is FontListItem.Banner -> BannerCard(
                                         bannerItem = item.bannerItem,
                                         modifier = Modifier.fillMaxWidth()
-                                    )
+                                        )
+
                                 }
                             }
                             item { Spacer(modifier = Modifier.height(40.dp)) }

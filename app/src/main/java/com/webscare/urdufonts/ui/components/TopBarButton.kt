@@ -19,6 +19,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.util.softShadow
 
 @Composable
 fun TopBarButton(
@@ -31,7 +33,14 @@ fun TopBarButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(48.dp)
+            .size(36.dp)
+            .softShadow(
+                shadowColor = HeadingBlackColor.copy(0.05f),
+                offsetY = (0).dp,
+                blurValue = 8.dp,
+                borderRadius = 999.dp
+
+            )
             .clip(CircleShape)
             .background(Color.White)
             .clickable(

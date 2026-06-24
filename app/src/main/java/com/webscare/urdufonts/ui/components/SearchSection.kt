@@ -1,5 +1,6 @@
 package com.webscare.urdufonts.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.GreyColor
+import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
+import com.webscare.urdufonts.ui.util.softShadow
 
 @Composable
 fun CustomSearchBar(
@@ -31,7 +35,15 @@ fun CustomSearchBar(
         modifier = modifier
             .fillMaxWidth()
             .height(52.dp)
+            .softShadow(
+                shadowColor = HeadingBlackColor.copy(0.02f),
+                offsetY = (0).dp,
+                blurValue = 8.dp,
+                borderRadius = 999.dp
+
+            )
             .clip(CircleShape)
+            .background(Color.White)
             .border(0.5.dp, GreyColor.copy(alpha = 0.2f), CircleShape)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -49,7 +61,8 @@ fun CustomSearchBar(
                     "Search",
                     color = GreyColor.copy(alpha = 0.6f),
                     fontSize = 14.sp,
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
+                    fontFamily = NunitoFontFamily
                 )
             }
             innerTextField()
@@ -58,7 +71,7 @@ fun CustomSearchBar(
             painter = painterResource(id = R.drawable.ic_search),
             contentDescription = "Search Icon",
             tint = GreyColor.copy(alpha = 0.4f),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }

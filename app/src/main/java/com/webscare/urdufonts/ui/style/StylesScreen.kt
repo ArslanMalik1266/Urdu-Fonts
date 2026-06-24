@@ -32,12 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.webscare.urdufonts.ui.components.CustomSearchBar
-import com.webscare.urdufonts.ui.components.TopBarButton
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.domain.models.StyleItem
 import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,6 +57,7 @@ fun StylesScreen(
             detectTapGestures(onTap = { focusManager.clearFocus() })
         }) {
         Scaffold(
+            containerColor = Color.Transparent,
             topBar = {
                 SimpleTopAppBar(title = "Styles", onCartClick = onCartClick)
             }
@@ -65,7 +66,6 @@ fun StylesScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color.White)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     CustomSearchBar(
@@ -98,13 +98,14 @@ fun StylesScreen(
 
                     else -> {
                         LazyColumn(
+                            modifier = Modifier.springOverscroll(),
                             contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
+                                start = 18.dp,
+                                end = 18.dp,
                                 top = 16.dp,
                                 bottom = 16.dp
                             ),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(
                                 items = uiState.styles,

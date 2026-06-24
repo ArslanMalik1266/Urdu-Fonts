@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         hideBottomBar()
 
+        window.decorView.setBackgroundColor(android.graphics.Color.WHITE)
 
         setContent {
             AppNavigation()

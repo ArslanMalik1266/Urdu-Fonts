@@ -26,7 +26,9 @@ import coil.compose.AsyncImage
 import com.webscare.urdufonts.domain.models.CategoryItem
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.GreyColor
+import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.util.addPressEffect
+import com.webscare.urdufonts.ui.util.softShadow
 
 @Composable
 fun CategoryItemCard(
@@ -41,16 +43,25 @@ fun CategoryItemCard(
             .addPressEffect {
                 onClick()
             }
+            .softShadow(
+                shadowColor = HeadingBlackColor.copy(0.03f),
+                offsetY = (0).dp,
+                blurValue = 8.dp,
+                borderRadius = 16.dp
+
+            )
             .clip(RoundedCornerShape(16.dp))
             .drawWithCache {
                 val glowCenter = Offset(size.width / 2f, size.height / 2f)
                 val glowRadius = size.maxDimension * 0.62f
                 val brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF57C073).copy(alpha = 0.0f),
-                        Color(0xFF57C073).copy(alpha = 0.0f),
-                        Color(0xFF57C073).copy(alpha = 0.05f),
-                        Color(0xFF57C073).copy(alpha = 0.1f)
+                        Color.White,
+                        Color.White,
+                        Color.White,
+                        Color.White,
+                        Color(0xFFEFF9F1),
+                        Color(0xFFEFF9F1)
                     ),
                     center = glowCenter,
                     radius = glowRadius

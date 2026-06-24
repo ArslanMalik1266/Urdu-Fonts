@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 
 @Composable
@@ -40,7 +41,7 @@ fun FilterButton(
             .clip(CircleShape)
             .border(BorderStroke(0.5.dp, GreyColor.copy(alpha = 0.2f)), CircleShape)
             .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -57,7 +58,8 @@ fun FilterButton(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 lineHeight = 16.sp,
-                color = GreyColor
+                color = GreyColor,
+                fontFamily = NunitoFontFamily
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.webscare.urdufonts.ui.style
 
+import android.R.attr.fontFamily
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +26,10 @@ import coil.compose.AsyncImage
 import com.webscare.urdufonts.domain.models.StyleItem
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.GreyColor
+import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
+import com.webscare.urdufonts.ui.util.softShadow
 
 @Composable
 fun StyleItemCard(
@@ -40,6 +44,13 @@ fun StyleItemCard(
             .addPressEffect {
                 onClick()
             }
+            .softShadow(
+                shadowColor = HeadingBlackColor.copy(0.03f),
+                offsetY = (0).dp,
+                blurValue = 8.dp,
+                borderRadius = 12.dp
+
+            )
             .clip(RoundedCornerShape(12.dp))
             .background(
                 brush = Brush.horizontalGradient(
@@ -48,8 +59,8 @@ fun StyleItemCard(
                         Color(0xFFFFFFFF),
                         Color(0xFFFFFFFF),
                         Color(0xFFFFFFFF),
-                        Color(0xFF57C073).copy(alpha = 0.1f),
-                        Color(0xFF57C073).copy(alpha = 0.2f)
+                        Color(0xFFF9FEF8),
+                        Color(0xFFEAFBE6)
                     )
                 )
             )
@@ -69,9 +80,11 @@ fun StyleItemCard(
             Text(
                 text = style.title,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Bold,
                 color = GreyColor,
-                lineHeight = 18.sp
+                lineHeight = 18.sp,
+                fontFamily = NunitoFontFamily
+
             )
 
             AsyncImage(

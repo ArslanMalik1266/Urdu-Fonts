@@ -27,7 +27,7 @@ fun DownloadBox(
         modifier = Modifier
             .size(32.dp)
             .clip(CircleShape)
-            .background(AppColor)
+            .background(GreyColor.copy(0.1f))
             .addPressEffect{ onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -35,7 +35,7 @@ fun DownloadBox(
             painter = painterResource(R.drawable.ic_download),
             contentDescription ="Download",
             modifier = Modifier.size(12.dp),
-            colorFilter = ColorFilter.tint(Color.White)
+            colorFilter = ColorFilter.tint(GreyColor.copy(0.5f))
         )
     }
 }
