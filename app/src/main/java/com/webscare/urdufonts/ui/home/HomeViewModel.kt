@@ -128,6 +128,8 @@ class HomeViewModel(
             current.copy(
                 selectedCategories = emptySet(),
                 selectedStyles = emptySet(),
+                appliedCategories = emptySet(),   // ✅ Applied bhi reset
+                appliedStyles = emptySet(),        // ✅
                 expandedFilterSection = FilterSection.NONE,
                 fonts = applyFilters(current.allFonts, current.searchQuery, emptySet(), emptySet())
             )
@@ -139,6 +141,9 @@ class HomeViewModel(
             current.copy(
                 isFilterSheetVisible = false,
                 expandedFilterSection = FilterSection.NONE,
+                // ✅ Applied mein save karo — yahan se hasActiveFilters true hoga
+                appliedCategories = current.selectedCategories,
+                appliedStyles = current.selectedStyles,
                 fonts = applyFilters(
                     current.allFonts,
                     current.searchQuery,

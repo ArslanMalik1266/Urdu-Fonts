@@ -25,40 +25,44 @@ import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
+import com.webscare.urdufonts.ui.theme.YellowColor
 import com.webscare.urdufonts.ui.util.addPressEffect
 
 @Composable
 fun FilterButton(
     onClick: () -> Unit,
+    isFilterActive: Boolean = false,   // ✅ ADD
     modifier: Modifier = Modifier
 ) {
+    // ✅ Active hone pe yellow, warna white
+    val bgColor = if (isFilterActive) YellowColor.copy(alpha = 0.8f) else Color.White
+    val iconTint = if (isFilterActive) HeadingBlackColor else GreyColor.copy(alpha = 0.4f)
+    val textColor = if (isFilterActive) HeadingBlackColor else GreyColor
+    val borderColor = if (isFilterActive) YellowColor.copy(alpha = 0.5f) else GreyColor.copy(alpha = 0.2f)
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .addPressEffect(
-                onClick = onClick
-            )
+            .addPressEffect(onClick = onClick)
             .clip(CircleShape)
-            .border(BorderStroke(0.5.dp, GreyColor.copy(alpha = 0.2f)), CircleShape)
-            .background(Color.White)
+            .border(BorderStroke(0.5.dp, borderColor), CircleShape)  // ✅ border bhi change
+            .background(bgColor)                                       // ✅ bg change
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(R.drawable.ic_filter),
                 contentDescription = "Filter",
-                tint = GreyColor.copy(alpha = 0.4f),
+                tint = iconTint,   // ✅ icon tint change
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Filters",
+                text = if (isFilterActive) "Filtered" else "Filters",  // ✅ text bhi update (optional)
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
+                fontWeight = if (isFilterActive) FontWeight.SemiBold else FontWeight.Normal,
                 lineHeight = 16.sp,
-                color = GreyColor,
+                color = textColor,   // ✅ text color change
                 fontFamily = NunitoFontFamily
             )
         }

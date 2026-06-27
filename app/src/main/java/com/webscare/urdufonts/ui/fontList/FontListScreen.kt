@@ -33,6 +33,7 @@ import com.webscare.urdufonts.ui.components.FontItemCard
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
 import com.webscare.urdufonts.ui.home.HomeViewModel
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +98,7 @@ fun FontListScreen(
 
                 else -> {
                     LazyColumn(
+                        modifier = Modifier.springOverscroll(),
                         contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {

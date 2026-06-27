@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.detailScreen
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -49,7 +50,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -94,16 +94,20 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.theme.YellowColor
+import com.webscare.urdufonts.ui.util.springOverscroll
 
 private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
 private val URDU_SAMPLE_TEXTS = listOf(
@@ -238,6 +242,7 @@ private fun FontDetailContent(
     val coroutineScope = rememberCoroutineScope()
 
     var userSelectedTab by remember { mutableStateOf<DetailTab?>(null) }
+    var isAboutExpanded by remember { mutableStateOf(false) }
     var isUserScrolling by remember { mutableStateOf(false) }
 
     var fontSectionY by remember { mutableStateOf(0f) }
@@ -309,6 +314,7 @@ private fun FontDetailContent(
                 onTabSelected(tab)
                 userSelectedTab = tab
                 isUserScrolling = true
+                isAboutExpanded = (tab == DetailTab.ABOUT)
                 coroutineScope.launch {
                     val target = when (tab) {
                         DetailTab.FONT -> 0
@@ -326,6 +332,7 @@ private fun FontDetailContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .springOverscroll()
         ) {
             // ── FONT section ─────────────────────────────────────────
             Column(
@@ -427,7 +434,7 @@ private fun FontDetailContent(
                             Text(
                                 text = weightName,
                                 fontSize = 13.sp,
-                                color =  GreyColor,
+                                color = GreyColor,
                                 fontWeight = FontWeight.Normal,
                                 fontFamily = NunitoFontFamily
                             )
@@ -454,7 +461,11 @@ private fun FontDetailContent(
                         aboutSectionH = coords.size.height.toFloat()
                     }
             ) {
-                AboutSection(aboutText = detail.description)
+                AboutSection(
+                    aboutText = detail.description,
+                    isExpanded = isAboutExpanded,
+                    onExpandedChange = { isAboutExpanded = it }
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -544,12 +555,16 @@ private fun FontPreviewCard(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
             ) {
-                ShimmerBox(modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(20.dp))
-                ShimmerBox(modifier = Modifier
-                    .fillMaxWidth(0.5f)
-                    .height(20.dp))
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(20.dp)
+                )
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(20.dp)
+                )
             }
         } else {
             Text(
@@ -576,7 +591,12 @@ private fun MetadataRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = "Weight: $fontWeight", fontSize = 12.sp, color = GreyColor, fontFamily = NunitoFontFamily)
+        Text(
+            text = "Weight: $fontWeight",
+            fontSize = 12.sp,
+            color = GreyColor,
+            fontFamily = NunitoFontFamily
+        )
         Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f))
         categories.forEach { category ->
             MetadataChip(text = category.title)
@@ -594,7 +614,12 @@ private fun MetadataChip(text: String, modifier: Modifier = Modifier) {
             .border(BorderStroke(0.5.dp, AppColor.copy(alpha = 0.5f)), RoundedCornerShape(14.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Text(text = text, fontSize = 10.sp, color = HeadingBlackColor, fontFamily =  NunitoFontFamily)
+        Text(
+            text = text,
+            fontSize = 10.sp,
+            color = HeadingBlackColor,
+            fontFamily = NunitoFontFamily
+        )
     }
 }
 
@@ -606,7 +631,7 @@ private fun SectionHeading(text: String, modifier: Modifier = Modifier) {
         fontWeight = FontWeight.SemiBold,
         color = GreyColor,
         modifier = modifier,
-        fontFamily =  NunitoFontFamily
+        fontFamily = NunitoFontFamily
     )
 }
 
@@ -664,8 +689,8 @@ private fun PreviewControlsSection(
             textStyle = TextStyle(
                 fontSize = 16.sp,
                 fontFamily = NunitoFontFamily,
-                fontWeight = if (isBoldEnabled) FontWeight.Bold else FontWeight.Normal,
-                textDecoration = if (isUnderlineEnabled) TextDecoration.Underline else null,
+                fontWeight = FontWeight.Normal,       // ✅ hamesha normal — bold sirf TOP pe
+                textDecoration = TextDecoration.None,
                 color = GreyColor.copy(0.5f),
                 textAlign = TextAlign.Right,
                 lineHeight = 28.sp
@@ -766,8 +791,12 @@ private fun StyleToggleIcon(
 }
 
 @Composable
-private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
-    var isExpanded by remember { mutableStateOf(false) }
+private fun AboutSection(
+    aboutText: String,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var cutIndex by remember { mutableStateOf<Int?>(null) }
 
     val plainText = remember(aboutText) {
@@ -795,7 +824,14 @@ private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
                 // trim to last word boundary before cutIndex
                 val trimmed = plainText.take(cut).trimEnd().trimEnd { !it.isWhitespace() }.trimEnd()
                 append(trimmed)
-                withStyle(SpanStyle(color = AppColor, fontWeight = FontWeight.Medium, fontFamily = NunitoFontFamily, fontSize = 13.sp)) {
+                withStyle(
+                    SpanStyle(
+                        color = AppColor,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = NunitoFontFamily,
+                        fontSize = 13.sp
+                    )
+                ) {
                     append("... see more")
                 }
             } else {
@@ -804,7 +840,13 @@ private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier
+        .animateContentSize(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            )
+        )) {
         SectionHeading(text = "About")
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -823,7 +865,11 @@ private fun AboutSection(aboutText: String, modifier: Modifier = Modifier) {
                     cutIndex = (lineEnd - 25).coerceAtLeast(0)
                 }
             },
-            modifier = Modifier.addPressEffect { isExpanded = !isExpanded }
+            modifier = Modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onExpandedChange(!isExpanded) }
         )
     }
 }
@@ -899,7 +945,13 @@ private fun InfoRow(
             )
             Text(text = label, fontSize = 14.sp, color = GreyColor, fontFamily = NunitoFontFamily)
         }
-        Text(text = value, fontSize = 14.sp, color = valueColor, fontWeight = valueFontWeight, fontFamily =  NunitoFontFamily)
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            color = valueColor,
+            fontWeight = valueFontWeight,
+            fontFamily = NunitoFontFamily
+        )
     }
 }
 

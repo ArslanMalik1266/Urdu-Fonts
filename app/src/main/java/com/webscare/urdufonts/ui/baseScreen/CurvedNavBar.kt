@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +75,7 @@ fun CurvedNavBar(
     }
     var barLeftXInRoot by remember { mutableStateOf<Float?>(null) }
     val cradleCenterX = remember { Animatable(0f) }
+    var indicatorReady by remember { mutableStateOf(false) }
 
     val positionsReady by remember(itemCount) {
         derivedStateOf {
@@ -86,7 +88,7 @@ fun CurvedNavBar(
     // ── displayedIndex: which item the indicator is physically closest to ──
     val displayedIndex by remember(itemCount) {
         derivedStateOf {
-            if (!positionsReady) selectedIndex
+            if (!positionsReady || !indicatorReady) selectedIndex // ✅ !indicatorReady add
             else {
                 val cx = cradleCenterX.value
                 var closestIdx = 0
@@ -102,6 +104,7 @@ fun CurvedNavBar(
         }
     }
 
+
     // ── Crossfade icon inside indicator ──
     val iconAlpha = remember { Animatable(1f) }
     var renderedIconIndex by remember { mutableStateOf(selectedIndex) }
@@ -116,9 +119,9 @@ fun CurvedNavBar(
     // ── Animate cradle to selected item ──
     // lastBarLeft tracks the bar's root position so we detect hide/show re-layouts
     var lastBarLeft by remember { mutableStateOf<Float?>(null) }
-    var lastAnimatedIndex by remember { mutableStateOf(-1) }
+    var lastAnimatedIndex by rememberSaveable { mutableIntStateOf(-1) }
 
-    LaunchedEffect(positionsReady, selectedIndex, itemCentersX.toList(), barLeftXInRoot) {
+        LaunchedEffect(positionsReady, selectedIndex, itemCentersX.toList(), barLeftXInRoot) {
         if (!positionsReady) return@LaunchedEffect
         val targetX = itemCentersX[selectedIndex] ?: return@LaunchedEffect
         val currentBarLeft = barLeftXInRoot ?: return@LaunchedEffect
@@ -128,31 +131,40 @@ fun CurvedNavBar(
         val barJustReappeared = lastBarLeft != currentBarLeft
         lastBarLeft = currentBarLeft
 
-        when {
-            lastAnimatedIndex == -1 || barJustReappeared -> {
-                // First layout OR bar re-appeared — snap silently to correct position
-                cradleCenterX.snapTo(targetX)
-                lastAnimatedIndex = selectedIndex
-            }
-            lastAnimatedIndex != selectedIndex -> {
-                // User switched tabs — animate normally
-                lastAnimatedIndex = selectedIndex
-                cradleCenterX.animateTo(
-                    targetX,
-                    spring(
-                        dampingRatio = Spring.DampingRatioHighBouncy,
-                        stiffness = 100f
-                    )
-                )
-            }
-            else -> {
-                // Same index, positions updated — snap silently to stay in sync
-                if (!cradleCenterX.isRunning) {
+            when {
+                lastAnimatedIndex == -1 || barJustReappeared -> {
+                    // Fresh start ya bar reappear — silently snap
                     cradleCenterX.snapTo(targetX)
+                    lastAnimatedIndex = selectedIndex
+                    indicatorReady = true  // ✅ snap ke baad dikhao
+                }
+                lastAnimatedIndex != selectedIndex -> {
+                    lastAnimatedIndex = selectedIndex
+                    if (!indicatorReady) {
+                        // ✅ indicator abhi first time show ho raha hai — animate mat karo
+                        cradleCenterX.snapTo(targetX)
+                        indicatorReady = true
+                    } else {
+                        // ✅ Normal tab switch — spring animate karo
+                        cradleCenterX.animateTo(
+                            targetX,
+                            spring(
+                                dampingRatio = Spring.DampingRatioHighBouncy,
+                                stiffness = 100f
+                            )
+                        )
+                    }
+                }
+                else -> {
+                    if (!cradleCenterX.isRunning) {
+                        cradleCenterX.snapTo(targetX)
+                    }
+                    if (!indicatorReady) indicatorReady = true  // ✅ ADD
                 }
             }
+
+
         }
-    }
 
     var isDragging by remember { mutableStateOf(false) }
 
@@ -323,7 +335,7 @@ fun CurvedNavBar(
         }
 
         // ── Floating indicator — GRADIENT + LIFT + GLOSSY ──
-        if (positionsReady) {
+        if (positionsReady && indicatorReady) {
             val indicatorTopPx = with(density) {
                 (totalHeight - barHeight + c1Y.toDp() - indicatorSize / 2).toPx()
             }

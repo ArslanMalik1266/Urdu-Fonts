@@ -21,9 +21,11 @@ data class HomeUiState(
     // ── Selected filter slugs ──────────────────────────────────────────────
     val selectedCategories: Set<String> = emptySet(),
     val selectedStyles: Set<String> = emptySet(),
+    val appliedCategories: Set<String> = emptySet(),
+    val appliedStyles: Set<String> = emptySet(),
 ) {
     val hasActiveFilters: Boolean
-        get() = selectedCategories.isNotEmpty() || selectedStyles.isNotEmpty()
+        get() = appliedCategories.isNotEmpty() || appliedStyles.isNotEmpty()
 
     val totalSelectedFilters: Int
         get() = selectedCategories.size + selectedStyles.size

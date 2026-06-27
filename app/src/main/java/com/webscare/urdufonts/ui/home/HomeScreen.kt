@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,7 +101,10 @@ fun HomeScreen(
                             color = HeadingBlackColor.copy(alpha = 0.8f)
                         )
                         // FilterButton now opens the bottom sheet
-                        FilterButton(onClick = { viewModel.showFilterSheet() })
+                        FilterButton(
+                            onClick = { viewModel.showFilterSheet() },
+                            isFilterActive = uiState.hasActiveFilters
+                        )
                     }
                 }
 
@@ -123,7 +128,12 @@ fun HomeScreen(
                     }
 
                     else -> {
+                        val listState = rememberLazyListState()
+                        LaunchedEffect(uiState.fonts) {
+                            listState.animateScrollToItem(0)
+                        }
                         LazyColumn(
+                            state = listState,
                             modifier = Modifier.springOverscroll(),
                             contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)

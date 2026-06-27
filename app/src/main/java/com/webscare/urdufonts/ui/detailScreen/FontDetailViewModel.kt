@@ -42,6 +42,8 @@ class FontDetailViewModel(
     private val fontId: String = checkNotNull(savedStateHandle["fontId"])
     private val _initialFontFamily = MutableStateFlow<FontFamily?>(null)
     val initialFontFamily: StateFlow<FontFamily?> = _initialFontFamily.asStateFlow()
+    private var regularTypeface: Typeface? = null
+    private var rawWeightTypefaces: List<Pair<String, Typeface>> = emptyList()
 
     init {
         loadFontDetail()
@@ -95,6 +97,7 @@ class FontDetailViewModel(
         viewModelScope.launch {
             getFontPreviewUseCase(fontItem).onSuccess { file ->
                 val typeface = Typeface.createFromFile(file)
+                regularTypeface = typeface
                 _fontFamilyState.value = FontFamily(typeface)
             }.onFailure { e ->
                 Log.e("FontDebug", "loadPreview FAILED: ${e.message}", e)
@@ -158,11 +161,13 @@ class FontDetailViewModel(
                     val typeface = Typeface.createFromFile(file)
                     Pair(
                         "${weightName.replaceFirstChar { it.uppercase() }}  $weightNumber",
-                        FontFamily(typeface)
+                        typeface // ✅ Store raw Typeface directly
                     )
                 }
-
-                _fontWeightsState.value = weightFamilies
+                // ✅ Save in raw list variable
+                rawWeightTypefaces = weightFamilies
+                // ✅ Wrap with FontFamily to show standard un-bolded list on UI
+                _fontWeightsState.value = weightFamilies.map { Pair(it.first, FontFamily(it.second)) }
 
                 val regularIndex = weightFamilies.indexOfFirst {
                     it.first.contains("Regular", ignoreCase = true)
@@ -171,9 +176,10 @@ class FontDetailViewModel(
                 _selectedWeightIndex.value = autoIndex
 
                 if (weightFamilies.isNotEmpty()) {
-                    _fontFamilyState.value = weightFamilies[autoIndex].second
+                    // ✅ Wrap with FontFamily wrapper
+                    _fontFamilyState.value = FontFamily(weightFamilies[autoIndex].second)
                     if (_initialFontFamily.value == null) {
-                        _initialFontFamily.value = weightFamilies[0].second
+                        _initialFontFamily.value = FontFamily(weightFamilies[0].second)
                     }
                 }
             }.onFailure { e ->
@@ -184,10 +190,20 @@ class FontDetailViewModel(
 
     fun onWeightSelected(index: Int) {
         _selectedWeightIndex.value = index
-        val weights = _fontWeightsState.value
-        if (index < weights.size) {
-            _fontFamilyState.value = weights[index].second
+        val rawTf = rawWeightTypefaces.getOrNull(index)?.second ?: return
+        val isBold = _uiState.value.isBoldEnabled
+        // ✅ Active bold state check karke weight font apply karein
+        val activeTf = if (isBold) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                val targetWeight = (rawTf.weight + 300).coerceAtMost(1000)
+                Typeface.create(rawTf, targetWeight, false)
+            } else {
+                Typeface.create(rawTf, Typeface.BOLD)
+            }
+        } else {
+            rawTf
         }
+        _fontFamilyState.value = FontFamily(activeTf)
     }
 
     fun onTabSelected(tab: DetailTab) {
@@ -199,7 +215,18 @@ class FontDetailViewModel(
     }
 
     fun onBoldToggle() {
-        _uiState.update { it.copy(isBoldEnabled = !it.isBoldEnabled) }
+        val newBold = !_uiState.value.isBoldEnabled
+        _uiState.update { it.copy(isBoldEnabled = newBold) }
+        // 1. ✅ Dynamic Preview Card (Top Card) ko standard bold karein
+        val base = regularTypeface ?: return
+        val boldTf = if (newBold) Typeface.create(base, Typeface.BOLD) else base
+        _initialFontFamily.value = FontFamily(boldTf)
+        // 2. ✅ Active typing font (selected weight) ko standard bold karein
+        val currentRawTf = rawWeightTypefaces.getOrNull(_selectedWeightIndex.value)?.second ?: regularTypeface
+        if (currentRawTf != null) {
+            val activeTf = if (newBold) Typeface.create(currentRawTf, Typeface.BOLD) else currentRawTf
+            _fontFamilyState.value = FontFamily(activeTf)
+        }
     }
 
     fun onUnderlineToggle() {
