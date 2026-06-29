@@ -1,7 +1,6 @@
 package com.webscare.urdufonts.ui.baseScreen
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,11 +28,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.webscare.urdufonts.ui.theme.AppColor
 import kotlinx.coroutines.launch
@@ -47,6 +45,27 @@ data class NavBarItem(
     val label: String,
 )
 
+/**
+ * Why this file differs structurally from a typical "measure-after-the-fact" bottom nav:
+ *
+ * Item centers used to be discovered via onGloballyPositioned() — compose, let layout
+ * happen, read back pixel coordinates into mutable state, then gate the indicator and
+ * the animation LaunchedEffect behind a "have all positions arrived yet" flag
+ * (positionsReady / indicatorReady / barJustReappeared). That's a feedback loop: layout
+ * → state write → recomposition → layout again, and every consumer of "where is item X"
+ * has to branch on "not known yet."
+ *
+ * Since every item occupies an equal slot (Arrangement.SpaceAround over fillMaxWidth,
+ * same as before), slot centers are a pure function of the row's width and item count.
+ * A single Modifier.layout {} on the outer Box captures that width synchronously during
+ * the normal measure pass — no extra recomposition, no readiness flag, because the value
+ * isn't "discovered" after the fact, it's computed from a constraint we already have.
+ *
+ * Everything that actually needs per-frame updates (the indicator's screen position,
+ * the bar's Canvas redraw, icon dip/fade) stays exactly as before: plain
+ * Modifier.offset { } / Canvas draw lambdas reading cradleCenterX.value, which Compose
+ * already skips straight to re-layout/re-draw for, without going through subcomposition.
+ */
 @Composable
 fun CurvedNavBar(
     items: List<NavBarItem>,
@@ -69,43 +88,48 @@ fun CurvedNavBar(
     val r2 = with(density) { 18.dp.toPx() }
     val c1Y = with(density) { 8.dp.toPx() }
     val barCornerRadius = with(density) { 24.dp.toPx() }
+    val horizontalPaddingPx = with(density) { 8.dp.toPx() }
 
-    val itemCentersX = remember(itemCount) {
-        mutableStateListOf<Float?>().apply { repeat(itemCount) { add(null) } }
-    }
-    var barLeftXInRoot by remember { mutableStateOf<Float?>(null) }
     val cradleCenterX = remember { Animatable(0f) }
-    var indicatorReady by remember { mutableStateOf(false) }
 
-    val positionsReady by remember(itemCount) {
+    // ── Item centers: computed, not discovered ──
+    // Replaces itemCentersX (mutableStateListOf<Float?>) + barLeftXInRoot +
+    // positionsReady derivedStateOf. One list, never null, recomputed only when
+    // the row's measured width actually changes (set from Modifier.layout below).
+    var rowWidthPx by remember { mutableStateOf(0f) }
+    val itemCentersX by remember {
         derivedStateOf {
-            barLeftXInRoot != null &&
-                    itemCentersX.size == itemCount &&
-                    itemCentersX.all { it != null }
+            if (itemCount == 0) emptyList()
+            else {
+                val contentWidthPx = (rowWidthPx - 2 * horizontalPaddingPx).coerceAtLeast(0f)
+                val slotWidthPx = contentWidthPx / itemCount
+                List(itemCount) { i -> horizontalPaddingPx + slotWidthPx * (i + 0.5f) }
+            }
         }
     }
+    val positionsReady by remember { derivedStateOf { rowWidthPx > 0f } }
 
     // ── displayedIndex: which item the indicator is physically closest to ──
-    val displayedIndex by remember(itemCount) {
+    // Same "nearest slot" logic as before; just reads the computed list instead
+    // of the discovered one, and the readiness check is positionsReady (one flag,
+    // not three).
+    val displayedIndex by remember {
         derivedStateOf {
-            if (!positionsReady || !indicatorReady) selectedIndex // ✅ !indicatorReady add
+            if (!positionsReady) selectedIndex
             else {
                 val cx = cradleCenterX.value
                 var closestIdx = 0
                 var minDist = Float.MAX_VALUE
                 itemCentersX.forEachIndexed { idx, x ->
-                    if (x != null) {
-                        val d = abs(cx - x)
-                        if (d < minDist) { minDist = d; closestIdx = idx }
-                    }
+                    val d = abs(cx - x)
+                    if (d < minDist) { minDist = d; closestIdx = idx }
                 }
                 closestIdx
             }
         }
     }
 
-
-    // ── Crossfade icon inside indicator ──
+    // ── Crossfade icon inside indicator ── (unchanged)
     val iconAlpha = remember { Animatable(1f) }
     var renderedIconIndex by remember { mutableStateOf(selectedIndex) }
     LaunchedEffect(displayedIndex) {
@@ -117,58 +141,78 @@ fun CurvedNavBar(
     }
 
     // ── Animate cradle to selected item ──
-    // lastBarLeft tracks the bar's root position so we detect hide/show re-layouts
-    var lastBarLeft by remember { mutableStateOf<Float?>(null) }
-    var lastAnimatedIndex by rememberSaveable { mutableIntStateOf(-1) }
+    //
+    // THE BUG THIS REPLACES:
+    // lastAnimatedIndex was rememberSaveable, but cradleCenterX (the Animatable
+    // holding the actual pixel position) was plain remember. Animatable cannot be
+    // rememberSaveable without a custom Saver, so it has no way to survive this
+    // composable being disposed and recreated (which happens whenever you navigate
+    // to a detail screen that isn't part of the same Scaffold/NavHost subtree and
+    // back). The result: on return, lastAnimatedIndex correctly restores to e.g. 1
+    // (Styles), but cradleCenterX restarts at its initial value, 0f — screen-left.
+    // Since lastAnimatedIndex (1) already equals selectedIndex (1), the old code
+    // fell into the "else" branch, which only snaps if !isRunning — but by then a
+    // composable had already rendered one frame with the indicator at 0f, and the
+    // *next* recomposition pass (driven by currentBackStackEntryAsState settling)
+    // could re-trigger the animate branch, producing exactly the "slides in from
+    // the left" symptom.
+    //
+    // THE FIX: stop trying to keep two independently-surviving pieces of state
+    // (a saved index, and an unsaved pixel position) in sync. Instead, track
+    // whether THIS pixel position has ever been placed at all, using a boolean
+    // that is allowed to reset with cradleCenterX (both plain remember, so they
+    // rise and fall together — single source of truth for "are we initialized").
+    // lastAnimatedIndex still exists, but only to decide animate-vs-no-op for
+    // genuine in-place tab switches; it is no longer load-bearing for the
+    // fresh-mount snap decision.
+    var lastAnimatedIndex by remember { mutableIntStateOf(selectedIndex) }
+    var hasPlacedCradle by remember { mutableStateOf(false) }
+    var indicatorReady by remember { mutableStateOf(false) }
 
-        LaunchedEffect(positionsReady, selectedIndex, itemCentersX.toList(), barLeftXInRoot) {
+    LaunchedEffect(selectedIndex, itemCentersX, positionsReady) {
         if (!positionsReady) return@LaunchedEffect
-        val targetX = itemCentersX[selectedIndex] ?: return@LaunchedEffect
-        val currentBarLeft = barLeftXInRoot ?: return@LaunchedEffect
+        val targetX = itemCentersX.getOrNull(selectedIndex) ?: return@LaunchedEffect
 
-        // If barLeftXInRoot changed it means the bar was hidden and re-appeared
-        // (layout remeasured with new position). Snap immediately — never animate.
-        val barJustReappeared = lastBarLeft != currentBarLeft
-        lastBarLeft = currentBarLeft
-
-            when {
-                lastAnimatedIndex == -1 || barJustReappeared -> {
-                    // Fresh start ya bar reappear — silently snap
+        when {
+            !hasPlacedCradle -> {
+                // First time this instance has ever known a real position —
+                // whether that's a true first launch, or a recomposition after
+                // this composable was disposed (detail screen, process restore,
+                // config change). Always snap. Never animate from an unplaced
+                // position, because there is no "previous tab" to animate from —
+                // cradleCenterX's current value (0f) is not a real prior state,
+                // it's just the Animatable's construction default.
+                cradleCenterX.snapTo(targetX)
+                lastAnimatedIndex = selectedIndex
+                hasPlacedCradle = true
+                indicatorReady = true
+            }
+            lastAnimatedIndex != selectedIndex -> {
+                // Genuine tab switch while this instance has been alive the whole
+                // time — spring animate (identical spec to the original).
+                lastAnimatedIndex = selectedIndex
+                cradleCenterX.animateTo(
+                    targetX,
+                    spring(
+                        dampingRatio = Spring.DampingRatioHighBouncy,
+                        stiffness = 100f
+                    )
+                )
+            }
+            else -> {
+                // Same tab, e.g. a recomposition triggered by something unrelated
+                // (drag gesture finished elsewhere, etc). Only correct drift if
+                // nothing is actively animating/dragging.
+                if (!cradleCenterX.isRunning) {
                     cradleCenterX.snapTo(targetX)
-                    lastAnimatedIndex = selectedIndex
-                    indicatorReady = true  // ✅ snap ke baad dikhao
-                }
-                lastAnimatedIndex != selectedIndex -> {
-                    lastAnimatedIndex = selectedIndex
-                    if (!indicatorReady) {
-                        // ✅ indicator abhi first time show ho raha hai — animate mat karo
-                        cradleCenterX.snapTo(targetX)
-                        indicatorReady = true
-                    } else {
-                        // ✅ Normal tab switch — spring animate karo
-                        cradleCenterX.animateTo(
-                            targetX,
-                            spring(
-                                dampingRatio = Spring.DampingRatioHighBouncy,
-                                stiffness = 100f
-                            )
-                        )
-                    }
-                }
-                else -> {
-                    if (!cradleCenterX.isRunning) {
-                        cradleCenterX.snapTo(targetX)
-                    }
-                    if (!indicatorReady) indicatorReady = true  // ✅ ADD
                 }
             }
-
-
         }
+    }
 
     var isDragging by remember { mutableStateOf(false) }
 
-    // ── Lift on press — scale + shadow animate ──
+    // ── Lift on press — scale + shadow animate ── (unchanged)
     val indicatorScale by animateFloatAsState(
         targetValue = if (isDragging) 1.1f else 1f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
@@ -185,7 +229,7 @@ fun CurvedNavBar(
     }
     val totalHeight = barHeight + indicatorAbove
 
-    // ── Pre-compute gradient colors for indicator ──
+    // ── Pre-compute gradient colors for indicator ── (unchanged)
     val gradientLight = remember(indicatorColor) { lerp(indicatorColor, Color.White, 0.28f) }
     val gradientDark = remember(indicatorColor) { lerp(indicatorColor, Color.Black, 0.12f) }
 
@@ -193,9 +237,14 @@ fun CurvedNavBar(
         modifier = modifier
             .fillMaxWidth()
             .height(totalHeight)
-            .onGloballyPositioned { coords ->
-                val left = coords.boundsInRoot().left
-                if (barLeftXInRoot != left) barLeftXInRoot = left
+            // Learns the bar's own width synchronously during measurement — replaces
+            // onGloballyPositioned's "tell me after the fact" round trip. No state
+            // write happens unless the width actually changed, same guard as before.
+            .layout { measurable, constraints ->
+                val width = constraints.maxWidth.toFloat()
+                if (rowWidthPx != width) rowWidthPx = width
+                val placeable = measurable.measure(constraints)
+                layout(placeable.width, placeable.height) { placeable.place(0, 0) }
             }
             .pointerInput(itemCount) {
                 detectHorizontalDragGestures(
@@ -221,13 +270,11 @@ fun CurvedNavBar(
                             var closestIdx = 0
                             var minDist = Float.MAX_VALUE
                             itemCentersX.forEachIndexed { idx, x ->
-                                if (x != null) {
-                                    val d = abs(current - x)
-                                    if (d < minDist) { minDist = d; closestIdx = idx }
-                                }
+                                val d = abs(current - x)
+                                if (d < minDist) { minDist = d; closestIdx = idx }
                             }
                             lastAnimatedIndex = closestIdx
-                            val target = itemCentersX[closestIdx] ?: current
+                            val target = itemCentersX.getOrNull(closestIdx) ?: current
                             scope.launch {
                                 cradleCenterX.animateTo(
                                     target,
@@ -241,7 +288,8 @@ fun CurvedNavBar(
                 )
             }
     ) {
-        // ── GLASS BAR canvas ──
+        // ── GLASS BAR canvas ── (unchanged — still a plain Canvas reading cradleCenterX
+        // every draw frame, exactly as before; only positionsReady's source changed)
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -261,7 +309,7 @@ fun CurvedNavBar(
             }
         }
 
-        // ── Icons row ──
+        // ── Icons row ── (unchanged layout/animation; reads computed itemCentersX)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -279,15 +327,6 @@ fun CurvedNavBar(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .onGloballyPositioned { coords ->
-                            val barLeft = barLeftXInRoot ?: return@onGloballyPositioned
-                            val centerXInRoot =
-                                coords.boundsInRoot().left + coords.size.width / 2f
-                            val centerX = centerXInRoot - barLeft
-                            if (itemCentersX.getOrNull(index) != centerX) {
-                                itemCentersX[index] = centerX
-                            }
-                        }
                         .offset {
                             val itemX = itemCentersX.getOrNull(index)
                             val dist =
@@ -295,7 +334,7 @@ fun CurvedNavBar(
                                 else Float.MAX_VALUE
                             val fraction = (dist / maxEffectDistancePx).coerceIn(0f, 1f)
                             val dipPx = dipMaxPx * (1f - fraction)
-                            androidx.compose.ui.unit.IntOffset(0, dipPx.toInt())
+                            IntOffset(0, dipPx.toInt())
                         }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -334,7 +373,7 @@ fun CurvedNavBar(
             }
         }
 
-        // ── Floating indicator — GRADIENT + LIFT + GLOSSY ──
+        // ── Floating indicator — GRADIENT + LIFT + GLOSSY ── (unchanged)
         if (positionsReady && indicatorReady) {
             val indicatorTopPx = with(density) {
                 (totalHeight - barHeight + c1Y.toDp() - indicatorSize / 2).toPx()
@@ -344,7 +383,7 @@ fun CurvedNavBar(
             Box(
                 modifier = Modifier
                     .offset {
-                        androidx.compose.ui.unit.IntOffset(
+                        IntOffset(
                             x = (cradleCenterX.value - indicatorHalfPx).toInt(),
                             y = indicatorTopPx.toInt()
                         )
@@ -399,7 +438,7 @@ fun CurvedNavBar(
     }
 }
 
-// ── Glassmorphism bar drawing ──
+// ── Glassmorphism bar drawing ── (UNCHANGED — identical to original)
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassBar(
     cx: Float,
     barColor: Color,

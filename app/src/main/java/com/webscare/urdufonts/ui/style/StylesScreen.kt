@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,8 +22,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -37,6 +40,7 @@ import com.webscare.urdufonts.domain.models.StyleItem
 import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.util.StaggeredFadeIn
 import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
 
@@ -49,6 +53,7 @@ fun StylesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
+    val seenItems = remember { mutableStateSetOf<Int>() }
 
 
     Box(modifier = Modifier
@@ -97,29 +102,38 @@ fun StylesScreen(
                     }
 
                     else -> {
-                        LazyColumn(
-                            modifier = Modifier.springOverscroll(),
-                            contentPadding = PaddingValues(
-                                start = 18.dp,
-                                end = 18.dp,
-                                top = 16.dp,
-                                bottom = 16.dp
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(
-                                items = uiState.styles,
-                                key = { it.id }
-                            ) { style ->
-                                StyleItemCard(
-                                    style = style,
-                                    onClick = { onStyleClick(style) }
-                                )
-                            }
-                            item {
-                                Spacer(modifier = Modifier.height(40.dp))
+                        Box(modifier = Modifier.clipToBounds()) {
+                            LazyColumn(
+                                modifier = Modifier.springOverscroll(),
+                                contentPadding = PaddingValues(
+                                    start = 18.dp,
+                                    end = 18.dp,
+                                    top = 16.dp,
+                                    bottom = 16.dp
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                itemsIndexed(
+                                    items = uiState.styles,
+                                    key = { _, style -> style.id }
+                                ) { index, style ->
+                                    StaggeredFadeIn(
+                                        index = index,
+                                        isSeen = index in seenItems,
+                                        onSeen = { seenItems.add(index) }
+                                    ) {
+                                        StyleItemCard(
+                                            style = style,
+                                            onClick = { onStyleClick(style) }
+                                        )
+                                    }
+                                }
+                                item {
+                                    Spacer(modifier = Modifier.height(40.dp))
+                                }
                             }
                         }
+
                     }
                 }
             }

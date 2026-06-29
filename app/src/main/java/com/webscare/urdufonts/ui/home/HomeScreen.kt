@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,8 +23,12 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.runtime.remember
+import com.webscare.urdufonts.ui.util.StaggeredFadeIn
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -55,6 +59,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val seenItems = remember { mutableStateSetOf<Int>() }
 
     Box(
         modifier = Modifier
@@ -132,47 +137,52 @@ fun HomeScreen(
                         LaunchedEffect(uiState.fonts) {
                             listState.animateScrollToItem(0)
                         }
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.springOverscroll(),
-                            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(
-                                items = uiState.fonts,
-                                key = { item ->
-                                    when (item) {
-                                        is FontListItem.Font -> item.fontItem.id
-                                        is FontListItem.Banner -> {
-                                            "banner_${uiState.fonts.indexOf(item)}"
+                        Box(modifier = Modifier.clipToBounds()) {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.springOverscroll(),
+                                contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                itemsIndexed(
+                                    items = uiState.fonts,
+                                    key = { _, item ->
+                                        when (item) {
+                                            is FontListItem.Font -> item.fontItem.id
+                                            is FontListItem.Banner -> {
+                                                "banner_${uiState.fonts.indexOf(item)}"
+                                            }
                                         }
                                     }
-                                }
-                            ) { item ->
-                                val index = uiState.fonts.indexOf(item)
-                                val nextItem = uiState.fonts.getOrNull(index + 1)
-                                val prevItem = uiState.fonts.getOrNull(index - 1)
-                                when (item) {
-
-                                    is FontListItem.Font -> {
-                                        val showDivider = nextItem !is FontListItem.Banner
-                                        FontItemCard(
-                                            fontItem = item.fontItem,
-                                            onDownloadClick = {},
-                                            onFontClick = { onFontClick(item.fontItem.id.toString()) },
-                                            modifier = Modifier.padding(horizontal = 16.dp),
-                                            showDivider = showDivider
+                                ) { index, item ->
+                                    val nextItem = uiState.fonts.getOrNull(index + 1)
+                                    when (item) {
+                                        is FontListItem.Font -> {
+                                            val showDivider = nextItem !is FontListItem.Banner
+                                            StaggeredFadeIn(
+                                                index = index,
+                                                isSeen = index in seenItems,
+                                                onSeen = { seenItems.add(index) }
+                                            ) {
+                                                FontItemCard(
+                                                    fontItem = item.fontItem,
+                                                    onDownloadClick = {},
+                                                    onFontClick = { onFontClick(item.fontItem.id.toString()) },
+                                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                                    showDivider = showDivider
+                                                )
+                                            }
+                                        }
+                                        is FontListItem.Banner -> BannerCard(
+                                            bannerItem = item.bannerItem,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
-                                        is FontListItem.Banner -> BannerCard(
-                                        bannerItem = item.bannerItem,
-                                        modifier = Modifier.fillMaxWidth()
-                                        )
-
                                 }
+                                item { Spacer(modifier = Modifier.height(40.dp)) }
                             }
-                            item { Spacer(modifier = Modifier.height(40.dp)) }
                         }
+
                     }
                 }
             }

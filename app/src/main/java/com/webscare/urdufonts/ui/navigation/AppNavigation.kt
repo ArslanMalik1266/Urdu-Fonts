@@ -1,6 +1,5 @@
 package com.webscare.urdufonts.ui.navigation
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.DrawerValue
@@ -57,11 +56,7 @@ fun AppNavigation() {
         .collectAsState(initial = null)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute != null && currentRoute in setOf(
-        Screen.Home.route,
-        Screen.styles.route,
-        Screen.categories.route
-    )
+    val showBottomBar = currentRoute != null && currentRoute in bottomBarRoutes
     if (isOnboardingCompleted == null) {
         // You can show a blank screen or a loading splash here
         return
@@ -91,15 +86,13 @@ fun AppNavigation() {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // ✅ BlurOverlay here — behind EVERYTHING including TopBar
             if (showBottomBar) {
                 BlurOverlay(modifier = Modifier.fillMaxSize())
             }
             BaseScreen(
+                bottomBarVisible = showBottomBar,
                 bottomBar = {
-                    if (showBottomBar) {
-                        MyBottomNavigationBar(navController = navController)
-                    }
+                    MyBottomNavigationBar(navController = navController)
                 },
                 content = {
 
