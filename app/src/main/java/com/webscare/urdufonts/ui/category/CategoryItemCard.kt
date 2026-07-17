@@ -81,8 +81,8 @@ fun CategoryItemCard(
     ) {
         Text(
             text = category.title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
             color = GreyColor,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp

@@ -54,12 +54,12 @@ fun FilterButton(
                 painter = painterResource(R.drawable.ic_filter),
                 contentDescription = "Filter",
                 tint = iconTint,   // ✅ icon tint change
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = if (isFilterActive) "Filtered" else "Filters",  // ✅ text bhi update (optional)
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = if (isFilterActive) FontWeight.SemiBold else FontWeight.Normal,
                 lineHeight = 16.sp,
                 color = textColor,   // ✅ text color change

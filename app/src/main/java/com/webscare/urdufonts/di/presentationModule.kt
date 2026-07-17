@@ -13,7 +13,7 @@ import org.koin.dsl.module
 
 val presentationModule = module {
     single { AppInitViewModel(get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get()) }
+    viewModel { HomeViewModel(get()) }
     viewModel { StylesViewModel(get()) }
     viewModel { CategoriesViewModel(get()) }
     // Pass get() to resolve SavedStateHandle injection automatically

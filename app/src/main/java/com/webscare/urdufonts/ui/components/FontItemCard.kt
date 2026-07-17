@@ -41,16 +41,15 @@ fun FontItemCard(
     ) {
         Column(
             modifier = Modifier
-                .padding(vertical = 16.dp, horizontal = 8.dp)
+                .padding(
+                    top = 12.dp,
+                    bottom = 24.dp,
+                    start = 8.dp,
+                    end = 8.dp
+                )
         ) {
             FontItemHeader(fontItem = fontItem)
             FontItemPreview(fontItem = fontItem, onDownloadClick = onDownloadClick)
-        }
-        if (showDivider) {
-            HorizontalDivider(
-                thickness = 0.5.dp,
-                color = GreyColor.copy(alpha = 0.2f)
-            )
         }
     }
 }
@@ -132,7 +131,7 @@ private fun FontItemPreview(
             contentDescription = fontItem.name,
             modifier = Modifier
                 .weight(1f)
-                .height(32.dp),
+                .height(36.dp),
             alignment = Alignment.CenterEnd
         )
     }

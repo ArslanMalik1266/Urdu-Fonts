@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,13 +30,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.webscare.urdufonts.domain.models.FontListItem
 import com.webscare.urdufonts.ui.components.BannerCard
 import com.webscare.urdufonts.ui.components.CustomSearchBar
 import com.webscare.urdufonts.ui.components.FontItemCard
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
 import com.webscare.urdufonts.ui.home.HomeViewModel
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.util.StaggeredFadeIn
 import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
@@ -112,18 +113,30 @@ fun FontListScreen(
                                 items = uiState.fonts,
                                 key = { _, fontItem -> fontItem.id }
                             ) { index, fontItem ->
-                                StaggeredFadeIn(
-                                    index = index,
-                                    isSeen = index in seenItems,
-                                    onSeen = { seenItems.add(index) }
+                                val showDivider =
+                                    index < uiState.fonts.lastIndex // Divider shown for all items except the last
+                                Column(
+                                    modifier = Modifier.padding(horizontal = 16.dp)
                                 ) {
-                                    FontItemCard(
-                                        fontItem = fontItem,
-                                        onDownloadClick = {},
-                                        onFontClick = { onFontClick(fontItem.id.toString()) },
-                                        modifier = Modifier.padding(horizontal = 16.dp)
-                                    )
+                                    StaggeredFadeIn(
+                                        index = index,
+                                        isSeen = index in seenItems,
+                                        onSeen = { seenItems.add(index) }
+                                    ) {
+                                        FontItemCard(
+                                            fontItem = fontItem,
+                                            onDownloadClick = {},
+                                            onFontClick = { onFontClick(fontItem.id.toString()) },
+                                        )
+                                    }
+                                    if (showDivider) {
+                                        HorizontalDivider(
+                                            thickness = 0.5.dp,
+                                            color = GreyColor.copy(alpha = 0.2f)
+                                        )
+                                    }
                                 }
+
                             }
                             item {
                                 Spacer(modifier = Modifier.height(40.dp))

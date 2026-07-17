@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.webscare.urdufonts.domain.models.FontListItem
 import com.webscare.urdufonts.ui.components.AppTopBar
 import com.webscare.urdufonts.ui.components.BannerCard
 import com.webscare.urdufonts.ui.components.CustomSearchBar
@@ -44,6 +44,7 @@ import com.webscare.urdufonts.ui.components.FilterButton
 import com.webscare.urdufonts.ui.components.FontItemCard
 import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.springOverscroll
@@ -143,42 +144,36 @@ fun HomeScreen(
                                 modifier = Modifier.springOverscroll(),
                                 contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
+                            )
+                            {
                                 itemsIndexed(
                                     items = uiState.fonts,
-                                    key = { _, item ->
-                                        when (item) {
-                                            is FontListItem.Font -> item.fontItem.id
-                                            is FontListItem.Banner -> {
-                                                "banner_${uiState.fonts.indexOf(item)}"
-                                            }
+                                    key = { _, fontItem -> fontItem.id } // Direct keys
+                                ) { index, fontItem ->
+                                    val showDivider = index < uiState.fonts.lastIndex // Divider shown for all items except the last
+                                    Column(
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    ) {
+                                        StaggeredFadeIn(
+                                            index = index,
+                                            isSeen = index in seenItems,
+                                            onSeen = { seenItems.add(index) }
+                                        ) {
+                                            FontItemCard(
+                                                fontItem = fontItem,
+                                                onDownloadClick = {},
+                                                onFontClick = { onFontClick(fontItem.id.toString()) }
+                                            )
                                         }
-                                    }
-                                ) { index, item ->
-                                    val nextItem = uiState.fonts.getOrNull(index + 1)
-                                    when (item) {
-                                        is FontListItem.Font -> {
-                                            val showDivider = nextItem !is FontListItem.Banner
-                                            StaggeredFadeIn(
-                                                index = index,
-                                                isSeen = index in seenItems,
-                                                onSeen = { seenItems.add(index) }
-                                            ) {
-                                                FontItemCard(
-                                                    fontItem = item.fontItem,
-                                                    onDownloadClick = {},
-                                                    onFontClick = { onFontClick(item.fontItem.id.toString()) },
-                                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                                    showDivider = showDivider
-                                                )
-                                            }
+                                        if (showDivider) {
+                                            HorizontalDivider(
+                                                thickness = 0.5.dp,
+                                                color = GreyColor.copy(alpha = 0.2f)
+                                            )
                                         }
-                                        is FontListItem.Banner -> BannerCard(
-                                            bannerItem = item.bannerItem,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
                                     }
                                 }
+
                                 item { Spacer(modifier = Modifier.height(40.dp)) }
                             }
                         }
@@ -199,6 +194,8 @@ fun HomeScreen(
                 onToggleSection = viewModel::toggleFilterSection,
                 onClearAll = viewModel::clearAllFilters,
                 onApplyFilters = viewModel::applyFiltersAndClose,
+                onToggleCategoriesGrid = viewModel::toggleCategoriesGrid, // Pass toggle action
+                onToggleStylesGrid = viewModel::toggleStylesGrid         // Pass toggle action
             )
         }
     }

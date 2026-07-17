@@ -1,6 +1,9 @@
 package com.webscare.urdufonts.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -44,6 +47,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
@@ -69,9 +73,10 @@ fun FilterBottomSheet(
     onToggleSection: (FilterSection) -> Unit,
     onClearAll: () -> Unit,
     onApplyFilters: () -> Unit,
+    onToggleCategoriesGrid: () -> Unit, // Add state handler callback
+    onToggleStylesGrid: () -> Unit,     // Add state handler callback
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
-
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -89,8 +94,7 @@ fun FilterBottomSheet(
         }
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-
-            // ── Header ────────────────────────────────────────────────────────
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,7 +120,7 @@ fun FilterBottomSheet(
                 }
             }
 
-            // ── Categories — data comes from uiState.availableCategories ──────
+            // ── Categories — driven by categories state ──────
             FilterSectionHeader(
                 title = "Categories",
                 isExpanded = uiState.expandedFilterSection == FilterSection.CATEGORIES,
@@ -132,11 +136,12 @@ fun FilterBottomSheet(
                     classifiers = uiState.availableCategories,
                     selectedSlugs = uiState.selectedCategories,
                     onToggle = onToggleCategory,
+                    isExpanded = uiState.isCategoriesGridExpanded, // Consume state
+                    onExpandToggle = onToggleCategoriesGrid        // Dispatch event
                 )
             }
 
-
-            // ── Styles — data comes from uiState.availableStyles ──────────────
+            // ── Styles — driven by styles state ──────────────
             FilterSectionHeader(
                 title = "Styles",
                 isExpanded = uiState.expandedFilterSection == FilterSection.STYLES,
@@ -152,12 +157,14 @@ fun FilterBottomSheet(
                     classifiers = uiState.availableStyles,
                     selectedSlugs = uiState.selectedStyles,
                     onToggle = onToggleStyle,
+                    isExpanded = uiState.isStylesGridExpanded, // Consume state
+                    onExpandToggle = onToggleStylesGrid        // Dispatch event
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Apply button ──────────────────────────────────────────────────
+            // Apply button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -167,7 +174,7 @@ fun FilterBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
-                        .addPressEffect{ onApplyFilters() }
+                        .addPressEffect { onApplyFilters() }
                         .clip(RoundedCornerShape(14.dp))
                         .background(AppColor),
                     contentAlignment = Alignment.Center
@@ -184,6 +191,7 @@ fun FilterBottomSheet(
         }
     }
 }
+
 
 // ─── Section header with ic_arrow_up / ic_arrow_down drawable ─────────────────
 
@@ -245,32 +253,121 @@ private fun FilterSectionHeader(
 
 // ─── 2-column grid — receives real FontClassifier list from API ───────────────
 
-@OptIn(ExperimentalLayoutApi::class)
+private sealed class GridItem {
+    data class Classifier(val data: FontClassifier) : GridItem()
+    data class MoreButton(val count: Int) : GridItem()
+    object LessButton : GridItem()
+}
+
 @Composable
 private fun FilterOptionGrid(
     classifiers: List<FontClassifier>,
     selectedSlugs: Set<String>,
     onToggle: (String) -> Unit,
-) {
+    isExpanded: Boolean,             // Receives state from parent
+    onExpandToggle: () -> Unit       // Delegates event click to ViewModel
+)
+{
     if (classifiers.isEmpty()) return
 
-    FlowRow(
+    val displayItems = remember(classifiers, isExpanded) {
+        if (classifiers.size > 9) {
+            if (isExpanded) {
+                classifiers.map { GridItem.Classifier(it) } + GridItem.LessButton
+            } else {
+                classifiers.take(8).map { GridItem.Classifier(it) } + GridItem.MoreButton(classifiers.size - 8)
+            }
+        } else {
+            classifiers.map { GridItem.Classifier(it) }
+        }
+    }
+
+    val rows = displayItems.chunked(3)
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        classifiers.forEach { classifier ->
-            FilterChipItem(
-                label = classifier.title,
-                slug = classifier.slug,
-                isSelected = classifier.slug in selectedSlugs,
-                onToggle = { onToggle(classifier.slug) }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
             )
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        rows.forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowItems.forEach { item ->
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        when (item) {
+                            is GridItem.Classifier -> {
+                                FilterChipItem(
+                                    label = item.data.title,
+                                    slug = item.data.slug,
+                                    isSelected = item.data.slug in selectedSlugs,
+                                    onToggle = { onToggle(item.data.slug) },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            is GridItem.MoreButton -> {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(34.dp)
+                                        .addPressEffect { onExpandToggle() } // Mutates state via viewmodel
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(AppColor.copy(alpha = 0.08f))
+                                        .border(1.dp, AppColor.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                                ) {
+                                    Text(
+                                        text = "+${item.count} More",
+                                        color = AppColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                            is GridItem.LessButton -> {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(34.dp)
+                                        .addPressEffect { onExpandToggle() } // Mutates state via viewmodel
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(AppColor.copy(alpha = 0.08f))
+                                        .border(1.dp, AppColor.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                                ) {
+                                    Text(
+                                        text = "Show Less",
+                                        color = AppColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (rowItems.size < 3) {
+                    repeat(3 - rowItems.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
         }
     }
 }
+
 
 // ─── Single chip — solid AppColor circle, no icon ─────────────────────────────
 
@@ -280,55 +377,31 @@ private fun FilterChipItem(
     slug: String,
     isSelected: Boolean,
     onToggle: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val bgColor =  Color.White
     val borderColor = if (isSelected) AppColor else GreyColor.copy(0.15f)
     val textColor = if (isSelected) AppColor else GreyColor
 
     Row(
-        modifier = Modifier
-            .wrapContentWidth()
-            .wrapContentHeight()
-            .addPressEffect{
+        modifier = modifier
+            .addPressEffect {
                 onToggle()
             }
             .clip(RoundedCornerShape(20.dp))
             .background(if (isSelected) AppColor.copy(alpha = 0.08f) else Color.White)
             .border(1.dp, borderColor, RoundedCornerShape(20.dp))
-
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.Center
     ) {
-//        Box(
-//            contentAlignment = Alignment.Center,
-//            modifier = Modifier
-//                .size(20.dp)
-//                .clip(CircleShape)
-//                .background(if (isSelected) Color(0xFF4CAF50) else Color.White) // Green when selected
-//                .border(
-//                    width = if (isSelected) 0.dp else 1.5.dp,
-//                    color = if (isSelected) Color.Transparent else Color(0xFFCCCCCC),
-//                    shape = CircleShape
-//                )
-//        ) {
-//            if (isSelected) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.ic_tick),
-//                    contentDescription = "Selected",
-//                    colorFilter = ColorFilter.tint(Color.White),
-//                    modifier = Modifier.size(12.dp)
-//                )
-//            }
-//        }
-
         Text(
-            modifier = Modifier.padding(horizontal = 4.dp,  vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
             text = label,
-            fontSize = 13.sp,
+            fontSize = 10.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             color = textColor,
             maxLines = 1,
+            textAlign = TextAlign.Center
         )
     }
 }

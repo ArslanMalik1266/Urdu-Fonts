@@ -79,8 +79,8 @@ fun StyleItemCard(
         ) {
             Text(
                 text = style.title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = GreyColor,
                 lineHeight = 18.sp,
                 fontFamily = NunitoFontFamily

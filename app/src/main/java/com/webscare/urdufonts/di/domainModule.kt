@@ -1,6 +1,5 @@
 package com.webscare.urdufonts.di
 
-import com.webscare.urdufonts.domain.usecases.BuildFontListUseCase
 import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetCategoriesUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontDetailUseCase
@@ -12,7 +11,6 @@ import org.koin.dsl.module
 
 val domainModule = module {
     factory { GetFontsUseCase(get()) }
-    factory { BuildFontListUseCase() }
     factory { GetBannersUseCase(get()) }
     factory { GetStylesUseCase(get()) }
     factory { GetCategoriesUseCase(get()) }

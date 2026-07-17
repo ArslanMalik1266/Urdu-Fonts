@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.webscare.urdufonts.domain.models.FontClassifier
 import com.webscare.urdufonts.domain.models.FontItem
-import com.webscare.urdufonts.domain.models.FontListItem
-import com.webscare.urdufonts.domain.usecases.BuildFontListUseCase
 import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
 import com.webscare.urdufonts.ui.home.drawer.DrawerMenuItem
@@ -17,9 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val getFontsUseCase: GetFontsUseCase,
-    private val buildFontListUseCase: BuildFontListUseCase,
-    private val getBannersUseCase: GetBannersUseCase
+    private val getFontsUseCase: GetFontsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -40,8 +36,6 @@ class HomeViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 allFonts = getFontsUseCase()
-                val banners = getBannersUseCase()
-                val processedList = buildFontListUseCase(allFonts, banners)
                 val uniqueCategories = allFonts
                     .flatMap { it.categories.orEmpty() }
                     .distinctBy { it.slug }
@@ -53,8 +47,8 @@ class HomeViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        allFonts = processedList,
-                        fonts = processedList,
+                        allFonts = allFonts,
+                        fonts = allFonts,
                         availableCategories = uniqueCategories,
                         availableStyles = uniqueStyles
                     )
@@ -92,12 +86,22 @@ class HomeViewModel(
 
 
     fun showFilterSheet() {
-        _uiState.update { it.copy(isFilterSheetVisible = true) }
+        _uiState.update {
+            it.copy(
+                isFilterSheetVisible = true,
+                expandedFilterSection = FilterSection.CATEGORIES // By default, open Categories section
+            )
+        }
     }
 
     fun hideFilterSheet() {
         _uiState.update {
-            it.copy(isFilterSheetVisible = false, expandedFilterSection = FilterSection.NONE)
+            it.copy(
+                isFilterSheetVisible = false,
+                expandedFilterSection = FilterSection.NONE,
+                isCategoriesGridExpanded = false, // Reset grid state
+                isStylesGridExpanded = false      // Reset grid state
+            )
         }
     }
 
@@ -107,6 +111,12 @@ class HomeViewModel(
             val next = if (current.expandedFilterSection == section) FilterSection.NONE else section
             current.copy(expandedFilterSection = next)
         }
+    }
+    fun toggleCategoriesGrid() {
+        _uiState.update { it.copy(isCategoriesGridExpanded = !it.isCategoriesGridExpanded) }
+    }
+    fun toggleStylesGrid() {
+        _uiState.update { it.copy(isStylesGridExpanded = !it.isStylesGridExpanded) }
     }
 
 
@@ -128,9 +138,11 @@ class HomeViewModel(
             current.copy(
                 selectedCategories = emptySet(),
                 selectedStyles = emptySet(),
-                appliedCategories = emptySet(),   // ✅ Applied bhi reset
-                appliedStyles = emptySet(),        // ✅
+                appliedCategories = emptySet(),
+                appliedStyles = emptySet(),
                 expandedFilterSection = FilterSection.NONE,
+                isCategoriesGridExpanded = false, // Collapse categories grid
+                isStylesGridExpanded = false,     // Collapse styles grid
                 fonts = applyFilters(current.allFonts, current.searchQuery, emptySet(), emptySet())
             )
         }
@@ -161,40 +173,21 @@ class HomeViewModel(
 
 
     private fun applyFilters(
-        source: List<FontListItem>,
+        source: List<FontItem>,
         query: String,
         categories: Set<String>,
         styles: Set<String>,
-    ): List<FontListItem> {
-        val hasFilters = categories.isNotEmpty() || styles.isNotEmpty()
-
-        // 1. Extract only fonts and filter them
-        val filteredFonts = source
-            .filterIsInstance<FontListItem.Font>()
-            .filter { item ->
-                val font = item.fontItem
-                val matchesQuery = query.isBlank() ||
-                        font.name.contains(query, ignoreCase = true)
-                val matchesCategory = categories.isEmpty() ||
-                        font.categories.orEmpty().any { it.slug in categories }
-                val matchesStyle = styles.isEmpty() ||
-                        font.styles.orEmpty().any { it.slug in styles }
-                matchesQuery && matchesCategory && matchesStyle
-            }
-
-        // 2. Re-insert banners every 10 items on the filtered result
-        if (hasFilters || query.isNotBlank()) {
-            return buildFontListUseCase(filteredFonts.map { it.fontItem }, getBannersUseCase())
-        }
-
-        return source.filter { item ->
-            when (item) {
-                is FontListItem.Banner -> !hasFilters
-                is FontListItem.Font -> true
-            }
+    ): List<FontItem> {
+        return source.filter { font ->
+            val matchesQuery = query.isBlank() ||
+                    font.name.contains(query, ignoreCase = true)
+            val matchesCategory = categories.isEmpty() ||
+                    font.categories.orEmpty().any { it.slug in categories }
+            val matchesStyle = styles.isEmpty() ||
+                    font.styles.orEmpty().any { it.slug in styles }
+            matchesQuery && matchesCategory && matchesStyle
         }
     }
-
     private fun Set<String>.toggle(id: String): Set<String> =
         if (id in this) this - id else this + id
 }
