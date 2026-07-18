@@ -26,6 +26,7 @@ import com.webscare.urdufonts.ui.onboarding.components.OnboardingItem
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.DarkGreen
 import com.webscare.urdufonts.ui.theme.GreyColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 import kotlinx.coroutines.launch
 
@@ -77,7 +78,8 @@ fun OnboardingScreen(
                     text = "Skip",
                     color = GreyColor,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    fontFamily = NunitoFontFamily
                 )
             }
             Box(
@@ -104,7 +106,8 @@ fun OnboardingScreen(
                     text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Continue",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    fontFamily = NunitoFontFamily
                 )
             }
         }

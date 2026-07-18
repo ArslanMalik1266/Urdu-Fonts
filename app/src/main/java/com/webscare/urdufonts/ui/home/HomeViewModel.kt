@@ -8,11 +8,13 @@ import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
 import com.webscare.urdufonts.ui.home.drawer.DrawerMenuItem
 import com.webscare.urdufonts.ui.home.drawer.DrawerUiState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeViewModel(
     private val getFontsUseCase: GetFontsUseCase
@@ -36,32 +38,37 @@ class HomeViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 allFonts = getFontsUseCase()
-                val uniqueCategories = allFonts
-                    .flatMap { it.categories.orEmpty() }
-                    .distinctBy { it.slug }
 
-                val uniqueStyles = allFonts
-                    .flatMap { it.styles.orEmpty() }
-                    .distinctBy { it.slug }
+                val uniqueData = withContext(Dispatchers.Default) {
+                    val categories = allFonts
+                        .flatMap { it.categories.orEmpty() }
+                        .distinctBy { it.slug }
+
+                    val styles = allFonts
+                        .flatMap { it.styles.orEmpty() }
+                        .distinctBy { it.slug }
+
+                    Pair(categories, styles)
+                }
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         allFonts = allFonts,
                         fonts = allFonts,
-                        availableCategories = uniqueCategories,
-                        availableStyles = uniqueStyles
+                        availableCategories = uniqueData.first,
+                        availableStyles = uniqueData.second
                     )
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                println("=== CRASH DETAIL: ${e::class.java.name}: ${e.message} ===")
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = e.message ?: "Something went wrong")
                 }
             }
         }
     }
+
 
     fun retry() = loadFonts()
 

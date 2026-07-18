@@ -6,6 +6,14 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -50,12 +58,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
@@ -82,26 +94,14 @@ import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.DarkGreen
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.CustomSlider
 import com.webscare.urdufonts.ui.util.ShimmerBox
 import com.webscare.urdufonts.ui.util.addPressEffect
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -135,6 +135,10 @@ fun FontDetailScreen(
     val selectedWeightIndex by viewModel.selectedWeightIndex.collectAsStateWithLifecycle()
     val initialFontFamily by viewModel.initialFontFamily.collectAsStateWithLifecycle()
 
+    // ── Consolidate loading logic: Ready only when API details + Weights + Font Files are loaded ──
+    val isContentReady = uiState.fontDetail != null &&
+            initialFontFamily != null &&
+            fontWeights.isNotEmpty()
 
     LaunchedEffect(scrollState.value) {
         val currentScroll = scrollState.value
@@ -155,7 +159,8 @@ fun FontDetailScreen(
             )
         },
         floatingActionButton = {
-            if (uiState.errorMessage == null && !uiState.isLoading) {
+            // Show download FAB only when content is ready
+            if (uiState.errorMessage == null && isContentReady) {
                 AnimatedDownloadButton(
                     isExpanded = isExpanded,
                     onClick = onDownloadClick
@@ -164,45 +169,49 @@ fun FontDetailScreen(
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .background(Color.White),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = AppColor)
+        Crossfade(
+            targetState = when {
+                uiState.errorMessage != null -> "error"
+                isContentReady -> "content"
+                else -> "loading"
+            },
+            animationSpec = tween(durationMillis = 350),
+            label = "detail_screen_transition"
+        ) { state ->
+            when (state) {
+                "loading" -> {
+                    FontDetailSkeleton(
+                        innerPadding = innerPadding,
+                        selectedTab = uiState.selectedTab,
+                        onTabSelected = viewModel::onTabSelected
+                    )
                 }
-            }
-
-            uiState.errorMessage != null -> {
-                OfflineErrorState(
-                    message = uiState.errorMessage!!,
-                    onRetry = viewModel::retry,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .background(Color.White)
-                )
-            }
-
-            uiState.fontDetail != null -> {
-                FontDetailContent(
-                    modifier = Modifier.padding(innerPadding),
-                    uiState = uiState,
-                    fontFamily = fontFamily,
-                    fontWeights = fontWeights,
-                    initialFontFamily = initialFontFamily,
-                    selectedWeightIndex = selectedWeightIndex,
-                    onWeightSelected = viewModel::onWeightSelected,
-                    onTabSelected = viewModel::onTabSelected,
-                    onPreviewFontSizeChange = viewModel::onPreviewFontSizeChange,
-                    onBoldToggle = viewModel::onBoldToggle,
-                    onUnderlineToggle = viewModel::onUnderlineToggle,
-                    scrollState = scrollState
-                )
+                "error" -> {
+                    OfflineErrorState(
+                        message = uiState.errorMessage!!,
+                        onRetry = viewModel::retry,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .background(Color.White)
+                    )
+                }
+                "content" -> {
+                    FontDetailContent(
+                        modifier = Modifier.padding(innerPadding),
+                        uiState = uiState,
+                        fontFamily = fontFamily,
+                        fontWeights = fontWeights,
+                        initialFontFamily = initialFontFamily,
+                        selectedWeightIndex = selectedWeightIndex,
+                        onWeightSelected = viewModel::onWeightSelected,
+                        onTabSelected = viewModel::onTabSelected,
+                        onPreviewFontSizeChange = viewModel::onPreviewFontSizeChange,
+                        onBoldToggle = viewModel::onBoldToggle,
+                        onUnderlineToggle = viewModel::onUnderlineToggle,
+                        scrollState = scrollState
+                    )
+                }
             }
         }
     }
@@ -487,8 +496,9 @@ private fun FontDetailContent(
     }
 }
 
+// Internal accessibility so FontDetailSkeleton.kt can draw it as a static anchor
 @Composable
-private fun DetailTabRow(
+internal fun DetailTabRow(
     selectedTab: DetailTab,
     onTabSelected: (DetailTab) -> Unit,
     modifier: Modifier = Modifier
@@ -597,7 +607,7 @@ private fun MetadataRow(
             color = GreyColor,
             fontFamily = NunitoFontFamily
         )
-        Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f))
+        Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f), fontFamily = NunitoFontFamily)
         categories.forEach { category ->
             MetadataChip(text = category.title)
         }
@@ -668,12 +678,12 @@ private fun PreviewControlsSection(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-//                    Text(text = "💡", fontSize = 12.sp)
                     Text(
                         text = "Go to Settings → Language → Add Urdu keyboard",
                         fontSize = 11.sp,
                         color = AppColor,
-                        lineHeight = 16.sp
+                        lineHeight = 16.sp,
+                        fontFamily = NunitoFontFamily
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -689,7 +699,7 @@ private fun PreviewControlsSection(
             textStyle = TextStyle(
                 fontSize = 16.sp,
                 fontFamily = NunitoFontFamily,
-                fontWeight = FontWeight.Normal,       // ✅ hamesha normal — bold sirf TOP pe
+                fontWeight = FontWeight.Normal,
                 textDecoration = TextDecoration.None,
                 color = GreyColor.copy(0.5f),
                 textAlign = TextAlign.Right,
@@ -739,7 +749,7 @@ private fun PreviewControlsSection(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "${fontSizePx.toInt()}px", fontSize = 12.sp, color = GreyColor)
+            Text(text = "${fontSizePx.toInt()}px", fontSize = 12.sp, color = GreyColor, fontFamily = NunitoFontFamily)
             Spacer(modifier = Modifier.width(8.dp))
             CustomSlider(
                 value = fontSizePx,
@@ -802,7 +812,7 @@ private fun AboutSection(
     val plainText = remember(aboutText) {
         AnnotatedString.fromHtml(aboutText).text
             .trimEnd()
-            .replace(Regex("\\n+$"), "") // ✅ remove trailing newlines from HTML
+            .replace(Regex("\\n+$"), "")
             .trimEnd()
     }
     val displayText = buildAnnotatedString {
@@ -821,7 +831,6 @@ private fun AboutSection(
         } else {
             val cut = cutIndex
             if (cut != null) {
-                // trim to last word boundary before cutIndex
                 val trimmed = plainText.take(cut).trimEnd().trimEnd { !it.isWhitespace() }.trimEnd()
                 append(trimmed)
                 withStyle(
@@ -857,7 +866,7 @@ private fun AboutSection(
             color = GreyColor,
             fontFamily = NunitoFontFamily,
             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-            overflow = TextOverflow.Clip,  // ✅ Clip not Ellipsis — we handle truncation manually
+            overflow = TextOverflow.Clip,
             onTextLayout = { result ->
                 if (!isExpanded && cutIndex == null && result.hasVisualOverflow) {
                     val lastLine = result.lineCount - 1
@@ -993,7 +1002,6 @@ private fun OfflineErrorState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Icon circle
             Box(
                 modifier = Modifier
                     .size(88.dp)
@@ -1028,7 +1036,8 @@ private fun OfflineErrorState(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = HeadingBlackColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontFamily = NunitoFontFamily
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -1040,7 +1049,8 @@ private fun OfflineErrorState(
                 fontSize = 14.sp,
                 color = GreyColor.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
+                fontFamily = NunitoFontFamily
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -1060,7 +1070,8 @@ private fun OfflineErrorState(
                     text = "Try Again",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    color = Color.White,
+                    fontFamily = NunitoFontFamily
                 )
             }
         }

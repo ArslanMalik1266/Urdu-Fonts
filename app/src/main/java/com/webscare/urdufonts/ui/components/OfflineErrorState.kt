@@ -37,6 +37,7 @@ import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 
 @Composable
 fun OfflineErrorState(
@@ -107,7 +108,8 @@ fun OfflineErrorState(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = HeadingBlackColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontFamily = NunitoFontFamily
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -120,7 +122,8 @@ fun OfflineErrorState(
                 color = GreyColor.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
                 lineHeight = 20.sp,
-                modifier = Modifier.padding(horizontal = 40.dp)
+                modifier = Modifier.padding(horizontal = 40.dp),
+                fontFamily = NunitoFontFamily
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -140,7 +143,8 @@ fun OfflineErrorState(
                     text = "Try Again",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    color = Color.White,
+                    fontFamily = NunitoFontFamily
                 )
             }
         }

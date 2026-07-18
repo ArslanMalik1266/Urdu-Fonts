@@ -55,6 +55,7 @@ import com.webscare.urdufonts.domain.models.FontClassifier
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 
 // ─── Enum: which accordion section is open ────────────────────────────────────
@@ -106,7 +107,8 @@ fun FilterBottomSheet(
                     text = "Filters",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = HeadingBlackColor
+                    color = HeadingBlackColor,
+                    fontFamily = NunitoFontFamily
                 )
                 if (uiState.hasActiveFilters) {
                     TextButton(onClick = onClearAll) {
@@ -114,7 +116,8 @@ fun FilterBottomSheet(
                             text = "Clear All",
                             color = AppColor,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = NunitoFontFamily
                         )
                     }
                 }
@@ -184,7 +187,8 @@ fun FilterBottomSheet(
                         text = if (total > 0) "Apply Filters ($total)" else "Apply Filters",
                         color = Color.White,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = NunitoFontFamily
                     )
                 }
             }
@@ -219,7 +223,8 @@ private fun FilterSectionHeader(
                 text = title,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = HeadingBlackColor
+                color = HeadingBlackColor,
+                fontFamily = NunitoFontFamily
             )
             if (selectedCount > 0) {
                 Spacer(modifier = Modifier.width(8.dp))
@@ -234,7 +239,8 @@ private fun FilterSectionHeader(
                         text = "$selectedCount",
                         color = Color.White,
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = NunitoFontFamily
                     )
                 }
             }
@@ -331,7 +337,8 @@ private fun FilterOptionGrid(
                                         text = "+${item.count} More",
                                         color = AppColor,
                                         fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontFamily = NunitoFontFamily
                                     )
                                 }
                             }
@@ -350,7 +357,8 @@ private fun FilterOptionGrid(
                                         text = "Show Less",
                                         color = AppColor,
                                         fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontFamily = NunitoFontFamily
                                     )
                                 }
                             }
@@ -401,7 +409,8 @@ private fun FilterChipItem(
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             color = textColor,
             maxLines = 1,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontFamily = NunitoFontFamily
         )
     }
 }

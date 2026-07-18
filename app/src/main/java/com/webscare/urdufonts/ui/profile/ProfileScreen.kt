@@ -52,6 +52,7 @@ import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.DarkGreen
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 import org.koin.androidx.compose.koinViewModel
 
@@ -111,6 +112,7 @@ internal fun ProfileScreenInternal(
                     text       = "Settings",
                     fontSize   = 18.sp,
                     fontWeight = FontWeight.SemiBold,
+                    fontFamily = NunitoFontFamily,
                     color      = HeadingBlackColor
                 )
             }
@@ -176,6 +178,7 @@ private fun LoggedInContent(
         Text(
             text = uiState.userName,
             fontSize = 16.sp,
+            fontFamily = NunitoFontFamily,
             fontWeight = FontWeight.SemiBold,
             color = GreyColor
         )
@@ -183,6 +186,7 @@ private fun LoggedInContent(
         Text(
             text = uiState.email,
             fontSize = 12.sp,
+            fontFamily = NunitoFontFamily,
             color = GreyColor.copy(alpha = 0.5f)
         )
 
@@ -230,6 +234,7 @@ private fun LoggedInContent(
                     text = "Logout",
                     color = Color.White,
                     fontSize = 15.sp,
+                    fontFamily = NunitoFontFamily,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -276,6 +281,7 @@ private fun LoggedOutContent(
             text = "Join Urdu Fonts",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
+            fontFamily = NunitoFontFamily,
             color = HeadingBlackColor
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -283,6 +289,7 @@ private fun LoggedOutContent(
             text = "Login to access premium Urdu fonts",
             fontSize = 12.sp,
             color = GreyColor,
+            fontFamily = NunitoFontFamily,
             textAlign = TextAlign.Center
         )
 
@@ -315,6 +322,7 @@ private fun LoggedOutContent(
             Text(
                 text = errorMessage,
                 color = Color.Red,
+                fontFamily = NunitoFontFamily,
                 fontSize = 12.sp
             )
         }
@@ -342,6 +350,7 @@ private fun LoggedOutContent(
                     text = "Login / Signup",
                     color = Color.White,
                     fontSize = 15.sp,
+                    fontFamily = NunitoFontFamily,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -368,7 +377,7 @@ private fun ProfileReadOnlyField(
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text = label, fontSize = 12.sp, color =GreyColor.copy(0.5f))
+            Text(text = label, fontSize = 12.sp, fontFamily = NunitoFontFamily, color =GreyColor.copy(0.5f))
         }
         Spacer(modifier = Modifier.height(4.dp))
         Box(
@@ -379,7 +388,7 @@ private fun ProfileReadOnlyField(
                 .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp))
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-            Text(text = value, fontSize = 14.sp, color = GreyColor.copy(0.5f))
+            Text(text = value, fontSize = 14.sp,fontFamily = NunitoFontFamily, color = GreyColor.copy(0.5f))
         }
     }
 }
@@ -406,7 +415,7 @@ private fun ProfileInputField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, fontSize = 12.sp) },
+        label = { Text(label, fontSize = 12.sp ,fontFamily = NunitoFontFamily) },
         leadingIcon = {
             Icon(
                 painter = painterResource(leadingIcon),
@@ -439,10 +448,11 @@ private fun ProfileFooter(modifier: Modifier = Modifier) {
                 text = "Urdu Fonts App",
                 fontSize = 11.sp,
                 color = DarkGreen,
+                fontFamily = NunitoFontFamily,
                 fontWeight = FontWeight.Medium
             )
-            Text(text = "  |  ", fontSize = 11.sp, color = GreyColor.copy(alpha = 0.3f))
-            Text(text = "Version 1.0.0", fontSize = 11.sp, color = GreyColor)
+            Text(text = "  |  ", fontSize = 11.sp, color = GreyColor.copy(alpha = 0.3f), fontFamily = NunitoFontFamily)
+            Text(text = "Version 1.0.0",fontFamily = NunitoFontFamily, fontSize = 11.sp, color = GreyColor)
         }
     }
 }

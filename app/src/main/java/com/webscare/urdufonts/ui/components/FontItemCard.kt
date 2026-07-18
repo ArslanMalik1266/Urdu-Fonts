@@ -86,7 +86,8 @@ private fun FontItemHeader(fontItem: FontItem) {
                 text = "·",
                 fontSize = 10.sp,
                 color = GreyColor,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontFamily = NunitoFontFamily
             )
             Text(
                 text = fontItem.primaryCategoryName,
@@ -99,7 +100,8 @@ private fun FontItemHeader(fontItem: FontItem) {
                 text = "|",
                 fontSize = 10.sp,
                 color = GreyColor,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontFamily = NunitoFontFamily
             )
             Text(
                 text = "Weights: ${fontItem.weightCount}",

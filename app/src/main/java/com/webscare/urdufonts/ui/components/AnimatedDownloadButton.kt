@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.AppColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 
 @Composable
 fun AnimatedDownloadButton(
@@ -93,7 +94,8 @@ fun AnimatedDownloadButton(
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White,
                     maxLines = 1,
-                    softWrap = false
+                    softWrap = false,
+                    fontFamily = NunitoFontFamily
                 )
             }
 

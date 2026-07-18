@@ -27,6 +27,7 @@ import com.webscare.urdufonts.domain.models.CategoryItem
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 import com.webscare.urdufonts.ui.util.softShadow
 
@@ -85,6 +86,7 @@ fun CategoryItemCard(
             fontWeight = FontWeight.SemiBold,
             color = GreyColor,
             textAlign = TextAlign.Center,
+            fontFamily = NunitoFontFamily,
             lineHeight = 18.sp
         )
 

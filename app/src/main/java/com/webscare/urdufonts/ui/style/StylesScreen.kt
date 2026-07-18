@@ -1,5 +1,7 @@
 package com.webscare.urdufonts.ui.style
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -14,10 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,12 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.webscare.urdufonts.ui.components.CustomSearchBar
-import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.domain.models.StyleItem
+import com.webscare.urdufonts.ui.components.CustomSearchBar
 import com.webscare.urdufonts.ui.components.OfflineErrorState
 import com.webscare.urdufonts.ui.components.SimpleTopAppBar
-import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.util.StaggeredFadeIn
 import com.webscare.urdufonts.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
@@ -54,7 +51,6 @@ fun StylesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val seenItems = remember { mutableStateSetOf<Int>() }
-
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -78,62 +74,62 @@ fun StylesScreen(
                         onQueryChange = viewModel::onSearchQueryChange,
                         modifier = Modifier.padding(horizontal = 0.dp),
                         onDone = {
-                            focusManager.clearFocus() // This is the command that clears the focus
+                            focusManager.clearFocus()
                         }
                     )
                 }
 
-                when {
-                    uiState.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize()
-                                .background(Color.White),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = AppColor)
+                Crossfade(
+                    targetState = when {
+                        uiState.errorMessage != null -> "error"
+                        uiState.isLoading -> "loading"
+                        else -> "content"
+                    },
+                    animationSpec = tween(durationMillis = 350),
+                    label = "styles_screen_transition"
+                ) { state ->
+                    when (state) {
+                        "loading" -> {
+                            StylesSkeleton()
                         }
-                    }
-
-                    uiState.errorMessage != null -> {
-                        OfflineErrorState(
-                            message = uiState.errorMessage!!,
-                            onRetry = viewModel::retry
-                        )
-                    }
-
-                    else -> {
-                        Box(modifier = Modifier.clipToBounds()) {
-                            LazyColumn(
-                                modifier = Modifier.springOverscroll(),
-                                contentPadding = PaddingValues(
-                                    start = 18.dp,
-                                    end = 18.dp,
-                                    top = 16.dp,
-                                    bottom = 16.dp
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                itemsIndexed(
-                                    items = uiState.styles,
-                                    key = { _, style -> style.id }
-                                ) { index, style ->
-                                    StaggeredFadeIn(
-                                        index = index,
-                                        isSeen = index in seenItems,
-                                        onSeen = { seenItems.add(index) }
-                                    ) {
-                                        StyleItemCard(
-                                            style = style,
-                                            onClick = { onStyleClick(style) }
-                                        )
+                        "error" -> {
+                            OfflineErrorState(
+                                message = uiState.errorMessage!!,
+                                onRetry = viewModel::retry
+                            )
+                        }
+                        "content" -> {
+                            Box(modifier = Modifier.clipToBounds()) {
+                                LazyColumn(
+                                    modifier = Modifier.springOverscroll(),
+                                    contentPadding = PaddingValues(
+                                        start = 18.dp,
+                                        end = 18.dp,
+                                        top = 16.dp,
+                                        bottom = 16.dp
+                                    ),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    itemsIndexed(
+                                        items = uiState.styles,
+                                        key = { _, style -> style.id }
+                                    ) { index, style ->
+                                        StaggeredFadeIn(
+                                            index = index,
+                                            seenItems = seenItems
+                                        ) {
+                                            StyleItemCard(
+                                                style = style,
+                                                onClick = { onStyleClick(style) }
+                                            )
+                                        }
                                     }
-                                }
-                                item {
-                                    Spacer(modifier = Modifier.height(40.dp))
+                                    item {
+                                        Spacer(modifier = Modifier.height(60.dp))
+                                    }
                                 }
                             }
                         }
-
                     }
                 }
             }

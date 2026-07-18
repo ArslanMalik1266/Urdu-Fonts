@@ -18,17 +18,17 @@ class FontRepositoryImpl(
     private val context: Context
 ) : FontRepository {
 
-    override suspend fun getFonts(): List<FontItem> {
-        // Room first — return instantly if cache exists
-        val cached = fontDao.getAll()
-        if (cached.isNotEmpty()) return cached.map { it.toDomain() }
+    override suspend fun getFonts(): List<FontItem> =
+        withContext(Dispatchers.IO) {
+            val cached = fontDao.getAll()
+            if (cached.isNotEmpty()) return@withContext cached.map { it.toDomain() }
 
-        // Cache is empty — fetch from network and save to Room
-        val response = apiService.getFonts()
-        val fonts = response.fonts.map { it.toDomain() }
-        fontDao.insertAll(fonts.map { it.toEntity() })
-        return fonts
-    }
+            val response = apiService.getFonts()
+            val fonts = response.fonts.map { it.toDomain() }
+            fontDao.insertAll(fonts.map { it.toEntity() })
+            fonts
+        }
+
 
     override suspend fun getFontById(fontId: String): FontItem? {
         return getFonts().find { it.id.toString() == fontId }

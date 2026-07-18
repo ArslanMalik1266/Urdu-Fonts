@@ -23,7 +23,6 @@ class StylesViewModel(
     private fun loadStyles() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
             getStylesUseCase()
                 .onSuccess { styles ->
                     println("Styles: $styles")

@@ -216,11 +216,11 @@ private fun DrawerHeader(
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
             Text(
-                text = "Login/Signup",
+                text = "Login / Signup",
                 color = Color.White,
                 fontFamily = NunitoFontFamily,
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
             )
         }
 
@@ -252,7 +252,7 @@ private fun DrawerMenuRow(
         Image(
             painter = painterResource(item.iconRes),
             contentDescription = item.label,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(18.dp),
             colorFilter = ColorFilter.tint(iconTint)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -279,7 +279,8 @@ private fun DrawerFooter(appVersion: String) {
                 text = "Urdu Fonts App",
                 fontSize = 11.sp,
                 color = DarkGreen,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontFamily = NunitoFontFamily
             )
             Text(
                 text = "  |  ",
@@ -289,7 +290,8 @@ private fun DrawerFooter(appVersion: String) {
             Text(
                 text = "Version $appVersion",
                 fontSize = 11.sp,
-                color = GreyColor
+                color = GreyColor,
+                fontFamily = NunitoFontFamily
             )
         }
     }

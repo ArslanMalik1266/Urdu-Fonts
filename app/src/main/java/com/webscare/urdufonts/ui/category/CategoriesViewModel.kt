@@ -23,7 +23,6 @@ class CategoriesViewModel(
     private fun loadCategories() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
             getCategoriesUseCase()
                 .onSuccess { categories ->
                     _uiState.update {

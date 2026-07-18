@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.webscare.urdufonts.ui.onboarding.model.OnboardingPage
 import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
+import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 
 @Composable
 fun OnboardingItem(page: OnboardingPage) {
@@ -47,7 +48,8 @@ fun OnboardingItem(page: OnboardingPage) {
                 fontWeight = FontWeight.Bold,
                 color = HeadingBlackColor,
                 lineHeight = 38.sp,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontFamily = NunitoFontFamily
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -56,7 +58,8 @@ fun OnboardingItem(page: OnboardingPage) {
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
                 color = GreyColor,
-                lineHeight = 24.sp
+                lineHeight = 24.sp,
+                fontFamily = NunitoFontFamily
             )
         }
     }
