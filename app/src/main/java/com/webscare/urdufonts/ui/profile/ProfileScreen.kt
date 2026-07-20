@@ -1,12 +1,14 @@
 package com.webscare.urdufonts.ui.profile
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,6 +69,15 @@ fun ProfileScreen(
         uiState = uiState,
         onBackClick = onBackClick,
         onLogin = { email, password -> viewModel.onLoginClick(email, password) },
+        onSignUp = { name, email, pass, confirmPass ->
+            viewModel.onSignUpClick(
+                name,
+                email,
+                pass,
+                confirmPass
+            )
+        },
+        onToggleMode = { viewModel.toggleAuthMode() },
         onLogout = { viewModel.onLogoutClick() }
     )
 }
@@ -76,6 +87,8 @@ internal fun ProfileScreenInternal(
     uiState: ProfileUiState,
     onBackClick: () -> Unit,
     onLogin: (email: String, password: String) -> Unit,
+    onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
+    onToggleMode: () -> Unit,
     onLogout: () -> Unit
 ) {
     Box(
@@ -93,9 +106,11 @@ internal fun ProfileScreenInternal(
                 .align(Alignment.BottomCenter)
         )
 
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 8.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 8.dp)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -103,17 +118,17 @@ internal fun ProfileScreenInternal(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TopBarButton(
-                    iconRes            = R.drawable.ic_back,
-                    onClick            = onBackClick,
+                    iconRes = R.drawable.ic_back,
+                    onClick = onBackClick,
                     contentDescription = "Back"
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text       = "Settings",
-                    fontSize   = 18.sp,
+                    text = "Settings",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = NunitoFontFamily,
-                    color      = HeadingBlackColor
+                    color = HeadingBlackColor
                 )
             }
 
@@ -128,9 +143,10 @@ internal fun ProfileScreenInternal(
                     LoggedInContent(uiState = uiState, onLogout = onLogout)
                 } else {
                     LoggedOutContent(
-                        isLoading = uiState.isLoading,
-                        errorMessage = uiState.errorMessage,
-                        onLogin = onLogin
+                        uiState = uiState,
+                        onLogin = onLogin,
+                        onSignUp = onSignUp,
+                        onToggleMode = onToggleMode
                     )
                 }
             }
@@ -246,12 +262,15 @@ private fun LoggedInContent(
 
 @Composable
 private fun LoggedOutContent(
-    isLoading: Boolean,
-    errorMessage: String?,
-    onLogin: (email: String, password: String) -> Unit
+    uiState: ProfileUiState,
+    onLogin: (email: String, password: String) -> Unit,
+    onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
+    onToggleMode: () -> Unit
 ) {
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -277,25 +296,46 @@ private fun LoggedOutContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // Dynamic Header Title
         Text(
-            text = "Join Urdu Fonts",
+            text = if (uiState.isSignUpMode) "Create Account" else "Join Urdu Fonts",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             fontFamily = NunitoFontFamily,
             color = HeadingBlackColor
         )
         Spacer(modifier = Modifier.height(4.dp))
+
+        // Dynamic Header Subtext
         Text(
-            text = "Login to access premium Urdu fonts",
+            text = if (uiState.isSignUpMode) "Sign up to download and manage custom fonts" else "Login to access premium Urdu fonts",
             fontSize = 12.sp,
             color = GreyColor,
             fontFamily = NunitoFontFamily,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Email input
+        // 1. Name Field (Only in Sign Up Mode)
+        androidx.compose.animation.AnimatedVisibility(
+            visible = uiState.isSignUpMode,
+            enter = fadeIn() + androidx.compose.animation.expandVertically(),
+            exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+        ) {
+            Column {
+                ProfileInputField(
+                    label = "Full Name",
+                    value = name,
+                    onValueChange = { name = it },
+                    leadingIcon = R.drawable.ic_drawer_profile,
+                    keyboardType = KeyboardType.Text
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+
+        // 2. Email input (Always shown)
         ProfileInputField(
             label = "Email",
             value = email,
@@ -306,7 +346,7 @@ private fun LoggedOutContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Password input
+        // 3. Password input (Always shown)
         ProfileInputField(
             label = "Password",
             value = password,
@@ -316,30 +356,57 @@ private fun LoggedOutContent(
             isPassword = true
         )
 
-        // Error message
-        if (errorMessage != null) {
+        // 4. Confirm Password input (Only in Sign Up Mode)
+        AnimatedVisibility(
+            visible = uiState.isSignUpMode,
+            enter = fadeIn() + androidx.compose.animation.expandVertically(),
+            exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(12.dp))
+                ProfileInputField(
+                    label = "Confirm Password",
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it },
+                    leadingIcon = R.drawable.ic_drawer_privacy,
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true
+                )
+            }
+        }
+
+        // Error message display
+        if (uiState.errorMessage != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = errorMessage,
+                text = uiState.errorMessage,
                 color = Color.Red,
                 fontFamily = NunitoFontFamily,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
             )
         }
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Login button
+        // 5. Dynamic Auth Action Button
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .addPressEffect()
                 .clip(RoundedCornerShape(12.dp))
-                .background(if (isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
+                .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
                 .padding(vertical = 14.dp)
+                .clickable(enabled = !uiState.isLoading) {
+                    if (uiState.isSignUpMode) {
+                        onSignUp(name, email, password, confirmPassword)
+                    } else {
+                        onLogin(email, password)
+                    }
+                }
         ) {
-            if (isLoading) {
+            if (uiState.isLoading) {
                 CircularProgressIndicator(
                     color = Color.White,
                     modifier = Modifier.size(20.dp),
@@ -347,7 +414,7 @@ private fun LoggedOutContent(
                 )
             } else {
                 Text(
-                    text = "Login / Signup",
+                    text = if (uiState.isSignUpMode) "Register" else "Login / Signup",
                     color = Color.White,
                     fontSize = 15.sp,
                     fontFamily = NunitoFontFamily,
@@ -355,8 +422,34 @@ private fun LoggedOutContent(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 6. Dynamic Toggle Account Mode Text Link
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (uiState.isSignUpMode) "Already have an account? " else "Don't have an account? ",
+                fontSize = 13.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor
+            )
+            Text(
+                text = if (uiState.isSignUpMode) "Log In" else "Sign Up",
+                fontSize = 13.sp,
+                fontFamily = NunitoFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = AppColor, // 🟢 App Theme Green
+                modifier = Modifier
+                    .addPressEffect()
+                    .addPressEffect{ onToggleMode() }
+                    .padding(4.dp)
+            )
+        }
     }
 }
+
 
 // ─── Reusable field components ────────────────────────────────────────────────
 
@@ -377,7 +470,12 @@ private fun ProfileReadOnlyField(
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text = label, fontSize = 12.sp, fontFamily = NunitoFontFamily, color =GreyColor.copy(0.5f))
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor.copy(0.5f)
+            )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Box(
@@ -388,7 +486,12 @@ private fun ProfileReadOnlyField(
                 .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp))
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-            Text(text = value, fontSize = 14.sp,fontFamily = NunitoFontFamily, color = GreyColor.copy(0.5f))
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor.copy(0.5f)
+            )
         }
     }
 }
@@ -415,7 +518,7 @@ private fun ProfileInputField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, fontSize = 12.sp ,fontFamily = NunitoFontFamily) },
+        label = { Text(label, fontSize = 12.sp, fontFamily = NunitoFontFamily) },
         leadingIcon = {
             Icon(
                 painter = painterResource(leadingIcon),
@@ -451,8 +554,18 @@ private fun ProfileFooter(modifier: Modifier = Modifier) {
                 fontFamily = NunitoFontFamily,
                 fontWeight = FontWeight.Medium
             )
-            Text(text = "  |  ", fontSize = 11.sp, color = GreyColor.copy(alpha = 0.3f), fontFamily = NunitoFontFamily)
-            Text(text = "Version 1.0.0",fontFamily = NunitoFontFamily, fontSize = 11.sp, color = GreyColor)
+            Text(
+                text = "  |  ",
+                fontSize = 11.sp,
+                color = GreyColor.copy(alpha = 0.3f),
+                fontFamily = NunitoFontFamily
+            )
+            Text(
+                text = "Version 1.0.0",
+                fontFamily = NunitoFontFamily,
+                fontSize = 11.sp,
+                color = GreyColor
+            )
         }
     }
 }

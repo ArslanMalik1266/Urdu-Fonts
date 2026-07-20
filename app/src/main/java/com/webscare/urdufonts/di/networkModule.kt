@@ -2,6 +2,7 @@ package com.webscare.urdufonts.di
 
 import com.google.gson.Gson
 import com.webscare.urdufonts.data.remote.NetworkConstants
+import com.webscare.urdufonts.data.remote.api.AuthApiService
 import com.webscare.urdufonts.data.remote.api.FontApiService
 import com.webscare.urdufonts.data.remote.interceptor.ApiKeyInterceptor
 import okhttp3.OkHttpClient
@@ -14,7 +15,6 @@ import java.util.concurrent.TimeUnit
 val networkModule = module {
 
     single { Gson() }
-
     single {
         HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -42,4 +42,6 @@ val networkModule = module {
     }
 
     single { get<Retrofit>().create(FontApiService::class.java) }
+    single { get<Retrofit>().create(AuthApiService::class.java) }
+
 }

@@ -1,7 +1,7 @@
 package com.webscare.urdufonts.data.remote
 
 object NetworkConstants {
-    const val BASE_URL = "https://dashboard.urdufonts.com/api/website/"
+    const val BASE_URL = "https://dashboard.urdufonts.com/api/"
 
     const val IMAGE_BASE_URL = "https://dashboard.urdufonts.com"
 

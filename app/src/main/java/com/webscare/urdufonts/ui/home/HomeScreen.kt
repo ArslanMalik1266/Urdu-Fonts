@@ -25,8 +25,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -134,12 +136,25 @@ fun HomeScreen(
                             )
                         }
                         "content" -> {
+                            var previousQuery by remember { mutableStateOf(uiState.searchQuery) }
+                            var previousCategories by remember { mutableStateOf(uiState.appliedCategories) }
+                            var previousStyles by remember { mutableStateOf(uiState.appliedStyles) }
                             LaunchedEffect(
                                 uiState.searchQuery,
                                 uiState.appliedCategories,
                                 uiState.appliedStyles
                             ) {
-                                listState.animateScrollToItem(0)
+                                // Only scroll to top if the user actually changed the query or filters
+                                if (uiState.searchQuery != previousQuery ||
+                                    uiState.appliedCategories != previousCategories ||
+                                    uiState.appliedStyles != previousStyles
+                                ) {
+                                    listState.animateScrollToItem(0)
+                                }
+                                // Update stored previous values for the next comparison
+                                previousQuery = uiState.searchQuery
+                                previousCategories = uiState.appliedCategories
+                                previousStyles = uiState.appliedStyles
                             }
                             Box(modifier = Modifier.clipToBounds()) {
                                 LazyColumn(

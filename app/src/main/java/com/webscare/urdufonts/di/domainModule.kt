@@ -8,6 +8,7 @@ import com.webscare.urdufonts.domain.usecases.GetFontPreviewUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontWeightsUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
 import com.webscare.urdufonts.domain.usecases.GetStylesUseCase
+import com.webscare.urdufonts.domain.usecases.RegisterUserUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -19,4 +20,6 @@ val domainModule = module {
     factory { GetFontPreviewUseCase(get()) }
     factory { GetFontWeightsUseCase(get()) }
     factory { DownloadFontToDeviceUseCase(get()) }
+    factory { RegisterUserUseCase(get()) }
+
 }

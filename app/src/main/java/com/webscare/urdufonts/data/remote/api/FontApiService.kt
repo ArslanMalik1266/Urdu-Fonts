@@ -11,13 +11,13 @@ import retrofit2.http.Url
 
 interface FontApiService {
 
-    @GET("fonts")
+    @GET("website/fonts")
     suspend fun getFonts(): FontItemResponseDto
 
-    @GET("fonts/categories")
+    @GET("website/fonts/categories")
     suspend fun getCategories(): CategoryResponseDto
 
-    @GET("fonts/styles")
+    @GET("website/fonts/styles")
     suspend fun getStyles(): StyleResponseDto
 
     @Streaming // Required to handle files without loading the whole thing into memory
