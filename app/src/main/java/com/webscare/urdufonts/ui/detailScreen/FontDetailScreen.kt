@@ -102,12 +102,15 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.theme.YellowColor
 import com.webscare.urdufonts.ui.util.springOverscroll
+import kotlinx.coroutines.flow.collectLatest
 
 private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
 private val URDU_SAMPLE_TEXTS = listOf(
@@ -128,7 +131,17 @@ fun FontDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var lastScrollValue by remember { mutableStateOf(0) }
     val scrollState = rememberScrollState()
-
+    val snackbarHostState = remember { SnackbarHostState() }
+    // 🟢 Listen to ViewModel events (Show Snackbar when download completes or fails)
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is FontDetailViewModel.UiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(message = event.message)
+                }
+            }
+        }
+    }
     var isExpanded by remember { mutableStateOf(true) }
     val fontFamily by viewModel.fontFamilyState.collectAsStateWithLifecycle()
     val fontWeights by viewModel.fontWeightsState.collectAsStateWithLifecycle()
@@ -158,12 +171,80 @@ fun FontDetailScreen(
                 onShareClick = onShareClick
             )
         },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                val parts = data.visuals.message.split("|")
+                val title = parts.getOrNull(0) ?: data.visuals.message
+                val folderPath = parts.getOrNull(1)
+
+                androidx.compose.material3.Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    containerColor = Color.White, // Rich dark theme background
+                    contentColor = HeadingBlackColor,
+                    shape = RoundedCornerShape(12.dp),
+                    action = {
+                        Text(
+                            text = "OK",
+                            color = AppColor, // App Green Theme Action
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            modifier = Modifier
+                                .clickable { data.dismiss() }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(AppColor.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_tick),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(AppColor),
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = title,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = NunitoFontFamily,
+                                color = HeadingBlackColor
+                            )
+                            if (!folderPath.isNullOrEmpty()) {
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Saved in: $folderPath",
+                                    fontSize = 11.sp,
+                                    fontFamily = NunitoFontFamily,
+                                    color = HeadingBlackColor.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
         floatingActionButton = {
-            // Show download FAB only when content is ready
+
+        // Show download FAB only when content is ready
             if (uiState.errorMessage == null && isContentReady) {
                 AnimatedDownloadButton(
+                    downloadState = uiState.downloadState, // 🟢 Passed download state
+                    progress = uiState.downloadProgress,   // 🟢 Passed progress value
                     isExpanded = isExpanded,
-                    onClick = onDownloadClick
+                    onClick = { viewModel.downloadFont() } // 🟢 Updated click action
                 )
             }
         },

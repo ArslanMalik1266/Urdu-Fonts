@@ -1,5 +1,6 @@
 package com.webscare.urdufonts.ui.category
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,14 @@ import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 import com.webscare.urdufonts.ui.util.softShadow
+import androidx.compose.ui.layout.ContentScale
+import com.webscare.urdufonts.ui.util.figmaDropShadow
+import com.webscare.urdufonts.ui.util.figmaInnerShadow
+
+// Define reusable style tokens at the top of your file to avoid magic values
+private val CardCornerShape = RoundedCornerShape(16.dp)
+private val AmbientGlowColor = Color(0xFFEFF9F1) // Subtle green opacity
+private val TranslucentTransitionColor = Color(0xFFF9FDFB)          // Smooth transition step
 
 @Composable
 fun CategoryItemCard(
@@ -44,47 +53,48 @@ fun CategoryItemCard(
             .addPressEffect {
                 onClick()
             }
-            .softShadow(
-                shadowColor = HeadingBlackColor.copy(0.03f),
-                offsetY = (0).dp,
-                blurValue = 8.dp,
-                borderRadius = 16.dp
-
+            // A. Figma Drop shadow: X=4, Y=4, Blur=14.27, Color=Black (4% Opacity)
+            .figmaDropShadow(
+                color = Color.Black.copy(alpha = 0.04f),
+                offsetX = 4.dp,
+                offsetY = 4.dp,
+                blur = 14.dp,
+                shape = CardCornerShape
             )
-            .clip(RoundedCornerShape(16.dp))
-            .drawWithCache {
-                val glowCenter = Offset(size.width / 2f, size.height / 2f)
-                val glowRadius = size.maxDimension * 0.62f
-                val brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color.White,
-                        Color.White,
-                        Color.White,
-                        Color.White,
-                        Color(0xFFEFF9F1),
-                        Color(0xFFEFF9F1)
-                    ),
-                    center = glowCenter,
-                    radius = glowRadius
-                )
-                onDrawBehind {
-                    drawRect(brush = brush)
-                }
-            }
+            .clip(CardCornerShape)
+            // B. Card background base
+            .background(Color.White)
+            // C. Figma Inner Shadow 1: X=6, Y=6, Blur=19, Color=Black (4% Opacity)
+            .figmaInnerShadow(
+                color = Color.Black.copy(alpha = 0.04f),
+                offsetX = 6.dp,
+                offsetY = 6.dp,
+                blur = 19.dp,
+                shape = CardCornerShape
+            )
+            // D. Figma Inner Shadow 2: X=6, Y=6, Blur=46, Color=#D5FFCE (32% Opacity)
+            .figmaInnerShadow(
+                color = Color(0xFFD5FFCE).copy(alpha = 0.32f),
+                offsetX = 6.dp,
+                offsetY = 6.dp,
+                blur = 46.dp,
+                shape = CardCornerShape
+            )
+            // E. Target Border Color
             .border(
                 width = 1.dp,
-                color = GreyColor.copy(alpha = 0.05f),
-                shape = RoundedCornerShape(16.dp)
+                color = Color(0xFFDEEDDB).copy(0.2f),
+                shape = CardCornerShape
             )
             .padding(horizontal = 12.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+        verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
     ) {
         Text(
             text = category.title,
             fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = GreyColor,
+            fontWeight = FontWeight.SemiBold,                  // Slightly thicker to match design
+            color = HeadingBlackColor.copy(alpha = 0.8f), // High contrast charcoal text
             textAlign = TextAlign.Center,
             fontFamily = NunitoFontFamily,
             lineHeight = 18.sp
@@ -93,7 +103,10 @@ fun CategoryItemCard(
         AsyncImage(
             model = category.thumbnailUrl,
             contentDescription = category.title,
-            modifier = Modifier.height(32.dp),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .height(44.dp)
+                .padding(horizontal = 4.dp),
             colorFilter = ColorFilter.tint(AppColor)
         )
     }

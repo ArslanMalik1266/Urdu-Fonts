@@ -9,7 +9,11 @@ enum class DetailTab(val label: String) {
     ABOUT("About"),
     INFO("Info")
 }
-
+enum class DownloadState {
+    IDLE,
+    DOWNLOADING,
+    DOWNLOADED
+}
 data class FontDetailUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -19,4 +23,6 @@ data class FontDetailUiState(
     val previewFontSizePx: Float = 20f,
     val isBoldEnabled: Boolean = false,
     val isUnderlineEnabled: Boolean = false,
+    val downloadState: DownloadState = DownloadState.IDLE,
+    val downloadProgress: Float = 0f
 )

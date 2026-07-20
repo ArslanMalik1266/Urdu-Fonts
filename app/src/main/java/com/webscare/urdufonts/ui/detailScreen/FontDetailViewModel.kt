@@ -1,6 +1,7 @@
 package com.webscare.urdufonts.ui.detailScreen
 
 import android.graphics.Typeface
+import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -17,6 +18,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import androidx.compose.ui.text.font.FontFamily
+import com.webscare.urdufonts.domain.usecases.DownloadFontToDeviceUseCase
+import com.webscare.urdufonts.ui.util.FontDownloadManager
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import java.io.File
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
@@ -24,9 +30,14 @@ class FontDetailViewModel(
     private val getFontDetailUseCase: GetFontDetailUseCase,
     private val getFontPreviewUseCase: GetFontPreviewUseCase,
     private val getFontWeightsUseCase: GetFontWeightsUseCase,
+    private val fontDownloadManager: FontDownloadManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
+    sealed class UiEvent {
+        data class ShowSnackbar(val message: String) : UiEvent()
+    }
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
     private val _uiState = MutableStateFlow(FontDetailUiState())
     val uiState: StateFlow<FontDetailUiState> = _uiState.asStateFlow()
 
@@ -47,6 +58,44 @@ class FontDetailViewModel(
 
     init {
         loadFontDetail()
+        observeDownloads()
+    }
+    private fun observeDownloads() {
+        val numericId = fontId.toIntOrNull() ?: return
+
+        // 🟢 Observe download state changes
+        viewModelScope.launch {
+            fontDownloadManager.downloadStates.collect { states ->
+                val state = states[numericId] ?: DownloadState.IDLE
+                _uiState.update { it.copy(downloadState = state) }
+            }
+        }
+
+        // 🟢 Observe download progress updates
+        viewModelScope.launch {
+            fontDownloadManager.downloadProgresses.collect { progresses ->
+                val progress = progresses[numericId] ?: 0f
+                _uiState.update { it.copy(downloadProgress = progress) }
+            }
+        }
+
+        // 🟢 Observe completion/error events for Snackbars
+        viewModelScope.launch {
+            fontDownloadManager.events.collect { event ->
+                when (event) {
+                    is FontDownloadManager.DownloadEvent.Success -> {
+                        if (event.fontId == numericId) {
+                            _eventFlow.emit(UiEvent.ShowSnackbar(event.message))
+                        }
+                    }
+                    is FontDownloadManager.DownloadEvent.Failure -> {
+                        if (event.fontId == numericId) {
+                            _eventFlow.emit(UiEvent.ShowSnackbar(event.error))
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun loadFontDetail() {
@@ -57,6 +106,7 @@ class FontDetailViewModel(
                     getFontDetailUseCase(fontId)
                         .onSuccess { detail ->
                             _uiState.update { it.copy(isLoading = false, fontDetail = detail) }
+                            checkIfAlreadyDownloaded(detail)
                             loadPreview(detail)
                             loadWeights(detail)
                         }
@@ -236,4 +286,23 @@ class FontDetailViewModel(
     fun retry() {
         loadFontDetail()
     }
+
+    // Syncs existing download on disk with the global manager
+    private fun checkIfAlreadyDownloaded(fontItem: FontItem) {
+        val fileName = "${fontItem.name.replace(" ", "_")}.ttf"
+        val publicFile = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            fileName
+        )
+        if (publicFile.exists()) {
+            fontDownloadManager.markAsDownloaded(fontItem.id) // 👈 Tell the manager it's already downloaded
+        }
+    }
+
+    // Delegates download to the background application scope manager
+    fun downloadFont() {
+        val font = _uiState.value.fontDetail ?: return
+        fontDownloadManager.downloadFont(font) // 👈 Starts download inside persistent Application scope
+    }
+
 }

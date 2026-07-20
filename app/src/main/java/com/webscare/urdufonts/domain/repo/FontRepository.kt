@@ -9,5 +9,5 @@ interface FontRepository {
 
     suspend fun getFontFile(fontItem: FontItem): Result<File>
     suspend fun getFontWeightFiles(fontItem: FontItem): Result<List<Pair<String, File>>>  // ← ADD
-
+    suspend fun downloadFontToDevice(fontItem: FontItem, onProgress: (Float) -> Unit): Result<File>
 }

@@ -11,6 +11,12 @@ import com.webscare.urdufonts.ui.util.FontPreviewCacheManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import android.content.ContentValues
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
+import java.io.FileOutputStream
 
 class FontRepositoryImpl(
     private val apiService: FontApiService,
@@ -134,4 +140,110 @@ class FontRepositoryImpl(
 
         return result.sortedBy { it.first } // sort alphabetically
     }
+
+
+    override suspend fun downloadFontToDevice(
+        fontItem: FontItem,
+        onProgress: (Float) -> Unit
+    ): Result<File> = withContext(Dispatchers.IO) {
+        runCatching {
+            val url = fontItem.fontFileUrl ?: throw IllegalArgumentException("URL is null")
+            val response = apiService.downloadFile(url)
+            if (!response.isSuccessful) throw Exception("Download failed: ${response.code()}")
+
+            val body = response.body() ?: throw Exception("Empty response body")
+            val totalBytes = body.contentLength()
+
+            // 1. Download ZIP to cache temp directory first
+            val tempZipFile = File(context.cacheDir, "font_${fontItem.id}_temp.zip")
+            body.byteStream().use { inputStream ->
+                tempZipFile.outputStream().use { outputStream ->
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Long = 0
+                    var read = inputStream.read(buffer)
+                    while (read != -1) {
+                        outputStream.write(buffer, 0, read)
+                        bytesRead += read
+                        if (totalBytes > 0) {
+                            onProgress(bytesRead.toFloat() / totalBytes)
+                        }
+                        read = inputStream.read(buffer)
+                    }
+                }
+            }
+
+            // 2. Extract ALL font weights from the ZIP locally
+            val extractedWeights = extractAllFontsFromZip(tempZipFile, fontItem.id)
+            tempZipFile.delete() // Clean up ZIP immediately
+
+            if (extractedWeights.isEmpty()) throw Exception("No font files found inside ZIP")
+
+            // Subfolder path: UrduFonts/FontName (e.g. UrduFonts/Jameel_Noori)
+            val cleanSubfolderName = "UrduFonts/${fontItem.name.replace(" ", "_")}"
+
+            // 3. Save each extracted weight into the public subfolder
+            val resolver = context.contentResolver
+
+            extractedWeights.forEach { (weightName, weightFile) ->
+                val fileName = weightFile.name // e.g. "JameelNoori-Bold.ttf"
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // ✅ Android 10+ (Scoped Storage Subfolder creation)
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                        put(MediaStore.MediaColumns.MIME_TYPE, "font/ttf")
+                        // Sets target relative path to Downloads/UrduFonts/Font_Name
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$cleanSubfolderName")
+                        put(MediaStore.MediaColumns.IS_PENDING, 1) // 🟢 Hide from system while writing
+                    }
+
+                    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                    if (uri != null) {
+                        resolver.openOutputStream(uri).use { outputStream ->
+                            if (outputStream != null) {
+                                weightFile.inputStream().use { inputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
+                        }
+
+                        // 🟢 Publish the weight file so it registers in Recents & Downloads
+                        contentValues.clear()
+                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        resolver.update(uri, contentValues, null, null)
+                    }
+                } else {
+                    // ✅ Android 9 and below (Create public subfolder directories)
+                    val publicDownloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val targetSubfolder = File(publicDownloadsDir, cleanSubfolderName).apply { mkdirs() }
+                    val targetFile = File(targetSubfolder, fileName)
+
+                    weightFile.inputStream().use { inputStream ->
+                        targetFile.outputStream().use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    // 🟢 Force media scan so it shows up immediately in the Downloads & Recents directory
+                    android.media.MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(targetFile.absolutePath),
+                        arrayOf("font/ttf"),
+                        null
+                    )
+                }
+            }
+
+            // Clean up temporary local weight cache directory
+            val localCacheDir = File(context.cacheDir, "font_weights_${fontItem.id}")
+            localCacheDir.deleteRecursively()
+
+            // Return a reference to the first extracted file
+            extractedWeights.first().second
+        }
+    }
+
+
+
+
 }

@@ -61,6 +61,7 @@ fun HomeScreen(
     val focusManager = LocalFocusManager.current
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val seenItems = remember { mutableStateSetOf<Int>() }
+    val listState = rememberLazyListState()
 
     Box(
         modifier = Modifier
@@ -133,8 +134,11 @@ fun HomeScreen(
                             )
                         }
                         "content" -> {
-                            val listState = rememberLazyListState()
-                            LaunchedEffect(uiState.fonts) {
+                            LaunchedEffect(
+                                uiState.searchQuery,
+                                uiState.appliedCategories,
+                                uiState.appliedStyles
+                            ) {
                                 listState.animateScrollToItem(0)
                             }
                             Box(modifier = Modifier.clipToBounds()) {

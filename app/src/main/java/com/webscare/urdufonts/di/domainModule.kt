@@ -1,5 +1,6 @@
 package com.webscare.urdufonts.di
 
+import com.webscare.urdufonts.domain.usecases.DownloadFontToDeviceUseCase
 import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetCategoriesUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontDetailUseCase
@@ -17,4 +18,5 @@ val domainModule = module {
     factory { GetFontDetailUseCase(get()) }
     factory { GetFontPreviewUseCase(get()) }
     factory { GetFontWeightsUseCase(get()) }
+    factory { DownloadFontToDeviceUseCase(get()) }
 }
