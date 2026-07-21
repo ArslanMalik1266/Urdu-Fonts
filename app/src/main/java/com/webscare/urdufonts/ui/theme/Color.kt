@@ -19,3 +19,4 @@ val DarkGreen = Color(0xFF006C2D)
 
 val BackgroundLight = Color(0xFFDEF7E9)
 val BackgroundCream = Color(0xFFFFF6DE)
+val RedColor = Color(0xFFFF1F1F)

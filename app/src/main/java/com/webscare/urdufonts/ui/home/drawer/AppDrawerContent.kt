@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.rememberAsyncImagePainter
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.components.TopBarButton
 import com.webscare.urdufonts.ui.home.HomeViewModel
@@ -92,12 +93,12 @@ internal fun AppDrawerContentInternal(
             modifier = Modifier.fillMaxHeight().padding(vertical = 4.dp, horizontal = 8.dp)
         ) {
 
-
             // ── Header ────────────────────────────────────────────────────────────
             DrawerHeader(
                 isLoggedIn = uiState.isLoggedIn,
                 userName = uiState.userName,
                 userSubtitle = uiState.userSubtitle,
+                profileImageUrl = uiState.profileImageUrl,
                 onCloseDrawer = onCloseDrawer,
                 onLoginClick = onLoginClick
             )
@@ -128,6 +129,7 @@ private fun DrawerHeader(
     isLoggedIn: Boolean,
     userName: String?,
     userSubtitle: String,
+    profileImageUrl: String?,
     onCloseDrawer: () -> Unit,
     onLoginClick: () -> Unit
 ) {
@@ -140,23 +142,22 @@ private fun DrawerHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
+                .padding(top = 28.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Settings",
-                fontSize = 18.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = HeadingBlackColor,
                 fontFamily = NunitoFontFamily,
                 modifier = Modifier.weight(1f),
-
             )
             Box(modifier = Modifier.padding(end = 8.dp)) {
                 TopBarButton(
                     iconRes = R.drawable.ic_close,
-                    onClick = {},
-                    contentDescription = "Cart"
+                    onClick = onCloseDrawer,
+                    contentDescription = "Close Drawer"
                 )
             }
         }
@@ -172,61 +173,70 @@ private fun DrawerHeader(
                 .align(Alignment.CenterHorizontally),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_drawer_profile),
-                contentDescription = null,
-                tint = GreyColor.copy(alpha = 0.5f),
-                modifier = Modifier.size(32.dp)
-            )
+            if (isLoggedIn && profileImageUrl != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(profileImageUrl),
+                    contentDescription = "Profile photo",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.ic_drawer_profile),
+                    contentDescription = null,
+                    tint = GreyColor.copy(alpha = 0.5f),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         // Name / login prompt
         Text(
-            text = "Join Urdu Fonts",
+            text = if (isLoggedIn && !userName.isNullOrBlank()) userName else "Join Urdu Fonts",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = GreyColor.copy(alpha = 0.5f),
+            color = GreyColor,
             textAlign = TextAlign.Center,
             fontFamily = NunitoFontFamily,
             modifier = Modifier.fillMaxWidth()
         )
-
 
         Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = userSubtitle,
             fontSize = 12.sp,
-            color = GreyColor,
+            color = GreyColor.copy(alpha = 0.6f),
             fontFamily = NunitoFontFamily,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .addPressEffect()
-                .clip(RoundedCornerShape(50))
-                .background(AppColor)
-                .padding(horizontal = 20.dp, vertical = 10.dp)
-        ) {
-            Text(
-                text = "Login / Signup",
-                color = Color.White,
-                fontFamily = NunitoFontFamily,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-            )
+        // Login / Signup button (Only displayed when logged out)
+        if (!isLoggedIn) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .addPressEffect { onLoginClick() }
+                    .clip(RoundedCornerShape(50))
+                    .background(AppColor)
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = "Login / Signup",
+                    color = Color.White,
+                    fontFamily = NunitoFontFamily,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+            }
         }
 
-
         Spacer(modifier = Modifier.height(16.dp))
-
     }
 }
 

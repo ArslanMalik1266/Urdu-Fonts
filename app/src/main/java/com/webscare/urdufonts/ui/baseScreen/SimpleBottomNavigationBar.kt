@@ -79,7 +79,7 @@ fun SimpleBottomNavigationBar(
 
             // Damping (bounciness) changes dynamically based on distance.
             val damping = if (indexDiff <= 1) {
-                0.85f // Short move: snug settle
+                0.65f // Short move: snug settle
             } else {
                 0.55f // Long move: elastic bounce
             }

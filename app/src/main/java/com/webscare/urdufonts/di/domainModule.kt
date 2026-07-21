@@ -9,6 +9,10 @@ import com.webscare.urdufonts.domain.usecases.GetFontWeightsUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
 import com.webscare.urdufonts.domain.usecases.GetStylesUseCase
 import com.webscare.urdufonts.domain.usecases.RegisterUserUseCase
+import com.webscare.urdufonts.domain.usecases.GoogleSignInUseCase
+import com.webscare.urdufonts.domain.usecases.LoginWithGoogleUseCase
+import com.webscare.urdufonts.domain.usecases.GetUserSessionUseCase
+import com.webscare.urdufonts.domain.usecases.LogoutUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -21,5 +25,10 @@ val domainModule = module {
     factory { GetFontWeightsUseCase(get()) }
     factory { DownloadFontToDeviceUseCase(get()) }
     factory { RegisterUserUseCase(get()) }
+    factory { GoogleSignInUseCase(get()) }
+    factory { LoginWithGoogleUseCase(get()) }
+    factory { GetUserSessionUseCase(get()) }
+    factory { LogoutUseCase(get()) }
 
 }
+

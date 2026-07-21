@@ -80,7 +80,10 @@ fun AppNavigation() {
                         else -> {}
                     }
                 },
-                onLoginClick = { navController.navigate("profile") }
+                onLoginClick = {
+                    scope.launch { drawerState.close() }
+                    navController.navigate("profile")
+                }
             )
         }
     ) {

@@ -33,3 +33,15 @@ fun RegisterResponseDto.toDomain(): AuthResult {
         role = role
     )
 }
+
+// Map Google Login response → Domain Model UserSession
+fun com.webscare.urdufonts.data.remote.dto.GoogleLoginResponseDto.toDomain(): com.webscare.urdufonts.domain.models.UserSession {
+    return com.webscare.urdufonts.domain.models.UserSession(
+        token = token,
+        id = user.id,
+        name = user.name,
+        email = user.email,
+        avatar = user.avatar,
+        role = user.roles?.firstOrNull() ?: "customer"
+    )
+}

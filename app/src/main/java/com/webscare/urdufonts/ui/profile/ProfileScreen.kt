@@ -2,6 +2,7 @@ package com.webscare.urdufonts.ui.profile
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.window.Dialog
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -9,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,6 +58,7 @@ import com.webscare.urdufonts.ui.theme.GreyColor
 import com.webscare.urdufonts.ui.theme.DarkGreen
 import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
+import com.webscare.urdufonts.ui.theme.RedColor
 import com.webscare.urdufonts.ui.util.addPressEffect
 import org.koin.androidx.compose.koinViewModel
 
@@ -64,6 +68,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     ProfileScreenInternal(
         uiState = uiState,
@@ -78,7 +83,8 @@ fun ProfileScreen(
             )
         },
         onToggleMode = { viewModel.toggleAuthMode() },
-        onLogout = { viewModel.onLogoutClick() }
+        onLogout = { viewModel.onLogoutClick() },
+        onGoogleSignIn = { viewModel.onGoogleSignInClick(context) }
     )
 }
 
@@ -89,7 +95,8 @@ internal fun ProfileScreenInternal(
     onLogin: (email: String, password: String) -> Unit,
     onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
     onToggleMode: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onGoogleSignIn: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -109,7 +116,7 @@ internal fun ProfileScreenInternal(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 20.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -125,7 +132,7 @@ internal fun ProfileScreenInternal(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Settings",
-                    fontSize = 18.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = NunitoFontFamily,
                     color = HeadingBlackColor
@@ -146,7 +153,8 @@ internal fun ProfileScreenInternal(
                         uiState = uiState,
                         onLogin = onLogin,
                         onSignUp = onSignUp,
-                        onToggleMode = onToggleMode
+                        onToggleMode = onToggleMode,
+                        onGoogleSignIn = onGoogleSignIn
                     )
                 }
             }
@@ -163,6 +171,8 @@ private fun LoggedInContent(
     uiState: ProfileUiState,
     onLogout: () -> Unit
 ) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -178,7 +188,11 @@ private fun LoggedInContent(
         ) {
             // Avatar
             Image(
-                painter = painterResource(R.drawable.profile_image), // ← your placeholder image
+                painter = if (uiState.profileImageUrl != null) {
+                    rememberAsyncImagePainter(uiState.profileImageUrl)
+                } else {
+                    painterResource(R.drawable.profile_image)
+                },
                 contentDescription = "Profile photo",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -231,7 +245,7 @@ private fun LoggedInContent(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .addPressEffect()
+                .addPressEffect() { showLogoutDialog = true }
                 .clip(RoundedCornerShape(12.dp))
                 .background(AppColor)
                 .padding(vertical = 14.dp)
@@ -255,6 +269,16 @@ private fun LoggedInContent(
                 )
             }
         }
+
+        if (showLogoutDialog) {
+            LogoutConfirmationDialog(
+                onDismiss = { showLogoutDialog = false },
+                onConfirm = {
+                    showLogoutDialog = false
+                    onLogout()
+                }
+            )
+        }
     }
 }
 
@@ -265,7 +289,8 @@ private fun LoggedOutContent(
     uiState: ProfileUiState,
     onLogin: (email: String, password: String) -> Unit,
     onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
-    onToggleMode: () -> Unit
+    onToggleMode: () -> Unit,
+    onGoogleSignIn: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -394,17 +419,18 @@ private fun LoggedOutContent(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .addPressEffect()
+                .addPressEffect {
+                    if (!uiState.isLoading) {
+                        if (uiState.isSignUpMode) {
+                            onSignUp(name, email, password, confirmPassword)
+                        } else {
+                            onLogin(email, password)
+                        }
+                    }
+                }
                 .clip(RoundedCornerShape(12.dp))
                 .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
                 .padding(vertical = 14.dp)
-                .clickable(enabled = !uiState.isLoading) {
-                    if (uiState.isSignUpMode) {
-                        onSignUp(name, email, password, confirmPassword)
-                    } else {
-                        onLogin(email, password)
-                    }
-                }
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(
@@ -421,6 +447,71 @@ private fun LoggedOutContent(
                     fontWeight = FontWeight.SemiBold
                 )
             }
+        }
+
+        // Google Sign-In OR Divider & Button
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(1.dp)
+                    .background(Color(0xFFEEEEEE))
+            )
+            Text(
+                text = "OR",
+                fontSize = 11.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor.copy(alpha = 0.5f),
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(1.dp)
+                    .background(Color(0xFFEEEEEE))
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .addPressEffect {
+                    if (!uiState.isLoading && !uiState.isGoogleLoading) {
+                        onGoogleSignIn()
+                    }
+                }
+                .clip(RoundedCornerShape(12.dp))
+                .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (uiState.isGoogleLoading) {
+                CircularProgressIndicator(
+                    color = AppColor,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_google),
+                    contentDescription = "Google Logo",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = if (uiState.isGoogleLoading) "Signing in..." else "Continue with Google",
+                fontSize = 15.sp,
+                fontFamily = NunitoFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                color = GreyColor
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -566,6 +657,113 @@ private fun ProfileFooter(modifier: Modifier = Modifier) {
                 fontSize = 11.sp,
                 color = GreyColor
             )
+        }
+    }
+}
+
+@Composable
+private fun LogoutConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White)
+                .padding(24.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Warning Icon in soft tint circle
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(RedColor.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_logout),
+                        contentDescription = null,
+                        tint = RedColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Title
+                Text(
+                    text = "Leaving so soon?",
+                    fontSize = 18.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = HeadingBlackColor,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Subtitle
+                Text(
+                    text = "Are you sure you want to log out of your Urdu Fonts account?",
+                    fontSize = 14.sp,
+                    fontFamily = NunitoFontFamily,
+                    color = GreyColor,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Action Buttons Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Cancel Button
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .addPressEffect() { onDismiss() }
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = GreyColor
+                        )
+                    }
+
+                    // Confirm Log Out Button
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .addPressEffect() { onConfirm() }
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(RedColor)
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "Yes, Log Out",
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
         }
     }
 }

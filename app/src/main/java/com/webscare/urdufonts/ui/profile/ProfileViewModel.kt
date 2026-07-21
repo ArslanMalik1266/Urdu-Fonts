@@ -1,9 +1,15 @@
 package com.webscare.urdufonts.ui.profile
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.webscare.urdufonts.domain.usecases.RegisterUserUseCase
+import com.webscare.urdufonts.domain.usecases.GoogleSignInUseCase
+import com.webscare.urdufonts.domain.usecases.LoginWithGoogleUseCase
+import com.webscare.urdufonts.domain.usecases.GetUserSessionUseCase
+import com.webscare.urdufonts.domain.usecases.LogoutUseCase
 import com.webscare.urdufonts.domain.models.RegisterParams
+import com.webscare.urdufonts.domain.models.AuthResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,20 +17,63 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
-    private val registerUserUseCase: RegisterUserUseCase // 👈 Injected Auth UseCase
+    private val registerUserUseCase: RegisterUserUseCase,
+    private val googleSignInUseCase: GoogleSignInUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
+    private val getUserSessionUseCase: GetUserSessionUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            getUserSessionUseCase().collect { session ->
+                _uiState.update {
+                    it.copy(
+                        isLoggedIn = session != null,
+                        userName = session?.name ?: "",
+                        email = session?.email ?: "",
+                        profileImageUrl = session?.avatar,
+                        isLoading = false,
+                        isGoogleLoading = false,
+                        errorMessage = null
+                    )
+                }
+            }
+        }
+    }
+
+    fun onGoogleSignInClick(context: Context) {
+        _uiState.update { it.copy(isGoogleLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            googleSignInUseCase(context)
+                .onSuccess { googleUser ->
+                    loginWithGoogleUseCase(googleUser.idToken)
+                        .onFailure { error ->
+                            android.util.Log.e("GoogleSignIn", "ViewModel: Backend Google Login failed: ${error.message}", error)
+                            onError(error.localizedMessage ?: "Backend authentication failed")
+                        }
+                }
+                .onFailure { error ->
+                    android.util.Log.e("GoogleSignIn", "ViewModel: Google Sign-in flow failure: ${error.message}", error)
+                    onError(error.localizedMessage ?: "Google Sign-In failed")
+                }
+        }
+    }
+
     fun onLoginClick(email: String, password: String) {
-        // We will implement Login here later
+        if (email.isBlank() || password.isBlank()) {
+            onError("Email and Password are required")
+            return
+        }
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
     }
 
     fun onLogoutClick() {
-        _uiState.update {
-            ProfileUiState(isLoggedIn = false)
+        viewModelScope.launch {
+            logoutUseCase()
         }
     }
 
@@ -67,12 +116,13 @@ class ProfileViewModel(
                 userName     = userName,
                 email        = email,
                 isLoading    = false,
+                isGoogleLoading = false,
                 errorMessage = null
             )
         }
     }
 
     fun onError(message: String) {
-        _uiState.update { it.copy(isLoading = false, errorMessage = message) }
+        _uiState.update { it.copy(isLoading = false, isGoogleLoading = false, errorMessage = message) }
     }
 }

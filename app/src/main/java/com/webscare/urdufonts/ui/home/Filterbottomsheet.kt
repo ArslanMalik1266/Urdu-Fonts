@@ -6,6 +6,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,7 +24,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -265,116 +267,213 @@ private sealed class GridItem {
     object LessButton : GridItem()
 }
 
+
+
 @Composable
 private fun FilterOptionGrid(
     classifiers: List<FontClassifier>,
     selectedSlugs: Set<String>,
     onToggle: (String) -> Unit,
-    isExpanded: Boolean,             // Receives state from parent
-    onExpandToggle: () -> Unit       // Delegates event click to ViewModel
-)
-{
+    isExpanded: Boolean,
+    onExpandToggle: () -> Unit
+) {
     if (classifiers.isEmpty()) return
 
-    val displayItems = remember(classifiers, isExpanded) {
-        if (classifiers.size > 9) {
-            if (isExpanded) {
-                classifiers.map { GridItem.Classifier(it) } + GridItem.LessButton
-            } else {
-                classifiers.take(8).map { GridItem.Classifier(it) } + GridItem.MoreButton(classifiers.size - 8)
+    // If classifiers size is 9 or less, render them simply as a static grid
+    if (classifiers.size <= 9) {
+        val rows = classifiers.map { GridItem.Classifier(it) }.chunked(3)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            rows.forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    rowItems.forEach { item ->
+                        Box(modifier = Modifier.weight(1f)) {
+                            RenderGridItem(item, selectedSlugs, onToggle, onExpandToggle)
+                        }
+                    }
+                    if (rowItems.size < 3) {
+                        repeat(3 - rowItems.size) { Spacer(modifier = Modifier.weight(1f)) }
+                    }
+                }
             }
-        } else {
-            classifiers.map { GridItem.Classifier(it) }
         }
+        return
     }
 
-    val rows = displayItems.chunked(3)
+    // --- FOR LARGE LISTS (> 9 ITEMS) ---
+    // 1. First 8 classifiers
+    val first8Classifiers = remember(classifiers) { classifiers.take(8).map { GridItem.Classifier(it) } }
+
+    // 2. Extra classifiers (from index 8 onwards)
+    val extraClassifiers = remember(classifiers) { classifiers.drop(8).map { GridItem.Classifier(it) } }
+
+    // Build the grid rows for the expanded view
+    val allExpandedItems = remember(classifiers) {
+        classifiers.map { GridItem.Classifier(it) } + GridItem.LessButton
+    }
+    val allExpandedRows = remember(allExpandedItems) { allExpandedItems.chunked(3) }
+
+    // Rows 1 and 2 are always static
+    val staticRows = remember(allExpandedRows) { allExpandedRows.take(2) }
+
+    // Row 3 contains the first two classifiers of Row 3, and the dynamic 3rd slot
+    val row3BaseItems = remember(allExpandedRows) { allExpandedRows.getOrNull(2)?.take(2).orEmpty() }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
-            )
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 24.dp, vertical = 8.dp)
     ) {
-        rows.forEach { rowItems ->
+        // --- ROW 1 & ROW 2 ---
+        staticRows.forEachIndexed { index, rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 rowItems.forEach { item ->
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        when (item) {
-                            is GridItem.Classifier -> {
-                                FilterChipItem(
-                                    label = item.data.title,
-                                    slug = item.data.slug,
-                                    isSelected = item.data.slug in selectedSlugs,
-                                    onToggle = { onToggle(item.data.slug) },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                            is GridItem.MoreButton -> {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(34.dp)
-                                        .addPressEffect { onExpandToggle() } // Mutates state via viewmodel
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .background(AppColor.copy(alpha = 0.08f))
-                                        .border(1.dp, AppColor.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
-                                ) {
-                                    Text(
-                                        text = "+${item.count} More",
-                                        color = AppColor,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontFamily = NunitoFontFamily
-                                    )
-                                }
-                            }
-                            is GridItem.LessButton -> {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(34.dp)
-                                        .addPressEffect { onExpandToggle() } // Mutates state via viewmodel
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .background(AppColor.copy(alpha = 0.08f))
-                                        .border(1.dp, AppColor.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
-                                ) {
-                                    Text(
-                                        text = "Show Less",
-                                        color = AppColor,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontFamily = NunitoFontFamily
-                                    )
-                                }
-                            }
-                        }
+                    Box(modifier = Modifier.weight(1f)) {
+                        RenderGridItem(item, selectedSlugs, onToggle, onExpandToggle)
                     }
                 }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
-                if (rowItems.size < 3) {
-                    repeat(3 - rowItems.size) {
-                        Spacer(modifier = Modifier.weight(1f))
+        // --- ROW 3 (With Crossfading 3rd Slot) ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // First 2 static classifiers in Row 3
+            row3BaseItems.forEach { item ->
+                Box(modifier = Modifier.weight(1f)) {
+                    RenderGridItem(item, selectedSlugs, onToggle, onExpandToggle)
+                }
+            }
+
+            // Dynamic 3rd slot of Row 3
+            Box(modifier = Modifier.weight(1f)) {
+                Crossfade(targetState = isExpanded, label = "more_less_crossfade") { expanded ->
+                    if (expanded) {
+                        // Show the 9th item (index 8)
+                        classifiers.getOrNull(8)?.let {
+                            RenderGridItem(GridItem.Classifier(it), selectedSlugs, onToggle, onExpandToggle)
+                        }
+                    } else {
+                        // Show the "+ More" button
+                        RenderGridItem(GridItem.MoreButton(classifiers.size - 8), selectedSlugs, onToggle, onExpandToggle)
+                    }
+                }
+            }
+        }
+
+        // --- ROW 4 ONWARDS (Collapsible extra items) ---
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Smoothly animated spacing gap between Row 3 and Row 4
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val collapsibleRows = remember(allExpandedRows) { allExpandedRows.drop(3) }
+
+                collapsibleRows.forEachIndexed { index, rowItems ->
+                    if (index > 0) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowItems.forEach { item ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                RenderGridItem(item, selectedSlugs, onToggle, onExpandToggle)
+                            }
+                        }
+                        // Pad incomplete final row
+                        if (rowItems.size < 3) {
+                            repeat(3 - rowItems.size) { Spacer(modifier = Modifier.weight(1f)) }
+                        }
                     }
                 }
             }
         }
     }
 }
+
+// --- REUSABLE COMPOSABLE FOR INDIVIDUAL GRID CHIPS ---
+@Composable
+private fun RenderGridItem(
+    item: GridItem,
+    selectedSlugs: Set<String>,
+    onToggle: (String) -> Unit,
+    onExpandToggle: () -> Unit
+) {
+    when (item) {
+        is GridItem.Classifier -> {
+            FilterChipItem(
+                label = item.data.title,
+                slug = item.data.slug,
+                isSelected = item.data.slug in selectedSlugs,
+                onToggle = { onToggle(item.data.slug) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        is GridItem.MoreButton -> {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(34.dp)
+                    .addPressEffect { onExpandToggle() }
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(AppColor.copy(alpha = 0.08f))
+                    .border(1.dp, AppColor.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+            ) {
+                Text(
+                    text = "+${item.count} More",
+                    color = AppColor,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = NunitoFontFamily
+                )
+            }
+        }
+        is GridItem.LessButton -> {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(34.dp)
+                    .addPressEffect { onExpandToggle() }
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(AppColor.copy(alpha = 0.08f))
+                    .border(1.dp, AppColor.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+            ) {
+                Text(
+                    text = "Show Less",
+                    color = AppColor,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = NunitoFontFamily
+                )
+            }
+        }
+    }
+}
+
+
 
 
 // ─── Single chip — solid AppColor circle, no icon ─────────────────────────────

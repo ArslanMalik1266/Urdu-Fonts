@@ -39,6 +39,6 @@ val dataModule = module {
     single<BannerRepository>     { BannerRepositoryImpl() }
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }
     single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get(), categoryDao = get()) }
-    single<AuthRepository> { AuthRepositoryImpl(apiService = get()) }
+    single<AuthRepository> { AuthRepositoryImpl(apiService = get(), userPreferences = get()) }
 
 }

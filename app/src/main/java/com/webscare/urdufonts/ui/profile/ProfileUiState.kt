@@ -7,5 +7,6 @@ data class ProfileUiState(
     val email: String = "arslanmalik1262@gmail.com",
     val profileImageUrl: String? = null,
     val isLoading: Boolean = false,
+    val isGoogleLoading: Boolean = false,
     val errorMessage: String? = null
 )

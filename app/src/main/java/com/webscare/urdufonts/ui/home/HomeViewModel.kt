@@ -6,6 +6,7 @@ import com.webscare.urdufonts.domain.models.FontClassifier
 import com.webscare.urdufonts.domain.models.FontItem
 import com.webscare.urdufonts.domain.usecases.GetBannersUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
+import com.webscare.urdufonts.domain.usecases.GetUserSessionUseCase
 import com.webscare.urdufonts.ui.home.drawer.DrawerMenuItem
 import com.webscare.urdufonts.ui.home.drawer.DrawerUiState
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class HomeViewModel(
-    private val getFontsUseCase: GetFontsUseCase
+    private val getFontsUseCase: GetFontsUseCase,
+    private val getUserSessionUseCase: GetUserSessionUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -30,6 +32,22 @@ class HomeViewModel(
 
     init {
         loadFonts()
+        observeUserSession()
+    }
+
+    private fun observeUserSession() {
+        viewModelScope.launch {
+            getUserSessionUseCase().collect { session ->
+                _drawerUiState.update {
+                    it.copy(
+                        isLoggedIn = session != null,
+                        userName = session?.name,
+                        userSubtitle = session?.email ?: "Access premium Urdu fonts",
+                        profileImageUrl = session?.avatar
+                    )
+                }
+            }
+        }
     }
 
 
