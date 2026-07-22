@@ -334,6 +334,13 @@ private fun LoggedOutContent(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    LaunchedEffect(uiState.isSignUpMode) {
+        name = ""
+        email = ""
+        password = ""
+        confirmPassword = ""
+    }
+
     AnimatedContent(
         targetState = uiState.isOtpMode,
         transitionSpec = { fadeIn() togetherWith fadeOut() },

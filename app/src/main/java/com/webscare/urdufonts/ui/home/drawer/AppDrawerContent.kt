@@ -173,9 +173,13 @@ private fun DrawerHeader(
                 .align(Alignment.CenterHorizontally),
             contentAlignment = Alignment.Center
         ) {
-            if (isLoggedIn && profileImageUrl != null) {
+            if (isLoggedIn) {
                 Image(
-                    painter = rememberAsyncImagePainter(profileImageUrl),
+                    painter = if (profileImageUrl != null) {
+                        rememberAsyncImagePainter(profileImageUrl)
+                    } else {
+                        painterResource(R.drawable.profile_image)
+                    },
                     contentDescription = "Profile photo",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()

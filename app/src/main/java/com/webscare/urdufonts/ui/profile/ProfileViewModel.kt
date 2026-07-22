@@ -104,7 +104,13 @@ class ProfileViewModel(
     }
 
     fun toggleAuthMode() {
-        _uiState.update { it.copy(isSignUpMode = !it.isSignUpMode, errorMessage = null) }
+        _uiState.update {
+            it.copy(
+                isSignUpMode = !it.isSignUpMode,
+                isLoading = false,
+                errorMessage = null
+            )
+        }
     }
 
     fun onSignUpClick(name: String, email: String, pass: String, confirmPass: String) {
