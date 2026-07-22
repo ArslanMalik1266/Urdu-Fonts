@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,6 +53,8 @@ fun AppNavigation() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val userPreferences: UserPreferences = koinInject()
+    val context = LocalContext.current
+    val externalNavigator = remember(context) { ExternalNavigator(context) }
     val isOnboardingCompleted by remember { userPreferences.isOnboardingCompleted }
         .collectAsState(initial = null)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -77,6 +80,9 @@ fun AppNavigation() {
                     scope.launch { drawerState.close() }
                     when (item) {
                         is DrawerMenuItem.Profile -> navController.navigate("profile")
+                        is DrawerMenuItem.Support -> externalNavigator.openEmailSupport()
+                        is DrawerMenuItem.PrivacyPolicy -> externalNavigator.openWebPage("")
+                        is DrawerMenuItem.RateUs -> externalNavigator.openWebPage("")
                         else -> {}
                     }
                 },

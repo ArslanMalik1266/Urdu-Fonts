@@ -14,5 +14,8 @@ interface AuthRepository {
     fun getSession(): Flow<UserSession?>
     suspend fun saveSession(session: UserSession)
     suspend fun logout(): Result<Unit>
+    suspend fun checkUserExists(email: String): Result<Boolean>
+    suspend fun verifyOtp(email: String, otp: String): Result<UserSession>
+    suspend fun login(email: String, password: String): Result<UserSession>
 }
 

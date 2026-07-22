@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.webscare.urdufonts.domain.usecases.GetCategoriesUseCase
 import com.webscare.urdufonts.domain.usecases.GetFontsUseCase
 import com.webscare.urdufonts.domain.usecases.GetStylesUseCase
+import com.webscare.urdufonts.domain.usecases.CheckUserStatusUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,8 @@ import kotlinx.coroutines.launch
 class AppInitViewModel(
     private val getFontsUseCase: GetFontsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val getStylesUseCase: GetStylesUseCase
+    private val getStylesUseCase: GetStylesUseCase,
+    private val checkUserStatusUseCase: CheckUserStatusUseCase
 ) : ViewModel() {
 
     private val _isReady = MutableStateFlow(false)
@@ -26,14 +28,16 @@ class AppInitViewModel(
 
     private fun preloadAll() {
         viewModelScope.launch {
-            // All 3 run in parallel
+            // All run in parallel
             val fontsDeferred      = async { runCatching { getFontsUseCase() } }
             val categoriesDeferred = async { getCategoriesUseCase() }
             val stylesDeferred     = async { getStylesUseCase() }
+            val checkUserDeferred  = async { runCatching { checkUserStatusUseCase() } }
 
             fontsDeferred.await()
             categoriesDeferred.await()
             stylesDeferred.await()
+            checkUserDeferred.await()
 
             // Data is now cached in Room — all screens will load instantly
             _isReady.value = true

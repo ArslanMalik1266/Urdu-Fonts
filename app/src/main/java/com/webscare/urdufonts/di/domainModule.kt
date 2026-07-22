@@ -13,6 +13,9 @@ import com.webscare.urdufonts.domain.usecases.GoogleSignInUseCase
 import com.webscare.urdufonts.domain.usecases.LoginWithGoogleUseCase
 import com.webscare.urdufonts.domain.usecases.GetUserSessionUseCase
 import com.webscare.urdufonts.domain.usecases.LogoutUseCase
+import com.webscare.urdufonts.domain.usecases.CheckUserStatusUseCase
+import com.webscare.urdufonts.domain.usecases.VerifyOtpUseCase
+import com.webscare.urdufonts.domain.usecases.LoginUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -29,6 +32,7 @@ val domainModule = module {
     factory { LoginWithGoogleUseCase(get()) }
     factory { GetUserSessionUseCase(get()) }
     factory { LogoutUseCase(get()) }
-
+    factory { CheckUserStatusUseCase(get()) }
+    factory { VerifyOtpUseCase(get()) }
+    factory { LoginUseCase(get()) }
 }
-

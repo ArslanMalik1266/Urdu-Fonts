@@ -269,7 +269,7 @@ fun FontDetailScreen(
                 }
                 "error" -> {
                     OfflineErrorState(
-                        message = uiState.errorMessage!!,
+                        message = uiState.errorMessage ?: "",
                         onRetry = viewModel::retry,
                         modifier = Modifier
                             .fillMaxSize()

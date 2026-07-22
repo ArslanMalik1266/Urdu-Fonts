@@ -23,9 +23,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -69,9 +74,25 @@ fun ProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearSuccessMessage()
+        }
+    }
+
+    LaunchedEffect(uiState.navigateToHome) {
+        if (uiState.navigateToHome) {
+            onBackClick()
+            viewModel.clearNavigateToHome()
+        }
+    }
 
     ProfileScreenInternal(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onBackClick = onBackClick,
         onLogin = { email, password -> viewModel.onLoginClick(email, password) },
         onSignUp = { name, email, pass, confirmPass ->
@@ -82,6 +103,8 @@ fun ProfileScreen(
                 confirmPass
             )
         },
+        onVerifyOtp = { otp -> viewModel.onVerifyOtpClick(otp) },
+        onCancelOtp = { viewModel.cancelOtp() },
         onToggleMode = { viewModel.toggleAuthMode() },
         onLogout = { viewModel.onLogoutClick() },
         onGoogleSignIn = { viewModel.onGoogleSignInClick(context) }
@@ -91,9 +114,12 @@ fun ProfileScreen(
 @Composable
 internal fun ProfileScreenInternal(
     uiState: ProfileUiState,
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onLogin: (email: String, password: String) -> Unit,
     onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
+    onVerifyOtp: (otp: String) -> Unit,
+    onCancelOtp: () -> Unit,
     onToggleMode: () -> Unit,
     onLogout: () -> Unit,
     onGoogleSignIn: () -> Unit
@@ -153,12 +179,21 @@ internal fun ProfileScreenInternal(
                         uiState = uiState,
                         onLogin = onLogin,
                         onSignUp = onSignUp,
+                        onVerifyOtp = onVerifyOtp,
+                        onCancelOtp = onCancelOtp,
                         onToggleMode = onToggleMode,
                         onGoogleSignIn = onGoogleSignIn
                     )
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 80.dp)
+        )
 
         ProfileFooter(modifier = Modifier.align(Alignment.BottomCenter))
     }
@@ -289,6 +324,8 @@ private fun LoggedOutContent(
     uiState: ProfileUiState,
     onLogin: (email: String, password: String) -> Unit,
     onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
+    onVerifyOtp: (otp: String) -> Unit,
+    onCancelOtp: () -> Unit,
     onToggleMode: () -> Unit,
     onGoogleSignIn: () -> Unit
 ) {
@@ -297,13 +334,279 @@ private fun LoggedOutContent(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    AnimatedContent(
+        targetState = uiState.isOtpMode,
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        label = "otp_mode_transition"
+    ) { isOtpMode ->
+        if (isOtpMode) {
+            OtpVerificationContent(
+                uiState = uiState,
+                onVerifyOtp = onVerifyOtp,
+                onCancelOtp = onCancelOtp
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Avatar placeholder
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF0F0F0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_drawer_profile),
+                        contentDescription = null,
+                        tint = GreyColor.copy(alpha = 0.4f),
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Dynamic Header Title
+                Text(
+                    text = if (uiState.isSignUpMode) "Create Account" else "Join Urdu Fonts",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = NunitoFontFamily,
+                    color = HeadingBlackColor
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Dynamic Header Subtext
+                Text(
+                    text = if (uiState.isSignUpMode) "Sign up to download and manage custom fonts" else "Login to access premium Urdu fonts",
+                    fontSize = 12.sp,
+                    color = GreyColor,
+                    fontFamily = NunitoFontFamily,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 1. Name Field (Only in Sign Up Mode)
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = uiState.isSignUpMode,
+                    enter = fadeIn() + androidx.compose.animation.expandVertically(),
+                    exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+                ) {
+                    Column {
+                        ProfileInputField(
+                            label = "Full Name",
+                            value = name,
+                            onValueChange = { name = it },
+                            leadingIcon = R.drawable.ic_drawer_profile,
+                            keyboardType = KeyboardType.Text
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                // 2. Email input (Always shown)
+                ProfileInputField(
+                    label = "Email",
+                    value = email,
+                    onValueChange = { email = it },
+                    leadingIcon = R.drawable.ic_drawer_profile,
+                    keyboardType = KeyboardType.Email
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 3. Password input (Always shown)
+                ProfileInputField(
+                    label = "Password",
+                    value = password,
+                    onValueChange = { password = it },
+                    leadingIcon = R.drawable.ic_drawer_privacy,
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true
+                )
+
+                // 4. Confirm Password input (Only in Sign Up Mode)
+                AnimatedVisibility(
+                    visible = uiState.isSignUpMode,
+                    enter = fadeIn() + androidx.compose.animation.expandVertically(),
+                    exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        ProfileInputField(
+                            label = "Confirm Password",
+                            value = confirmPassword,
+                            onValueChange = { confirmPassword = it },
+                            leadingIcon = R.drawable.ic_drawer_privacy,
+                            keyboardType = KeyboardType.Password,
+                            isPassword = true
+                        )
+                    }
+                }
+
+                // Error message display
+                if (uiState.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = uiState.errorMessage,
+                        color = Color.Red,
+                        fontFamily = NunitoFontFamily,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // 5. Dynamic Auth Action Button
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .addPressEffect {
+                            if (!uiState.isLoading) {
+                                if (uiState.isSignUpMode) {
+                                    onSignUp(name, email, password, confirmPassword)
+                                } else {
+                                    onLogin(email, password)
+                                }
+                            }
+                        }
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
+                        .padding(vertical = 14.dp)
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (uiState.isSignUpMode) "Register" else "Login / Signup",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // Google Sign-In OR Divider & Button
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp)
+                            .background(Color(0xFFEEEEEE))
+                    )
+                    Text(
+                        text = "OR",
+                        fontSize = 11.sp,
+                        fontFamily = NunitoFontFamily,
+                        color = GreyColor.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp)
+                            .background(Color(0xFFEEEEEE))
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .addPressEffect {
+                            if (!uiState.isLoading && !uiState.isGoogleLoading) {
+                                onGoogleSignIn()
+                            }
+                        }
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (uiState.isGoogleLoading) {
+                        CircularProgressIndicator(
+                            color = AppColor,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_google),
+                            contentDescription = "Google Logo",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = if (uiState.isGoogleLoading) "Signing in..." else "Continue with Google",
+                        fontSize = 15.sp,
+                        fontFamily = NunitoFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        color = GreyColor
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 6. Dynamic Toggle Account Mode Text Link
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (uiState.isSignUpMode) "Already have an account? " else "Don't have an account? ",
+                        fontSize = 13.sp,
+                        fontFamily = NunitoFontFamily,
+                        color = GreyColor
+                    )
+                    Text(
+                        text = if (uiState.isSignUpMode) "Log In" else "Sign Up",
+                        fontSize = 13.sp,
+                        fontFamily = NunitoFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColor, // 🟢 App Theme Green
+                        modifier = Modifier
+                            .addPressEffect()
+                            .addPressEffect{ onToggleMode() }
+                            .padding(4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OtpVerificationContent(
+    uiState: ProfileUiState,
+    onVerifyOtp: (String) -> Unit,
+    onCancelOtp: () -> Unit
+) {
+    var otpCode by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Avatar placeholder
+        // Verification Icon in soft tint circle
         Box(
             modifier = Modifier
                 .size(80.dp)
@@ -312,95 +615,85 @@ private fun LoggedOutContent(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_drawer_profile),
+                painter = painterResource(R.drawable.ic_drawer_privacy),
                 contentDescription = null,
-                tint = GreyColor.copy(alpha = 0.4f),
+                tint = AppColor,
                 modifier = Modifier.size(36.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Dynamic Header Title
         Text(
-            text = if (uiState.isSignUpMode) "Create Account" else "Join Urdu Fonts",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
+            text = "Verify Email",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
             fontFamily = NunitoFontFamily,
             color = HeadingBlackColor
         )
-        Spacer(modifier = Modifier.height(4.dp))
 
-        // Dynamic Header Subtext
+        Spacer(modifier = Modifier.height(6.dp))
+
         Text(
-            text = if (uiState.isSignUpMode) "Sign up to download and manage custom fonts" else "Login to access premium Urdu fonts",
+            text = "We sent a 6-digit verification code to \n${uiState.registrationEmail}",
             fontSize = 12.sp,
             color = GreyColor,
             fontFamily = NunitoFontFamily,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 1. Name Field (Only in Sign Up Mode)
-        androidx.compose.animation.AnimatedVisibility(
-            visible = uiState.isSignUpMode,
-            enter = fadeIn() + androidx.compose.animation.expandVertically(),
-            exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+        // Custom OTP digit input cells with hidden BasicTextField
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column {
-                ProfileInputField(
-                    label = "Full Name",
-                    value = name,
-                    onValueChange = { name = it },
-                    leadingIcon = R.drawable.ic_drawer_profile,
-                    keyboardType = KeyboardType.Text
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+            BasicTextField(
+                value = otpCode,
+                onValueChange = {
+                    if (it.length <= 6) {
+                        otpCode = it
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(0.01f)
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(6) { index ->
+                    val char = otpCode.getOrNull(index)?.toString() ?: ""
+                    val isFocusedCell = otpCode.length == index
+                    Box(
+                        modifier = Modifier
+                            .size(width = 40.dp, height = 48.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isFocusedCell) AppColor.copy(alpha = 0.05f) else Color(0xFFF7F7F7))
+                            .border(
+                                width = 1.dp,
+                                color = if (isFocusedCell) AppColor else Color(0xFFEEEEEE),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = char,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = NunitoFontFamily,
+                            color = HeadingBlackColor
+                        )
+                    }
+                }
             }
         }
 
-        // 2. Email input (Always shown)
-        ProfileInputField(
-            label = "Email",
-            value = email,
-            onValueChange = { email = it },
-            leadingIcon = R.drawable.ic_drawer_profile,
-            keyboardType = KeyboardType.Email
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // 3. Password input (Always shown)
-        ProfileInputField(
-            label = "Password",
-            value = password,
-            onValueChange = { password = it },
-            leadingIcon = R.drawable.ic_drawer_privacy,
-            keyboardType = KeyboardType.Password,
-            isPassword = true
-        )
-
-        // 4. Confirm Password input (Only in Sign Up Mode)
-        AnimatedVisibility(
-            visible = uiState.isSignUpMode,
-            enter = fadeIn() + androidx.compose.animation.expandVertically(),
-            exit = fadeOut() + androidx.compose.animation.shrinkVertically()
-        ) {
-            Column {
-                Spacer(modifier = Modifier.height(12.dp))
-                ProfileInputField(
-                    label = "Confirm Password",
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    leadingIcon = R.drawable.ic_drawer_privacy,
-                    keyboardType = KeyboardType.Password,
-                    isPassword = true
-                )
-            }
-        }
-
-        // Error message display
         if (uiState.errorMessage != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -414,18 +707,13 @@ private fun LoggedOutContent(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // 5. Dynamic Auth Action Button
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .addPressEffect {
                     if (!uiState.isLoading) {
-                        if (uiState.isSignUpMode) {
-                            onSignUp(name, email, password, confirmPassword)
-                        } else {
-                            onLogin(email, password)
-                        }
+                        onVerifyOtp(otpCode)
                     }
                 }
                 .clip(RoundedCornerShape(12.dp))
@@ -440,7 +728,7 @@ private fun LoggedOutContent(
                 )
             } else {
                 Text(
-                    text = if (uiState.isSignUpMode) "Register" else "Login / Signup",
+                    text = "Verify & Register",
                     color = Color.White,
                     fontSize = 15.sp,
                     fontFamily = NunitoFontFamily,
@@ -449,95 +737,18 @@ private fun LoggedOutContent(
             }
         }
 
-        // Google Sign-In OR Divider & Button
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(1.dp)
-                    .background(Color(0xFFEEEEEE))
-            )
-            Text(
-                text = "OR",
-                fontSize = 11.sp,
-                fontFamily = NunitoFontFamily,
-                color = GreyColor.copy(alpha = 0.5f),
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(1.dp)
-                    .background(Color(0xFFEEEEEE))
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Row(
+        Text(
+            text = "Back to Sign Up",
+            fontSize = 13.sp,
+            fontFamily = NunitoFontFamily,
+            fontWeight = FontWeight.Bold,
+            color = AppColor,
             modifier = Modifier
-                .fillMaxWidth()
-                .addPressEffect {
-                    if (!uiState.isLoading && !uiState.isGoogleLoading) {
-                        onGoogleSignIn()
-                    }
-                }
-                .clip(RoundedCornerShape(12.dp))
-                .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (uiState.isGoogleLoading) {
-                CircularProgressIndicator(
-                    color = AppColor,
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_google),
-                    contentDescription = "Google Logo",
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = if (uiState.isGoogleLoading) "Signing in..." else "Continue with Google",
-                fontSize = 15.sp,
-                fontFamily = NunitoFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                color = GreyColor
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 6. Dynamic Toggle Account Mode Text Link
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = if (uiState.isSignUpMode) "Already have an account? " else "Don't have an account? ",
-                fontSize = 13.sp,
-                fontFamily = NunitoFontFamily,
-                color = GreyColor
-            )
-            Text(
-                text = if (uiState.isSignUpMode) "Log In" else "Sign Up",
-                fontSize = 13.sp,
-                fontFamily = NunitoFontFamily,
-                fontWeight = FontWeight.Bold,
-                color = AppColor, // 🟢 App Theme Green
-                modifier = Modifier
-                    .addPressEffect()
-                    .addPressEffect{ onToggleMode() }
-                    .padding(4.dp)
-            )
-        }
+                .addPressEffect { onCancelOtp() }
+                .padding(4.dp)
+        )
     }
 }
 

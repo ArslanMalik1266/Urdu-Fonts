@@ -8,6 +8,8 @@ import com.webscare.urdufonts.domain.usecases.GoogleSignInUseCase
 import com.webscare.urdufonts.domain.usecases.LoginWithGoogleUseCase
 import com.webscare.urdufonts.domain.usecases.GetUserSessionUseCase
 import com.webscare.urdufonts.domain.usecases.LogoutUseCase
+import com.webscare.urdufonts.domain.usecases.VerifyOtpUseCase
+import com.webscare.urdufonts.domain.usecases.LoginUseCase
 import com.webscare.urdufonts.domain.models.RegisterParams
 import com.webscare.urdufonts.domain.models.AuthResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +23,9 @@ class ProfileViewModel(
     private val googleSignInUseCase: GoogleSignInUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val getUserSessionUseCase: GetUserSessionUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val verifyOtpUseCase: VerifyOtpUseCase,
+    private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -51,6 +55,9 @@ class ProfileViewModel(
             googleSignInUseCase(context)
                 .onSuccess { googleUser ->
                     loginWithGoogleUseCase(googleUser.idToken)
+                        .onSuccess {
+                            _uiState.update { it.copy(navigateToHome = true) }
+                        }
                         .onFailure { error ->
                             android.util.Log.e("GoogleSignIn", "ViewModel: Backend Google Login failed: ${error.message}", error)
                             onError(error.localizedMessage ?: "Backend authentication failed")
@@ -69,6 +76,25 @@ class ProfileViewModel(
             return
         }
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            loginUseCase(email = email, password = password)
+                .onSuccess { session ->
+                    _uiState.update {
+                        it.copy(
+                            isLoggedIn = true,
+                            userName = session.name,
+                            email = session.email,
+                            isLoading = false,
+                            errorMessage = null,
+                            successMessage = "Logged in successfully!",
+                            navigateToHome = true
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    onError(error.localizedMessage ?: "Login failed")
+                }
+        }
     }
 
     fun onLogoutClick() {
@@ -100,13 +126,60 @@ class ProfileViewModel(
 
             registerUserUseCase(params)
                 .onSuccess { authResult ->
-                    // Switch UI to logged-in with username and email returned by server
-                    onLoginSuccess(userName = authResult.user.name, email = authResult.user.email)
+                    _uiState.update {
+                        it.copy(
+                            isOtpMode = true,
+                            registrationEmail = email,
+                            isLoading = false,
+                            errorMessage = null
+                        )
+                    }
                 }
                 .onFailure { error ->
                     onError(error.localizedMessage ?: "Registration failed")
                 }
         }
+    }
+
+    fun onVerifyOtpClick(otp: String) {
+        if (otp.isBlank()) {
+            onError("OTP code is required")
+            return
+        }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            verifyOtpUseCase(email = _uiState.value.registrationEmail, otp = otp)
+                .onSuccess { session ->
+                    _uiState.update {
+                        it.copy(
+                            isOtpMode = false,
+                            isSignUpMode = false,
+                            isLoggedIn = true,
+                            userName = session.name,
+                            email = session.email,
+                            isLoading = false,
+                            errorMessage = null,
+                            successMessage = "Account registered and logged in successfully!",
+                            navigateToHome = true
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    onError(error.localizedMessage ?: "Verification failed")
+                }
+        }
+    }
+
+    fun clearSuccessMessage() {
+        _uiState.update { it.copy(successMessage = null) }
+    }
+
+    fun cancelOtp() {
+        _uiState.update { it.copy(isOtpMode = false, errorMessage = null) }
+    }
+
+    fun clearNavigateToHome() {
+        _uiState.update { it.copy(navigateToHome = false) }
     }
 
     fun onLoginSuccess(userName: String, email: String) {

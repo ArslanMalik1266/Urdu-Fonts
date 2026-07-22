@@ -32,8 +32,11 @@ class AuthRepositoryImpl(
         params: RegisterParams
     ): Result<AuthResult> = withContext(Dispatchers.IO) {
         runCatching {
-            val requestMap = params.toDto().toFieldMap()
-            apiService.registerUser(requestMap).toDomain()
+            apiService.registerUser(
+                name = params.name,
+                email = params.email,
+                pass = params.pass
+            ).toDomain()
         }
     }
 
@@ -148,6 +151,37 @@ class AuthRepositoryImpl(
     override suspend fun logout(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             userPreferences.clearUserSession()
+        }
+    }
+
+    override suspend fun checkUserExists(email: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.checkUser(email)
+            true
+        }.recoverCatching { throwable ->
+            if (throwable is retrofit2.HttpException && throwable.code() == 404) {
+                false
+            } else {
+                throw throwable
+            }
+        }
+    }
+
+    override suspend fun verifyOtp(email: String, otp: String): Result<UserSession> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = apiService.verifyOtp(email = email, otp = otp)
+            val session = response.toDomain()
+            saveSession(session)
+            session
+        }
+    }
+
+    override suspend fun login(email: String, password: String): Result<UserSession> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = apiService.login(email = email, pass = password)
+            val session = response.toDomain()
+            saveSession(session)
+            session
         }
     }
 }

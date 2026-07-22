@@ -2,14 +2,16 @@ package com.webscare.urdufonts.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-data class RegisterResponseDto(
+data class LoginResponseDto(
     @SerializedName("status") val status: String,
     @SerializedName("message") val message: String,
-    @SerializedName("email") val email: String
+    @SerializedName("token") val token: String,
+    @SerializedName("user") val user: LoginUserDto
 )
 
-data class UserDto(
+data class LoginUserDto(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,
-    @SerializedName("email") val email: String
+    @SerializedName("email") val email: String,
+    @SerializedName("roles") val roles: List<String>?
 )
