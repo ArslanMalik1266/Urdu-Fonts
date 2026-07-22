@@ -5,17 +5,37 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Uncomment this to preserve the line number information for debugging stack traces.
+-keepattributes SourceFile,LineNumberTable
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ─── Retain Retrofit and Gson annotations/metadata ────────────────────────────
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations
+-dontnote retrofit2.Platform
+-dontwarn retrofit2.Platform$Java8
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ─── Keep all Gson DTO models intact to prevent serialization bugs ────────────
+-keep class com.webscare.urdufonts.data.remote.dto.** { *; }
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# ─── Keep Retrofit API Interface classes ──────────────────────────────────────
+-keep class com.webscare.urdufonts.data.remote.api.** { *; }
+-keepclassmembers interface * {
+    @retrofit2.http.* <methods>;
+}
+
+# ─── Keep Domain Models ───────────────────────────────────────────────────────
+-keep class com.webscare.urdufonts.domain.models.** { *; }
+
+# ─── Keep Koin & ViewModels (ensures dependency injection doesn't crash) ──────
+-keepclassmembers class * extends androidx.lifecycle.ViewModel {
+    <init>(...);
+}
+
+# ─── Keep Room Database entities and DAOs ─────────────────────────────────────
+-keep class * extends androidx.room.RoomDatabase
+-keep class com.webscare.urdufonts.data.local.dao.** { *; }
+-keep class com.webscare.urdufonts.data.local.entity.** { *; }
+-dontwarn androidx.room.paging.**

@@ -153,13 +153,6 @@ private fun DrawerHeader(
                 fontFamily = NunitoFontFamily,
                 modifier = Modifier.weight(1f),
             )
-            Box(modifier = Modifier.padding(end = 8.dp)) {
-                TopBarButton(
-                    iconRes = R.drawable.ic_close,
-                    onClick = onCloseDrawer,
-                    contentDescription = "Close Drawer"
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))

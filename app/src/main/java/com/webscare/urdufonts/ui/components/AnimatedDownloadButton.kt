@@ -32,12 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
 import com.webscare.urdufonts.R
 import com.webscare.urdufonts.ui.theme.AppColor
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
@@ -54,6 +56,7 @@ fun AnimatedDownloadButton(
     modifier: Modifier = Modifier
 ) {
     val isWideButton = isExpanded
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     // Width responds to scroll even while downloading
     val targetWidth = if (isWideButton) 280.dp else 56.dp
@@ -64,8 +67,9 @@ fun AnimatedDownloadButton(
     )
 
     // Offset coordinates to slide/animate the button position on scroll
+    val targetOffset = if (isWideButton) 0.dp else (screenWidth / 2) - 44.dp
     val offsetX by animateDpAsState(
-        targetValue = if (isWideButton) 0.dp else 112.dp,
+        targetValue = targetOffset,
         animationSpec = tween(durationMillis = 400),
         label = "fab_offset"
     )
@@ -111,18 +115,7 @@ fun AnimatedDownloadButton(
            ,
         contentAlignment = Alignment.Center
     ) {
-        // 🟢 Liquid horizontal progress fill: works for both wide and circular shapes!
-        if (downloadState == DownloadState.DOWNLOADING) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedProgress)
-                    .background(AppColor)
-            )
-        }
-
-        // Foreground content layout
+        // ─── Layer 1: Base Layer (Black text during downloading, or standard static layouts) ───
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -134,29 +127,17 @@ fun AnimatedDownloadButton(
                             text = "Downloading",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (progress > 0.45f) Color.White else HeadingBlackColor,
+                            color = HeadingBlackColor,
                             fontFamily = NunitoFontFamily
                         )
                     }
-
-                    // Sliding Number Odometer Counter (Floats up/down on change)
-                    AnimatedContent(
-                        targetState = percentValue,
-                        transitionSpec = {
-                            (slideInVertically { height -> height } + fadeIn()) togetherWith
-                                    (slideOutVertically { height -> -height } + fadeOut())
-                        },
-                        label = "percentage_slider"
-                    ) { targetPercent ->
-                        val textColor = if (progress > 0.45f || !showText) Color.White else HeadingBlackColor
-                        Text(
-                            text = "$targetPercent%",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textColor,
-                            fontFamily = NunitoFontFamily
-                        )
-                    }
+                    Text(
+                        text = "$percentValue%",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = HeadingBlackColor,
+                        fontFamily = NunitoFontFamily
+                    )
                 }
 
                 DownloadState.DOWNLOADED -> {
@@ -196,5 +177,55 @@ fun AnimatedDownloadButton(
                 }
             }
         }
+
+        // ─── Layer 2: Masked Green Layer (Clipped dynamically by ProgressClipShape) ───
+        if (downloadState == DownloadState.DOWNLOADING) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize() // Matches the parent bounds exactly
+                    .clip(ProgressClipShape(animatedProgress)) // Clips drawing bounds dynamically
+                    .background(AppColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (showText) {
+                        Text(
+                            text = "Downloading",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = NunitoFontFamily
+                        )
+                    }
+                    Text(
+                        text = "$percentValue%",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontFamily = NunitoFontFamily
+                    )
+                }
+            }
+        }
+    }
+}
+
+private class ProgressClipShape(private val progress: Float) : androidx.compose.ui.graphics.Shape {
+    override fun createOutline(
+        size: androidx.compose.ui.geometry.Size,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        density: androidx.compose.ui.unit.Density
+    ): androidx.compose.ui.graphics.Outline {
+        return androidx.compose.ui.graphics.Outline.Rectangle(
+            androidx.compose.ui.geometry.Rect(
+                left = 0f,
+                top = 0f,
+                right = size.width * progress,
+                bottom = size.height
+            )
+        )
     }
 }

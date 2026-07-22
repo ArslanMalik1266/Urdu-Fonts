@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import java.io.File
 
 class FontDownloadManager(
     private val downloadFontToDeviceUseCase: DownloadFontToDeviceUseCase
@@ -45,19 +47,49 @@ class FontDownloadManager(
 
         // Launch in the persistent Application scope
         applicationScope.launch {
-            downloadFontToDeviceUseCase(font, onProgress = { progress ->
-                _downloadProgresses.update { it + (font.id to progress) }
-            }).onSuccess {
-                _downloadStates.update { it + (font.id to DownloadState.DOWNLOADED) }
-                _downloadProgresses.update { it + (font.id to 1.0f) }
+            val startTime = System.currentTimeMillis()
+            var actualProgress = 0f
+            var actualDownloadFinished = false
+            var downloadResult: Result<File>? = null
 
-                val subfolder = "Downloads/UrduFonts/${font.name.replace(" ", "_")}"
-                _events.emit(DownloadEvent.Success(font.id, "Download Complete!|$subfolder"))
-            }.onFailure { error ->
-                _downloadStates.update { it + (font.id to DownloadState.IDLE) }
-                _downloadProgresses.update { it + (font.id to 0f) }
+            // 1. Launch the actual download in a background coroutine
+            val downloadJob = launch(Dispatchers.IO) {
+                downloadResult = downloadFontToDeviceUseCase(font, onProgress = { progress ->
+                    actualProgress = progress
+                })
+                actualDownloadFinished = true
+            }
 
-                _events.emit(DownloadEvent.Failure(font.id, "Download failed: ${error.localizedMessage}"))
+            // 2. Visual progress coordination loop (runs at ~30 FPS)
+            while (true) {
+                val elapsedTime = System.currentTimeMillis() - startTime
+                val maxAllowedProgress = elapsedTime.toFloat() / 3000f // 3000ms minimum duration (3 seconds)
+                val reportedProgress = minOf(actualProgress, maxAllowedProgress)
+
+                _downloadProgresses.update { it + (font.id to reportedProgress) }
+
+                if (actualDownloadFinished) {
+                    val result = downloadResult
+                    if (result != null) {
+                        if (result.isFailure) {
+                            // If failed, exit immediately to report the error without delaying the user
+                            downloadJob.cancel()
+                            _downloadStates.update { it + (font.id to DownloadState.IDLE) }
+                            _downloadProgresses.update { it + (font.id to 0f) }
+                            _events.emit(DownloadEvent.Failure(font.id, "Download failed: ${result.exceptionOrNull()?.localizedMessage}"))
+                            break
+                        } else if (reportedProgress >= 1.0f) {
+                            // If succeeded and visual progress reached 100%, finalize state
+                            _downloadStates.update { it + (font.id to DownloadState.DOWNLOADED) }
+                            _downloadProgresses.update { it + (font.id to 1.0f) }
+                            val subfolder = "Downloads/UrduFonts/${font.name.replace(" ", "_")}"
+                            _events.emit(DownloadEvent.Success(font.id, "Download Complete!|$subfolder"))
+                            break
+                        }
+                    }
+                }
+
+                delay(30) // ~30 FPS frame rate
             }
         }
     }

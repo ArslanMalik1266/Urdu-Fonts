@@ -33,6 +33,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -50,10 +51,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.platform.LocalFocusManager
+import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.webscare.urdufonts.R
@@ -261,7 +272,7 @@ private fun LoggedInContent(
         ProfileReadOnlyField(
             label = "Email",
             value = uiState.email,
-            leadingIcon = R.drawable.ic_drawer_profile
+            leadingIcon = R.drawable.ic_email
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -282,7 +293,7 @@ private fun LoggedInContent(
                 .fillMaxWidth()
                 .addPressEffect() { showLogoutDialog = true }
                 .clip(RoundedCornerShape(12.dp))
-                .background(AppColor)
+                .background(RedColor)
                 .padding(vertical = 14.dp)
         ) {
             androidx.compose.foundation.layout.Row(
@@ -421,7 +432,7 @@ private fun LoggedOutContent(
                     label = "Email",
                     value = email,
                     onValueChange = { email = it },
-                    leadingIcon = R.drawable.ic_drawer_profile,
+                    leadingIcon = R.drawable.ic_email,
                     keyboardType = KeyboardType.Email
                 )
 
@@ -434,7 +445,8 @@ private fun LoggedOutContent(
                     onValueChange = { password = it },
                     leadingIcon = R.drawable.ic_drawer_privacy,
                     keyboardType = KeyboardType.Password,
-                    isPassword = true
+                    isPassword = true,
+                    imeAction = if (uiState.isSignUpMode) ImeAction.Next else ImeAction.Done
                 )
 
                 // 4. Confirm Password input (Only in Sign Up Mode)
@@ -451,7 +463,8 @@ private fun LoggedOutContent(
                             onValueChange = { confirmPassword = it },
                             leadingIcon = R.drawable.ic_drawer_privacy,
                             keyboardType = KeyboardType.Password,
-                            isPassword = true
+                            isPassword = true,
+                            imeAction = ImeAction.Done
                         )
                     }
                 }
@@ -496,7 +509,7 @@ private fun LoggedOutContent(
                         )
                     } else {
                         Text(
-                            text = if (uiState.isSignUpMode) "Register" else "Login / Signup",
+                            text = if (uiState.isSignUpMode) "Register" else "Login",
                             color = Color.White,
                             fontSize = 15.sp,
                             fontFamily = NunitoFontFamily,
@@ -590,7 +603,7 @@ private fun LoggedOutContent(
                         color = AppColor, // 🟢 App Theme Green
                         modifier = Modifier
                             .addPressEffect()
-                            .addPressEffect{ onToggleMode() }
+                            .addPressEffect { onToggleMode() }
                             .padding(4.dp)
                     )
                 }
@@ -605,7 +618,22 @@ private fun OtpVerificationContent(
     onVerifyOtp: (String) -> Unit,
     onCancelOtp: () -> Unit
 ) {
+    var otpValue by remember { mutableStateOf(TextFieldValue("")) }
     var otpCode by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    var isTextFieldFocused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(150)
+        focusRequester.requestFocus()
+    }
+
+    val imeAction = if (otpValue.selection.start < 5 && otpValue.text.length < 6) {
+        ImeAction.Next
+    } else {
+        ImeAction.Done
+    }
 
     Column(
         modifier = Modifier
@@ -658,16 +686,72 @@ private fun OtpVerificationContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             BasicTextField(
-                value = otpCode,
-                onValueChange = {
-                    if (it.length <= 6) {
-                        otpCode = it
+                value = otpValue,
+                onValueChange = { newValue ->
+                    val oldText = otpValue.text
+                    val oldSelection = otpValue.selection.start
+                    val newText = newValue.text
+
+                    val updatedValue = when {
+                        // 1. Backspace/deletion detected
+                        newText.length < oldText.length -> {
+                            if (oldSelection < oldText.length) {
+                                // Clear digit at intermediate focused cell and shift cursor back
+                                val updatedText = oldText.substring(0, oldSelection) + oldText.substring(oldSelection + 1)
+                                val targetSelection = (oldSelection - 1).coerceAtLeast(0)
+                                TextFieldValue(text = updatedText, selection = TextRange(targetSelection))
+                            } else {
+                                // Default backspace at the very end
+                                val updatedText = oldText.substring(0, oldSelection - 1)
+                                val targetSelection = oldSelection - 1
+                                TextFieldValue(text = updatedText, selection = TextRange(targetSelection))
+                            }
+                        }
+                        // 2. Character typed/inserted
+                        newText.length > oldText.length -> {
+                            if (oldSelection < oldText.length) {
+                                // Replace existing intermediate digit with newly typed character
+                                val typedChar = newText[oldSelection]
+                                val updatedText = oldText.substring(0, oldSelection) + typedChar + oldText.substring(oldSelection + 1)
+                                val targetSelection = (oldSelection + 1).coerceAtMost(6)
+                                TextFieldValue(text = updatedText, selection = TextRange(targetSelection))
+                            } else {
+                                // Standard append at the end
+                                if (newText.length <= 6) newValue else otpValue
+                            }
+                        }
+                        // 3. Selection change / other edits
+                        else -> newValue
                     }
+
+                    otpValue = updatedValue
+                    otpCode = updatedValue.text
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = imeAction
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        val currentCursor = otpValue.selection.start
+                        if (currentCursor < 5) {
+                            val nextCursor = (currentCursor + 1).coerceAtMost(otpValue.text.length)
+                            otpValue = otpValue.copy(selection = TextRange(nextCursor))
+                        }
+                    },
+                    onDone = {
+                        if (otpCode.length == 6) {
+                            onVerifyOtp(otpCode)
+                        } else {
+                            focusManager.clearFocus()
+                        }
+                    }
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(0.01f)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { isTextFieldFocused = it.isFocused }
             )
 
             Row(
@@ -676,17 +760,31 @@ private fun OtpVerificationContent(
             ) {
                 repeat(6) { index ->
                     val char = otpCode.getOrNull(index)?.toString() ?: ""
-                    val isFocusedCell = otpCode.length == index
+                    val isFocusedCell = isTextFieldFocused && (
+                        otpValue.selection.start == index || (otpValue.selection.start == 6 && index == 5)
+                    )
                     Box(
                         modifier = Modifier
                             .size(width = 40.dp, height = 48.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (isFocusedCell) AppColor.copy(alpha = 0.05f) else Color(0xFFF7F7F7))
+                            .background(
+                                if (isFocusedCell) AppColor.copy(alpha = 0.05f) else Color(
+                                    0xFFF7F7F7
+                                )
+                            )
                             .border(
                                 width = 1.dp,
                                 color = if (isFocusedCell) AppColor else Color(0xFFEEEEEE),
                                 shape = RoundedCornerShape(10.dp)
-                            ),
+                            )
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                val targetIndex = index.coerceAtMost(otpValue.text.length)
+                                otpValue = otpValue.copy(selection = TextRange(targetIndex))
+                                focusRequester.requestFocus()
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -812,8 +910,11 @@ private fun ProfileInputField(
     onValueChange: (String) -> Unit,
     leadingIcon: Int,
     keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    imeAction: ImeAction = ImeAction.Next
 ) {
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = AppColor,
         unfocusedBorderColor = Color(0xFFEEEEEE),
@@ -836,8 +937,32 @@ private fun ProfileInputField(
                 modifier = Modifier.size(18.dp)
             )
         },
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        trailingIcon = if (isPassword) {
+            {
+                Box(
+                    modifier = Modifier.addPressEffect(
+                        onClick = { isPasswordVisible = !isPasswordVisible }
+                    )) {
+                    Icon(
+                        painter = painterResource(
+                            if (isPasswordVisible) R.drawable.ic_eye_open else R.drawable.ic_eye_closed
+                        ),
+                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password",
+                        tint = GreyColor.copy(alpha = 0.6f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        } else null,
+        visualTransformation = if (isPassword && !isPasswordVisible) {
+            PasswordVisualTransformation()
+        } else {
+            androidx.compose.ui.text.input.VisualTransformation.None
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = imeAction
+        ),
         singleLine = true,
         shape = RoundedCornerShape(10.dp),
         colors = fieldColors,

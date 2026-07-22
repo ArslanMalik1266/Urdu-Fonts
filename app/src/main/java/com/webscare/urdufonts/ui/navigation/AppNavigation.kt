@@ -81,7 +81,7 @@ fun AppNavigation() {
                     when (item) {
                         is DrawerMenuItem.Profile -> navController.navigate("profile")
                         is DrawerMenuItem.Support -> externalNavigator.openEmailSupport()
-                        is DrawerMenuItem.PrivacyPolicy -> externalNavigator.openWebPage("")
+                        is DrawerMenuItem.PrivacyPolicy -> externalNavigator.openWebPage("https://urdufonts.com/privacy-policy")
                         is DrawerMenuItem.RateUs -> externalNavigator.openWebPage("")
                         else -> {}
                     }
