@@ -443,7 +443,7 @@ private fun LoggedOutContent(
                     label = "Password",
                     value = password,
                     onValueChange = { password = it },
-                    leadingIcon = R.drawable.ic_drawer_privacy,
+                    leadingIcon = R.drawable.ic_pass,
                     keyboardType = KeyboardType.Password,
                     isPassword = true,
                     imeAction = if (uiState.isSignUpMode) ImeAction.Next else ImeAction.Done
@@ -461,7 +461,7 @@ private fun LoggedOutContent(
                             label = "Confirm Password",
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            leadingIcon = R.drawable.ic_drawer_privacy,
+                            leadingIcon = R.drawable.ic_pass,
                             keyboardType = KeyboardType.Password,
                             isPassword = true,
                             imeAction = ImeAction.Done
@@ -934,7 +934,7 @@ private fun ProfileInputField(
                 painter = painterResource(leadingIcon),
                 contentDescription = null,
                 tint = GreyColor,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(16.dp)
             )
         },
         trailingIcon = if (isPassword) {
@@ -949,7 +949,7 @@ private fun ProfileInputField(
                         ),
                         contentDescription = if (isPasswordVisible) "Hide password" else "Show password",
                         tint = GreyColor.copy(alpha = 0.6f),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }

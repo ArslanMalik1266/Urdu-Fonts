@@ -31,4 +31,22 @@ class ExternalNavigator(private val context: Context) {
             Toast.makeText(context, "Cannot open link", Toast.LENGTH_SHORT).show()
         }
     }
+
+    fun openPlayStoreForRating() {
+        val packageName = context.packageName
+        val marketUri = Uri.parse("market://details?id=$packageName")
+        val marketIntent = Intent(Intent.ACTION_VIEW, marketUri).apply {
+            addFlags(
+                Intent.FLAG_ACTIVITY_NO_HISTORY or
+                Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
+                Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+            )
+        }
+        try {
+            context.startActivity(marketIntent)
+        } catch (e: Exception) {
+            val webUri = "https://play.google.com/store/apps/details?id=$packageName"
+            openWebPage(webUri)
+        }
+    }
 }

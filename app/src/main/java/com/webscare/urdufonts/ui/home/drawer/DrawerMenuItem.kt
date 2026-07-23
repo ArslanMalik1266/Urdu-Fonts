@@ -21,9 +21,9 @@ sealed class DrawerMenuItem(
     )
 
 
-    data object Downloaded : DrawerMenuItem(
-        id = "downloaded",
-        label = "Downloaded",
+    data object PremiumFonts : DrawerMenuItem(
+        id = "premium_fonts",
+        label = "My Premium Fonts",
         iconRes = R.drawable.ic_downloaded
     )
 
@@ -47,7 +47,7 @@ sealed class DrawerMenuItem(
 
     companion object {
         val all: List<DrawerMenuItem> = listOf(
-            Profile, Fonts, Downloaded, Support, PrivacyPolicy, RateUs
+            Profile, Fonts, PremiumFonts, Support, PrivacyPolicy, RateUs
         )
     }
 }

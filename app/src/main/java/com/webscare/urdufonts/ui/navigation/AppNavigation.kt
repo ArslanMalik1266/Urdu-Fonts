@@ -82,7 +82,7 @@ fun AppNavigation() {
                         is DrawerMenuItem.Profile -> navController.navigate("profile")
                         is DrawerMenuItem.Support -> externalNavigator.openEmailSupport()
                         is DrawerMenuItem.PrivacyPolicy -> externalNavigator.openWebPage("https://urdufonts.com/privacy-policy")
-                        is DrawerMenuItem.RateUs -> externalNavigator.openWebPage("")
+                        is DrawerMenuItem.RateUs -> externalNavigator.openPlayStoreForRating()
                         else -> {}
                     }
                 },
