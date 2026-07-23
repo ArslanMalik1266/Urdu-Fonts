@@ -74,7 +74,8 @@ internal fun AppDrawerContentInternal(
     Box(
         modifier = Modifier
             .fillMaxHeight()
-            .width(300.dp)
+            .width(280.dp)
+            .clip(RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp))
             .background(Color.White)
     ) {
 

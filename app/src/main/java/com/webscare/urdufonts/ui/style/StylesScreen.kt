@@ -106,7 +106,7 @@ fun StylesScreen(
                                         start = 18.dp,
                                         end = 18.dp,
                                         top = 16.dp,
-                                        bottom = 16.dp
+                                        bottom = 80.dp
                                     ),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
@@ -124,9 +124,7 @@ fun StylesScreen(
                                             )
                                         }
                                     }
-                                    item {
-                                        Spacer(modifier = Modifier.height(60.dp))
-                                    }
+
                                 }
                             }
                         }

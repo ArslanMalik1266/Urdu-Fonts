@@ -101,7 +101,7 @@ fun CategoriesScreen(
                                         start = 18.dp,
                                         end = 16.dp,
                                         top = 16.dp,
-                                        bottom = 18.dp
+                                        bottom = 80.dp
                                     ),
                                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -119,9 +119,6 @@ fun CategoriesScreen(
                                                 onClick = { onCategoryClick(category) }
                                             )
                                         }
-                                    }
-                                    item {
-                                        Spacer(modifier = Modifier.height(60.dp))
                                     }
                                 }
                             }

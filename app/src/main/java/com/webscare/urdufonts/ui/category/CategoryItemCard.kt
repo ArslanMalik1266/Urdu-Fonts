@@ -3,15 +3,18 @@ package com.webscare.urdufonts.ui.category
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -83,7 +86,7 @@ fun CategoryItemCard(
             // E. Target Border Color
             .border(
                 width = 1.dp,
-                color = Color(0xFFDEEDDB).copy(0.2f),
+                color = Color.White,
                 shape = CardCornerShape
             )
             .padding(horizontal = 12.dp, vertical = 16.dp),
@@ -100,14 +103,32 @@ fun CategoryItemCard(
             lineHeight = 18.sp
         )
 
-        AsyncImage(
-            model = category.thumbnailUrl,
-            contentDescription = category.title,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .height(44.dp)
-                .padding(horizontal = 4.dp),
-            colorFilter = ColorFilter.tint(AppColor)
-        )
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            // Shadow Layer (Offset, Blurred, Soft dark-tint)
+            AsyncImage(
+                model = category.thumbnailUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .height(44.dp)
+                    .padding(horizontal = 4.dp)
+                    .offset(x = 1.dp, y = 1.5.dp)
+                    .blur(2.dp),
+                colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.15f))
+            )
+
+            // Main Layer (Green tinted)
+            AsyncImage(
+                model = category.thumbnailUrl,
+                contentDescription = category.title,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .height(44.dp)
+                    .padding(horizontal = 4.dp),
+                colorFilter = ColorFilter.tint(AppColor)
+            )
+        }
     }
 }

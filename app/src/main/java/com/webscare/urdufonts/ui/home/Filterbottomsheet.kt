@@ -14,6 +14,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -97,7 +99,7 @@ fun FilterBottomSheet(
         }
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            // Header
+            // Header (Fixed at the top)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,73 +127,90 @@ fun FilterBottomSheet(
                 }
             }
 
-            // ── Categories — driven by categories state ──────
-            FilterSectionHeader(
-                title = "Categories",
-                isExpanded = uiState.expandedFilterSection == FilterSection.CATEGORIES,
-                selectedCount = uiState.selectedCategories.size,
-                onClick = { onToggleSection(FilterSection.CATEGORIES) }
-            )
-            AnimatedVisibility(
-                visible = uiState.expandedFilterSection == FilterSection.CATEGORIES,
-                enter = expandVertically(animationSpec = tween(280)),
-                exit = shrinkVertically(animationSpec = tween(220)),
+            // Scrollable Content area
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
             ) {
-                FilterOptionGrid(
-                    classifiers = uiState.availableCategories,
-                    selectedSlugs = uiState.selectedCategories,
-                    onToggle = onToggleCategory,
-                    isExpanded = uiState.isCategoriesGridExpanded, // Consume state
-                    onExpandToggle = onToggleCategoriesGrid        // Dispatch event
+                // ── Categories — driven by categories state ──────
+                FilterSectionHeader(
+                    title = "Categories",
+                    isExpanded = uiState.expandedFilterSection == FilterSection.CATEGORIES,
+                    selectedCount = uiState.selectedCategories.size,
+                    onClick = { onToggleSection(FilterSection.CATEGORIES) }
                 )
+                AnimatedVisibility(
+                    visible = uiState.expandedFilterSection == FilterSection.CATEGORIES,
+                    enter = expandVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeIn(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
+                    exit = shrinkVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeOut(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
+                ) {
+                    FilterOptionGrid(
+                        classifiers = uiState.availableCategories,
+                        selectedSlugs = uiState.selectedCategories,
+                        onToggle = onToggleCategory,
+                        isExpanded = uiState.isCategoriesGridExpanded, // Consume state
+                        onExpandToggle = onToggleCategoriesGrid        // Dispatch event
+                    )
+                }
+
+                // ── Styles — driven by styles state ──────────────
+                FilterSectionHeader(
+                    title = "Styles",
+                    isExpanded = uiState.expandedFilterSection == FilterSection.STYLES,
+                    selectedCount = uiState.selectedStyles.size,
+                    onClick = { onToggleSection(FilterSection.STYLES) }
+                )
+                AnimatedVisibility(
+                    visible = uiState.expandedFilterSection == FilterSection.STYLES,
+                    enter = expandVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeIn(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
+                    exit = shrinkVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeOut(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
+                ) {
+                    FilterOptionGrid(
+                        classifiers = uiState.availableStyles,
+                        selectedSlugs = uiState.selectedStyles,
+                        onToggle = onToggleStyle,
+                        isExpanded = uiState.isStylesGridExpanded, // Consume state
+                        onExpandToggle = onToggleStylesGrid        // Dispatch event
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // ── Styles — driven by styles state ──────────────
-            FilterSectionHeader(
-                title = "Styles",
-                isExpanded = uiState.expandedFilterSection == FilterSection.STYLES,
-                selectedCount = uiState.selectedStyles.size,
-                onClick = { onToggleSection(FilterSection.STYLES) }
-            )
-            AnimatedVisibility(
-                visible = uiState.expandedFilterSection == FilterSection.STYLES,
-                enter = expandVertically(animationSpec = tween(280)),
-                exit = shrinkVertically(animationSpec = tween(220)),
-            ) {
-                FilterOptionGrid(
-                    classifiers = uiState.availableStyles,
-                    selectedSlugs = uiState.selectedStyles,
-                    onToggle = onToggleStyle,
-                    isExpanded = uiState.isStylesGridExpanded, // Consume state
-                    onExpandToggle = onToggleStylesGrid        // Dispatch event
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Apply button
-            Box(
+            // Apply button (Fixed at the bottom with thin visual divider separator)
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .background(Color.White)
             ) {
+                HorizontalDivider(
+                    thickness = 0.5.dp,
+                    color = GreyColor.copy(alpha = 0.12f)
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp)
-                        .addPressEffect { onApplyFilters() }
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(AppColor),
-                    contentAlignment = Alignment.Center
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
-                    val total = uiState.totalSelectedFilters
-                    Text(
-                        text = if (total > 0) "Apply Filters ($total)" else "Apply Filters",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = NunitoFontFamily
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                            .addPressEffect { onApplyFilters() }
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(AppColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val total = uiState.totalSelectedFilters
+                        Text(
+                            text = if (total > 0) "Apply Filters ($total)" else "Apply Filters",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = NunitoFontFamily
+                        )
+                    }
                 }
             }
         }
@@ -377,8 +396,28 @@ private fun FilterOptionGrid(
         // --- ROW 4 ONWARDS (Collapsible extra items) ---
         AnimatedVisibility(
             visible = isExpanded,
-            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
-            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut()
+            enter = expandVertically(
+                animationSpec = spring(
+                    dampingRatio = 0.8f,
+                    stiffness = 120f
+                )
+            ) + fadeIn(
+                animationSpec = spring(
+                    dampingRatio = 0.8f,
+                    stiffness = 120f
+                )
+            ),
+            exit = shrinkVertically(
+                animationSpec = spring(
+                    dampingRatio = 0.8f,
+                    stiffness = 120f
+                )
+            ) + fadeOut(
+                animationSpec = spring(
+                    dampingRatio = 0.8f,
+                    stiffness = 120f
+                )
+            )
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
