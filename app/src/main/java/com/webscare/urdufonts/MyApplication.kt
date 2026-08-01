@@ -16,6 +16,7 @@ import java.io.File
 class MyApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
+        com.webscare.urdufonts.ads.AdConfig.init(this)
         startKoin {
             androidLogger(Level.DEBUG)
             androidContext(this@MyApplication)

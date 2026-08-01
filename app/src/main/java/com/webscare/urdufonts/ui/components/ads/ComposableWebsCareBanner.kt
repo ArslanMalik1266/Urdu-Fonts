@@ -2,6 +2,7 @@ package com.webscare.urdufonts.ui.components.ads
 
 import android.app.Activity
 import android.util.Log
+import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -141,7 +142,8 @@ fun ComposableWebsCareBanner(
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
+                .wrapContentHeight(),
+            contentAlignment = Alignment.Center
         ) {
             // Premium Native-style Banner Skeleton Shimmer
             BannerShimmerEffect()
@@ -157,7 +159,9 @@ fun ComposableWebsCareBanner(
                         layoutParams = FrameLayout.LayoutParams(
                             FrameLayout.LayoutParams.MATCH_PARENT,
                             FrameLayout.LayoutParams.WRAP_CONTENT
-                        )
+                        ).apply {
+                            gravity = Gravity.CENTER_HORIZONTAL
+                        }
                         post {
                             try {
                                 Log.d(TAG, "Calling WebsCareAds.loadBanner (post-layout) with activity: ${activity.localClassName}")

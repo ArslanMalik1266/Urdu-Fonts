@@ -126,6 +126,7 @@ fun StylesScreen(
 
                                         if (index > 0 && (index + 1) % 6 == 0) {
                                             com.webscare.urdufonts.ui.components.ads.ComposableWebsCareNative(
+                                                adUnitId = com.webscare.urdufonts.ads.AdConfig.STYLES_NATIVE_AD_UNIT_ID,
                                                 modifier = Modifier.padding(vertical = 8.dp)
                                             )
                                         }

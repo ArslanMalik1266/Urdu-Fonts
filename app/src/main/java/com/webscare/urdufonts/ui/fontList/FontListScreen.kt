@@ -133,6 +133,7 @@ fun FontListScreen(
 
                                     if (index > 0 && (index + 1) % 8 == 0) {
                                         com.webscare.urdufonts.ui.components.ads.ComposableWebsCareNative(
+                                            adUnitId = com.webscare.urdufonts.ads.AdConfig.FONT_LIST_NATIVE_AD_UNIT_ID,
                                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                         )
                                     }

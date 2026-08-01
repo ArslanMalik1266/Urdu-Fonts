@@ -38,6 +38,13 @@ class WebsCareAdManagerImpl : AdManager {
 
             com.google.android.gms.ads.MobileAds.initialize(application) { status ->
                 Log.d(TAG, "AdMob MobileAds initialized successfully: ${status.adapterStatusMap}")
+                try {
+                    WebsCareAds.preloadAppOpen(application, AdConfig.APP_OPEN_AD_UNIT_ID)
+                    WebsCareAds.enableAutoAppOpen(adUnitId = AdConfig.APP_OPEN_AD_UNIT_ID)
+                    Log.d(TAG, "WebsCareAds.preloadAppOpen & enableAutoAppOpen completed post MobileAds initialization")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error enabling App Open Ad post initialization", e)
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing MobileAds SDK", e)
@@ -67,11 +74,71 @@ class WebsCareAdManagerImpl : AdManager {
         }
     }
 
+    override fun preloadAppOpen(context: Context, adUnitId: String) {
+        Log.d(TAG, "Preloading App Open Ad with Context: ${context.javaClass.simpleName}, Unit ID: $adUnitId")
+        try {
+            WebsCareAds.preloadAppOpen(context, adUnitId)
+            Log.d(TAG, "WebsCareAds.preloadAppOpen call dispatched with context")
+
+            // Direct AdMob Diagnostic check to capture exact AdMob error if library hides it
+            try {
+                val adRequest = com.google.android.gms.ads.AdRequest.Builder().build()
+                com.google.android.gms.ads.appopen.AppOpenAd.load(
+                    context,
+                    adUnitId,
+                    adRequest,
+                    object : com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback() {
+                        override fun onAdLoaded(ad: com.google.android.gms.ads.appopen.AppOpenAd) {
+                            Log.d(TAG, "DIRECT ADMOB AppOpenAd LOADED SUCCESSFULLY! $ad")
+                        }
+                        override fun onAdFailedToLoad(loadAdError: com.google.android.gms.ads.LoadAdError) {
+                            Log.e(TAG, "DIRECT ADMOB AppOpenAd FAILED TO LOAD! Code: ${loadAdError.code}, Message: ${loadAdError.message}, Domain: ${loadAdError.domain}")
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception running direct AdMob diagnostic", e)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error preloading App Open Ad", e)
+        }
+    }
+
+    override fun showAppOpenAd(activity: Activity, adUnitId: String, onDismissed: () -> Unit) {
+        Log.d(TAG, "Attempting to show App Open Ad (Unit ID: $adUnitId)...")
+        try {
+            WebsCareAds.showAppOpen(activity, adUnitId) {
+                Log.d(TAG, "App Open Ad dismissed callback triggered")
+                onDismissed()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing App Open Ad", e)
+            onDismissed()
+        }
+    }
+
+    private var mInterstitialAd: com.google.android.gms.ads.interstitial.InterstitialAd? = null
+
     override fun preloadInterstitial(context: Context, adUnitId: String) {
         Log.d(TAG, "Preloading Interstitial Ad with Unit ID: $adUnitId")
         try {
             WebsCareAds.preloadInterstitial(context, adUnitId)
-            Log.d(TAG, "WebsCareAds.preloadInterstitial call dispatched")
+            val adRequest = com.google.android.gms.ads.AdRequest.Builder().build()
+            com.google.android.gms.ads.interstitial.InterstitialAd.load(
+                context,
+                adUnitId,
+                adRequest,
+                object : com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback() {
+                    override fun onAdLoaded(ad: com.google.android.gms.ads.interstitial.InterstitialAd) {
+                        Log.d(TAG, "DIRECT ADMOB InterstitialAd LOADED SUCCESSFULLY! $ad")
+                        mInterstitialAd = ad
+                    }
+                    override fun onAdFailedToLoad(loadAdError: com.google.android.gms.ads.LoadAdError) {
+                        Log.e(TAG, "DIRECT ADMOB InterstitialAd FAILED TO LOAD! Code: ${loadAdError.code}, Message: ${loadAdError.message}")
+                        mInterstitialAd = null
+                    }
+                }
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Error preloading Interstitial Ad", e)
         }
@@ -83,18 +150,42 @@ class WebsCareAdManagerImpl : AdManager {
         onDismissed: () -> Unit
     ) {
         Log.d(TAG, "Attempting to show Interstitial Ad (Unit ID: $adUnitId)...")
-        try {
-            WebsCareAds.showInterstitial(
-                activity = activity,
-                adUnitId = adUnitId,
-                onDismissed = {
-                    Log.d(TAG, "Interstitial Ad dismissed callback triggered")
+        val ad = mInterstitialAd
+        if (ad != null) {
+            ad.fullScreenContentCallback = object : com.google.android.gms.ads.FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    Log.d(TAG, "Direct AdMob Interstitial Ad dismissed by user")
+                    mInterstitialAd = null
                     onDismissed()
                 }
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error showing Interstitial Ad", e)
-            onDismissed()
+
+                override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+                    Log.e(TAG, "Direct AdMob Interstitial Ad failed to show: ${adError.message}")
+                    mInterstitialAd = null
+                    onDismissed()
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                    Log.d(TAG, "Direct AdMob Interstitial Ad is now showing on screen!")
+                    mInterstitialAd = null
+                }
+            }
+            ad.show(activity)
+        } else {
+            Log.w(TAG, "mInterstitialAd is null, invoking WebsCareAds.showInterstitial fallback")
+            try {
+                WebsCareAds.showInterstitial(
+                    activity = activity,
+                    adUnitId = adUnitId,
+                    onDismissed = {
+                        Log.d(TAG, "Interstitial Ad dismissed callback triggered")
+                        onDismissed()
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error showing Interstitial Ad", e)
+                onDismissed()
+            }
         }
     }
 
@@ -145,7 +236,6 @@ class WebsCareAdManagerImpl : AdManager {
 
     private var downloadCounter = 0
     private var lastInterstitialTime = 0L
-    private val INTERSTITIAL_COOLDOWN_MS = 120_000L
 
     override fun showDownloadInterstitialWithCooldown(
         activity: Activity,
@@ -153,21 +243,21 @@ class WebsCareAdManagerImpl : AdManager {
         onDismissed: () -> Unit
     ) {
         downloadCounter++
-        val currentTime = System.currentTimeMillis()
-        val isCooldownPassed = (currentTime - lastInterstitialTime) >= INTERSTITIAL_COOLDOWN_MS
         val isThirdDownload = (downloadCounter % 3 == 0)
+        val isAdLoaded = WebsCareAds.isAdLoaded(adUnitId)
 
-        Log.d(TAG, "showDownloadInterstitialWithCooldown -> Download #$downloadCounter. Third Download: $isThirdDownload, Cooldown Passed: $isCooldownPassed")
+        Log.d(TAG, "showDownloadInterstitialWithCooldown -> Download #$downloadCounter. Third Download: $isThirdDownload, isAdLoaded: $isAdLoaded")
 
-        if (isThirdDownload && isCooldownPassed) {
-            Log.d(TAG, "Conditions met! Showing download interstitial...")
+        if (isThirdDownload) {
+            Log.d(TAG, "3rd Download reached! Showing Interstitial Ad for Unit ID: $adUnitId, isAdLoaded: $isAdLoaded...")
             showInterstitial(activity, adUnitId) {
                 lastInterstitialTime = System.currentTimeMillis()
+                Log.d(TAG, "Interstitial dismissed callback. Re-preloading for next 3rd download cycle...")
                 preloadInterstitial(activity.applicationContext, adUnitId)
                 onDismissed()
             }
         } else {
-            Log.d(TAG, "Conditions not met (Requires 3rd download & 120s cooldown). Skipping interstitial.")
+            Log.d(TAG, "Download #$downloadCounter (Not 3rd download). Skipping interstitial.")
             onDismissed()
         }
     }

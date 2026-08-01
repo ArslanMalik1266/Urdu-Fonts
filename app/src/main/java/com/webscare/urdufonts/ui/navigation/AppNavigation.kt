@@ -64,11 +64,7 @@ fun AppNavigation() {
         // You can show a blank screen or a loading splash here
         return
     }
-    val startDestination = if (isOnboardingCompleted == true) {
-        Screen.Home.route
-    } else {
-        Screen.Onboarding.route
-    }
+    val startDestination = Screen.Splash.route
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = currentRoute == Screen.Home.route,
@@ -109,6 +105,16 @@ fun AppNavigation() {
                         navController = navController,
                         startDestination = startDestination
                     ) {
+                        composable(Screen.Splash.route) {
+                            com.webscare.urdufonts.ui.splash.SplashScreen(
+                                onNavigateNext = {
+                                    val nextRoute = if (isOnboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
+                                    navController.navigate(nextRoute) {
+                                        popUpTo(Screen.Splash.route) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
                         composable(Screen.Onboarding.route) {
                             val viewModel: OnboardingViewModel = koinViewModel()
                             OnboardingScreen(

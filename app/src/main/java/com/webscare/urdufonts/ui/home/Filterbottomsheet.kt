@@ -62,6 +62,13 @@ import com.webscare.urdufonts.ui.theme.HeadingBlackColor
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.util.addPressEffect
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.platform.LocalConfiguration
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+
 // ─── Enum: which accordion section is open ────────────────────────────────────
 
 enum class FilterSection { NONE, CATEGORIES, STYLES }
@@ -82,6 +89,13 @@ fun FilterBottomSheet(
     onToggleStylesGrid: () -> Unit,     // Add state handler callback
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
+    val configuration = LocalConfiguration.current
+    val targetSheetHeight = (configuration.screenHeightDp * 0.75).dp
+
+    // Independent expand states so Categories and Styles can both be open at the same time
+    var isCategoriesOpen by remember { mutableStateOf(true) }
+    var isStylesOpen by remember { mutableStateOf(true) }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -98,7 +112,11 @@ fun FilterBottomSheet(
             )
         }
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(targetSheetHeight)
+        ) {
             // Header (Fixed at the top)
             Row(
                 modifier = Modifier
@@ -127,21 +145,22 @@ fun FilterBottomSheet(
                 }
             }
 
-            // Scrollable Content area
+            // Scrollable Content area with smooth content size animation to prevent jhatka/stutter
             Column(
                 modifier = Modifier
-                    .weight(1f, fill = false)
+                    .weight(1f, fill = true)
+                    .animateContentSize(animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f))
                     .verticalScroll(rememberScrollState())
             ) {
-                // ── Categories — driven by categories state ──────
+                // ── Categories — driven by independent state ──────
                 FilterSectionHeader(
                     title = "Categories",
-                    isExpanded = uiState.expandedFilterSection == FilterSection.CATEGORIES,
+                    isExpanded = isCategoriesOpen,
                     selectedCount = uiState.selectedCategories.size,
-                    onClick = { onToggleSection(FilterSection.CATEGORIES) }
+                    onClick = { isCategoriesOpen = !isCategoriesOpen }
                 )
                 AnimatedVisibility(
-                    visible = uiState.expandedFilterSection == FilterSection.CATEGORIES,
+                    visible = isCategoriesOpen,
                     enter = expandVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeIn(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
                     exit = shrinkVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeOut(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
                 ) {
@@ -149,20 +168,20 @@ fun FilterBottomSheet(
                         classifiers = uiState.availableCategories,
                         selectedSlugs = uiState.selectedCategories,
                         onToggle = onToggleCategory,
-                        isExpanded = uiState.isCategoriesGridExpanded, // Consume state
-                        onExpandToggle = onToggleCategoriesGrid        // Dispatch event
+                        isExpanded = uiState.isCategoriesGridExpanded,
+                        onExpandToggle = onToggleCategoriesGrid
                     )
                 }
 
-                // ── Styles — driven by styles state ──────────────
+                // ── Styles — driven by independent state ──────────────
                 FilterSectionHeader(
                     title = "Styles",
-                    isExpanded = uiState.expandedFilterSection == FilterSection.STYLES,
+                    isExpanded = isStylesOpen,
                     selectedCount = uiState.selectedStyles.size,
-                    onClick = { onToggleSection(FilterSection.STYLES) }
+                    onClick = { isStylesOpen = !isStylesOpen }
                 )
                 AnimatedVisibility(
-                    visible = uiState.expandedFilterSection == FilterSection.STYLES,
+                    visible = isStylesOpen,
                     enter = expandVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeIn(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
                     exit = shrinkVertically(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)) + fadeOut(animationSpec = spring(dampingRatio = 0.8f, stiffness = 350f)),
                 ) {
@@ -170,8 +189,8 @@ fun FilterBottomSheet(
                         classifiers = uiState.availableStyles,
                         selectedSlugs = uiState.selectedStyles,
                         onToggle = onToggleStyle,
-                        isExpanded = uiState.isStylesGridExpanded, // Consume state
-                        onExpandToggle = onToggleStylesGrid        // Dispatch event
+                        isExpanded = uiState.isStylesGridExpanded,
+                        onExpandToggle = onToggleStylesGrid
                     )
                 }
 

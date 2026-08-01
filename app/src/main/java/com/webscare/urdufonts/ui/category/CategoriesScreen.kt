@@ -99,7 +99,7 @@ fun CategoriesScreen(
                                     modifier = Modifier.springOverscroll(),
                                     contentPadding = PaddingValues(
                                         start = 18.dp,
-                                        end = 16.dp,
+                                        end = 18.dp,
                                         top = 16.dp,
                                         bottom = 80.dp
                                     ),
@@ -120,7 +120,8 @@ fun CategoriesScreen(
                                         }
                                         if (index > 0 && (index + 1) % 8 == 0) {
                                             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                                                com.webscare.urdufonts.ui.components.ads.ComposableWebsCareBanner(
+                                                com.webscare.urdufonts.ui.components.ads.ComposableWebsCareNative(
+                                                    adUnitId = com.webscare.urdufonts.ads.AdConfig.CATEGORIES_NATIVE_AD_UNIT_ID,
                                                     modifier = Modifier.padding(vertical = 8.dp)
                                                 )
                                             }

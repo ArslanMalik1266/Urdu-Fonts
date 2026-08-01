@@ -39,6 +39,35 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private var isFirstLaunch = true
+
+    override fun onStart() {
+        super.onStart()
+        android.util.Log.d("WebsCareAdsLog", "MainActivity onStart -> App coming to foreground / launching")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        android.util.Log.d("WebsCareAdsLog", "MainActivity onResume -> Activity resumed")
+        if (!isFirstLaunch) {
+            android.util.Log.d("WebsCareAdsLog", "App resumed from background -> Triggering App Open Ad")
+            adManager.showAppOpenAd(this) {
+                android.util.Log.d("WebsCareAdsLog", "App Open Ad shown & dismissed on Resume")
+            }
+        }
+        isFirstLaunch = false
+    }
+
+    override fun onPause() {
+        super.onPause()
+        android.util.Log.d("WebsCareAdsLog", "MainActivity onPause -> Activity paused")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        android.util.Log.d("WebsCareAdsLog", "MainActivity onStop -> App moving to background")
+    }
+
     private fun hideSystemBars() {
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.hide(WindowInsetsCompat.Type.systemBars())

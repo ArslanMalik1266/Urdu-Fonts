@@ -64,6 +64,21 @@ fun HomeScreen(
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val seenItems = remember { mutableStateSetOf<Int>() }
     val listState = rememberLazyListState()
+    var isFirstHomeScreenLaunch by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(true) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? android.app.Activity
+    val adManager: com.webscare.urdufonts.ads.AdManager = org.koin.compose.koinInject()
+
+    LaunchedEffect(Unit) {
+        if (isFirstHomeScreenLaunch && activity != null) {
+            isFirstHomeScreenLaunch = false
+            kotlinx.coroutines.delay(1500L) // 1.5s delay after Splash closes & HomeScreen opens
+            android.util.Log.d("WebsCareAdsLog", "HomeScreen 1.5s post-splash delay completed -> Showing App Open Ad")
+            adManager.showAppOpenAd(activity)
+        }
+    }
+
+
 
     Box(
         modifier = Modifier
@@ -191,6 +206,7 @@ fun HomeScreen(
 
                                         if (index > 0 && (index + 1) % 8 == 0) {
                                             com.webscare.urdufonts.ui.components.ads.ComposableWebsCareNative(
+                                                adUnitId = com.webscare.urdufonts.ads.AdConfig.HOME_NATIVE_AD_UNIT_ID,
                                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                             )
                                         }

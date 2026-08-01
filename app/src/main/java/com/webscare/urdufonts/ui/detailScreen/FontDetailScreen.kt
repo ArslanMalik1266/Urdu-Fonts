@@ -107,6 +107,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import com.webscare.urdufonts.ui.components.ads.ComposableWebsCareBanner
 import com.webscare.urdufonts.ui.theme.NunitoFontFamily
 import com.webscare.urdufonts.ui.theme.YellowColor
 import com.webscare.urdufonts.ui.util.springOverscroll
@@ -135,25 +136,31 @@ fun FontDetailScreen(
     val adManager: com.webscare.urdufonts.ads.AdManager = org.koin.compose.koinInject()
     val context = androidx.compose.ui.platform.LocalContext.current
 
+    val scope = rememberCoroutineScope()
+
     // Preload Interstitial on screen launch
     LaunchedEffect(Unit) {
         adManager.preloadInterstitial(context)
     }
 
-    // 🟢 Listen to ViewModel events (Show Snackbar when download completes or fails)
+    // 🟢 Listen to ViewModel events (Show Interstitial & Snackbar when download completes)
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is FontDetailViewModel.UiEvent.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(message = event.message)
+                    android.util.Log.d("WebsCareAdsLog", "FontDetailScreen event received: ${event.message}")
                     val isSuccess = event.message.contains("download", ignoreCase = true) ||
                             event.message.contains("saved", ignoreCase = true) ||
                             event.message.contains("success", ignoreCase = true)
+                    android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> isSuccess: $isSuccess")
                     if (isSuccess) {
-                        kotlinx.coroutines.delay(1500)
                         (context as? android.app.Activity)?.let { activity ->
+                            android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> Calling showDownloadInterstitialWithCooldown")
                             adManager.showDownloadInterstitialWithCooldown(activity) {}
-                        }
+                        } ?: android.util.Log.w("WebsCareAdsLog", "FontDetailScreen -> Activity is null, cannot show interstitial")
+                    }
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = event.message)
                     }
                 }
             }
@@ -189,8 +196,8 @@ fun FontDetailScreen(
             )
         },
         bottomBar = {
-            if (isContentReady && uiState.downloadState != DownloadState.DOWNLOADING) {
-                com.webscare.urdufonts.ui.components.ads.ComposableWebsCareBanner()
+            if (isContentReady) {
+                ComposableWebsCareBanner()
             }
         },
         snackbarHost = {

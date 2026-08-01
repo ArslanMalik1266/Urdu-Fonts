@@ -48,13 +48,13 @@ fun DetailTopAppBar(
             }
         },
         actions = {
-            Box(modifier = Modifier.padding(end = 8.dp)) {
-                TopBarButton(
-                    iconRes = R.drawable.ic_share,
-                    onClick = { onShareClick() },
-                    contentDescription = "ic_share"
-                )
-            }
+//            Box(modifier = Modifier.padding(end = 8.dp)) {
+//                TopBarButton(
+//                    iconRes = R.drawable.ic_share,
+//                    onClick = { onShareClick() },
+//                    contentDescription = "ic_share"
+//                )
+//            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.White

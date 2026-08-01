@@ -9,6 +9,12 @@ interface AdManager {
     fun initSdk(application: Application)
     fun requestConsent(activity: Activity, onConsentResult: (Boolean) -> Unit)
     fun initAppOpenAd(application: Application, adUnitId: String = AdConfig.APP_OPEN_AD_UNIT_ID)
+    fun preloadAppOpen(context: Context, adUnitId: String = AdConfig.APP_OPEN_AD_UNIT_ID)
+    fun showAppOpenAd(
+        activity: Activity,
+        adUnitId: String = AdConfig.APP_OPEN_AD_UNIT_ID,
+        onDismissed: () -> Unit = {}
+    )
     fun preloadInterstitial(context: Context, adUnitId: String = AdConfig.INTERSTITIAL_AD_UNIT_ID)
     fun showInterstitial(
         activity: Activity,
