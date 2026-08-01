@@ -39,3 +39,14 @@
 -keep class com.webscare.urdufonts.data.local.dao.** { *; }
 -keep class com.webscare.urdufonts.data.local.entity.** { *; }
 -dontwarn androidx.room.paging.**
+
+# ─── Google Mobile Ads SDK Proguard rules ──────────────────────────────────────
+-keep class com.google.android.gms.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
+# ─── WebsCareAds Library Keep Rules ───────────────────────────────────────────
+-keep class com.webscare.ads.** { *; }
+-keepclassmembers class com.webscare.ads.** { *; }
+
+# ─── Facebook Shimmer ──────────────────────────────────────────────────────────
+-keep class com.facebook.shimmer.** { *; }

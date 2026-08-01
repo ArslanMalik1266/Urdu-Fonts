@@ -18,10 +18,19 @@ import com.webscare.urdufonts.ui.navigation.AppNavigation
 import com.webscare.urdufonts.ui.theme.UrduFontsTheme
 
 class MainActivity : ComponentActivity() {
+    private val adManager: com.webscare.urdufonts.ads.AdManager by lazy {
+        org.koin.java.KoinJavaComponent.getKoin().get()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         hideBottomBar()
+
+        android.util.Log.d("WebsCareAdsLog", "MainActivity onCreate -> Triggering requestConsent")
+        adManager.requestConsent(this) { isGathered ->
+            android.util.Log.d("WebsCareAdsLog", "MainActivity requestConsent finished: isGathered = $isGathered")
+        }
 
         window.decorView.setBackgroundColor(android.graphics.Color.WHITE)
 

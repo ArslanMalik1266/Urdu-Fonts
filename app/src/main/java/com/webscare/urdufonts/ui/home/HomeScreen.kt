@@ -188,6 +188,12 @@ fun HomeScreen(
                                                 )
                                             }
                                         }
+
+                                        if (index > 0 && (index + 1) % 8 == 0) {
+                                            com.webscare.urdufonts.ui.components.ads.ComposableWebsCareNative(
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            )
+                                        }
                                     }
 
                                     item { Spacer(modifier = Modifier.height(60.dp)) }

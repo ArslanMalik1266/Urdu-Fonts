@@ -106,18 +106,24 @@ fun CategoriesScreen(
                                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    itemsIndexed(
-                                        items = uiState.categories,
-                                        key = { _, category -> category.id }
-                                    ) { index, category ->
-                                        StaggeredFadeIn(
-                                            index = index,
-                                            seenItems = seenItems
-                                        ) {
-                                            CategoryItemCard(
-                                                category = category,
-                                                onClick = { onCategoryClick(category) }
-                                            )
+                                    uiState.categories.forEachIndexed { index, category ->
+                                        item(key = category.id) {
+                                            StaggeredFadeIn(
+                                                index = index,
+                                                seenItems = seenItems
+                                            ) {
+                                                CategoryItemCard(
+                                                    category = category,
+                                                    onClick = { onCategoryClick(category) }
+                                                )
+                                            }
+                                        }
+                                        if (index > 0 && (index + 1) % 8 == 0) {
+                                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                                                com.webscare.urdufonts.ui.components.ads.ComposableWebsCareBanner(
+                                                    modifier = Modifier.padding(vertical = 8.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }

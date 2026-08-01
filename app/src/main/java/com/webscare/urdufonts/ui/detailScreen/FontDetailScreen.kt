@@ -132,12 +132,29 @@ fun FontDetailScreen(
     var lastScrollValue by remember { mutableStateOf(0) }
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val adManager: com.webscare.urdufonts.ads.AdManager = org.koin.compose.koinInject()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    // Preload Interstitial on screen launch
+    LaunchedEffect(Unit) {
+        adManager.preloadInterstitial(context)
+    }
+
     // 🟢 Listen to ViewModel events (Show Snackbar when download completes or fails)
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is FontDetailViewModel.UiEvent.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(message = event.message)
+                    val isSuccess = event.message.contains("download", ignoreCase = true) ||
+                            event.message.contains("saved", ignoreCase = true) ||
+                            event.message.contains("success", ignoreCase = true)
+                    if (isSuccess) {
+                        kotlinx.coroutines.delay(1500)
+                        (context as? android.app.Activity)?.let { activity ->
+                            adManager.showDownloadInterstitialWithCooldown(activity) {}
+                        }
+                    }
                 }
             }
         }
@@ -170,6 +187,11 @@ fun FontDetailScreen(
                 onBackClick = onBackClick,
                 onShareClick = onShareClick
             )
+        },
+        bottomBar = {
+            if (isContentReady && uiState.downloadState != DownloadState.DOWNLOADING) {
+                com.webscare.urdufonts.ui.components.ads.ComposableWebsCareBanner()
+            }
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->

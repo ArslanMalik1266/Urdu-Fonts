@@ -123,6 +123,12 @@ fun StylesScreen(
                                                 onClick = { onStyleClick(style) }
                                             )
                                         }
+
+                                        if (index > 0 && (index + 1) % 6 == 0) {
+                                            com.webscare.urdufonts.ui.components.ads.ComposableWebsCareNative(
+                                                modifier = Modifier.padding(vertical = 8.dp)
+                                            )
+                                        }
                                     }
 
                                 }

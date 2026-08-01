@@ -23,6 +23,9 @@ class MyApplication : Application(), ImageLoaderFactory {
         }
         File(cacheDir, "font_previews").deleteRecursively()
         getKoin().get<AppInitViewModel>()
+        val adManager = getKoin().get<com.webscare.urdufonts.ads.AdManager>()
+        adManager.initSdk(this)
+        adManager.initAppOpenAd(this)
     }
 
     override fun newImageLoader(): ImageLoader {
