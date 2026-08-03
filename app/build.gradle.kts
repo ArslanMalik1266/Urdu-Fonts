@@ -4,12 +4,12 @@ plugins {
     alias(libs.plugins.ksp)
 
 }
-val appVersionCode = 1
-val appVersionName = "1.0.1"
+val appVersionCode = 3
+val appVersionName = "1.0.3"
 
 base.archivesName.set("UrduFonts - V$appVersionCode($appVersionName)")
 android {
-    namespace = "com.webscare.urdufonts"
+    namespace = "com.urdufonts.app"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -17,7 +17,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.webscare.urdufonts"
+        applicationId = "com.urdufonts.app"
         minSdk = 24
         targetSdk = 36
         versionCode = appVersionCode
@@ -35,7 +35,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
+        }
         release {
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-4379805490947109~9389133336"
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")

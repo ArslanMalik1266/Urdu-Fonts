@@ -1,4 +1,4 @@
-# Add project specific ProGuard rules here.
+﻿# Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
 #
@@ -15,19 +15,19 @@
 -dontwarn retrofit2.Platform$Java8
 
 # ─── Keep all Gson DTO models intact to prevent serialization bugs ────────────
--keep class com.webscare.urdufonts.data.remote.dto.** { *; }
+-keep class com.urdufonts.app.data.remote.dto.** { *; }
 -keepclassmembers class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
 
 # ─── Keep Retrofit API Interface classes ──────────────────────────────────────
--keep class com.webscare.urdufonts.data.remote.api.** { *; }
+-keep class com.urdufonts.app.data.remote.api.** { *; }
 -keepclassmembers interface * {
     @retrofit2.http.* <methods>;
 }
 
 # ─── Keep Domain Models ───────────────────────────────────────────────────────
--keep class com.webscare.urdufonts.domain.models.** { *; }
+-keep class com.urdufonts.app.domain.models.** { *; }
 
 # ─── Keep Koin & ViewModels (ensures dependency injection doesn't crash) ──────
 -keepclassmembers class * extends androidx.lifecycle.ViewModel {
@@ -36,8 +36,8 @@
 
 # ─── Keep Room Database entities and DAOs ─────────────────────────────────────
 -keep class * extends androidx.room.RoomDatabase
--keep class com.webscare.urdufonts.data.local.dao.** { *; }
--keep class com.webscare.urdufonts.data.local.entity.** { *; }
+-keep class com.urdufonts.app.data.local.dao.** { *; }
+-keep class com.urdufonts.app.data.local.entity.** { *; }
 -dontwarn androidx.room.paging.**
 
 # ─── Google Mobile Ads SDK Proguard rules ──────────────────────────────────────
