@@ -6,9 +6,16 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
+import com.urdufonts.app.data.local.UserPreferences
 import com.webscare.ads.WebsCareAds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
-class WebsCareAdManagerImpl : AdManager {
+class WebsCareAdManagerImpl(
+    private val userPreferences: UserPreferences? = null
+) : AdManager {
 
     companion object {
         private const val TAG = "WebsCareAdsLog"
@@ -18,6 +25,19 @@ class WebsCareAdManagerImpl : AdManager {
     private var hasShownLaunchAd = false
     private var mAppOpenAd: com.google.android.gms.ads.appopen.AppOpenAd? = null
     private var isAppOpenLoading = false
+    @Volatile
+    private var isProUser: Boolean = false
+
+    init {
+        userPreferences?.let { prefs ->
+            CoroutineScope(Dispatchers.Main.immediate).launch {
+                prefs.isProUser.collectLatest { isPro ->
+                    Log.d(TAG, "isProUser state updated in WebsCareAdManagerImpl: $isPro")
+                    isProUser = isPro
+                }
+            }
+        }
+    }
 
     override fun initSdk(application: Application) {
         Log.d(TAG, "Initializing Google Mobile Ads & WebsCareAds SDK...")
@@ -54,12 +74,14 @@ class WebsCareAdManagerImpl : AdManager {
 
             com.google.android.gms.ads.MobileAds.initialize(application) { status ->
                 Log.d(TAG, "AdMob MobileAds initialized successfully: ${status.adapterStatusMap}")
-                try {
-                    WebsCareAds.preloadAppOpen(application, AdConfig.APP_OPEN_AD_UNIT_ID)
-                    WebsCareAds.enableAutoAppOpen(adUnitId = AdConfig.APP_OPEN_AD_UNIT_ID)
-                    Log.d(TAG, "WebsCareAds.preloadAppOpen & enableAutoAppOpen completed post MobileAds initialization")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error enabling App Open Ad post initialization", e)
+                if (!isProUser) {
+                    try {
+                        WebsCareAds.preloadAppOpen(application, AdConfig.APP_OPEN_AD_UNIT_ID)
+                        WebsCareAds.enableAutoAppOpen(adUnitId = AdConfig.APP_OPEN_AD_UNIT_ID)
+                        Log.d(TAG, "WebsCareAds.preloadAppOpen & enableAutoAppOpen completed post MobileAds initialization")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error enabling App Open Ad post initialization", e)
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -81,6 +103,7 @@ class WebsCareAdManagerImpl : AdManager {
     }
 
     override fun initAppOpenAd(application: Application, adUnitId: String) {
+        if (isProUser) return
         Log.d(TAG, "Initializing App Open Ad with Unit ID: $adUnitId")
         try {
             WebsCareAds.enableAutoAppOpen(adUnitId = adUnitId)
@@ -91,6 +114,7 @@ class WebsCareAdManagerImpl : AdManager {
     }
 
     override fun preloadAppOpen(context: Context, adUnitId: String) {
+        if (isProUser) return
         Log.d(TAG, "[APP_OPEN] preloadAppOpen called with Context: ${context.javaClass.simpleName}, Unit ID: $adUnitId")
         if (mAppOpenAd != null) {
             Log.d(TAG, "🟢 [APP_OPEN] Ad is already preloaded and ready to show!")
@@ -116,8 +140,7 @@ class WebsCareAdManagerImpl : AdManager {
                         mAppOpenAd = ad
                         Log.d(TAG, "🟢 [APP_OPEN_SUCCESS] AppOpenAd LOADED SUCCESSFULLY! $ad")
 
-                        // Instant zero-delay show on launch session as soon as ad finishes downloading
-                        if (!hasShownLaunchAd) {
+                        if (!hasShownLaunchAd && !isProUser) {
                             val act = currentActivityRef?.get()
                             if (act != null && !act.isFinishing && !act.isDestroyed) {
                                 Log.d(TAG, "⚡ [APP_OPEN_INSTANT] Ad loaded! Immediately showing on launch for Activity: ${act.localClassName}")
@@ -144,12 +167,18 @@ class WebsCareAdManagerImpl : AdManager {
     }
 
     override fun isAppOpenAdLoaded(): Boolean {
+        if (isProUser) return false
         val loaded = mAppOpenAd != null || WebsCareAds.isAdLoaded(AdConfig.APP_OPEN_AD_UNIT_ID)
         Log.d(TAG, "[APP_OPEN] isAppOpenAdLoaded check: $loaded (mAppOpenAd != null: ${mAppOpenAd != null})")
         return loaded
     }
 
     override fun showAppOpenAd(activity: Activity, adUnitId: String, onDismissed: () -> Unit) {
+        if (isProUser) {
+            Log.d(TAG, "[APP_OPEN] User is PRO. Skipping App Open Ad display.")
+            onDismissed()
+            return
+        }
         Log.d(TAG, "[APP_OPEN] showAppOpenAd called for Activity: ${activity.localClassName}, Unit ID: $adUnitId")
         val ad = mAppOpenAd
         if (ad != null) {
@@ -194,6 +223,7 @@ class WebsCareAdManagerImpl : AdManager {
     private var mInterstitialAd: com.google.android.gms.ads.interstitial.InterstitialAd? = null
 
     override fun preloadInterstitial(context: Context, adUnitId: String) {
+        if (isProUser) return
         Log.d(TAG, "Preloading Interstitial Ad with Unit ID: $adUnitId")
         try {
             WebsCareAds.preloadInterstitial(context, adUnitId)
@@ -223,6 +253,11 @@ class WebsCareAdManagerImpl : AdManager {
         adUnitId: String,
         onDismissed: () -> Unit
     ) {
+        if (isProUser) {
+            Log.d(TAG, "User is PRO. Bypassing Interstitial Ad.")
+            onDismissed()
+            return
+        }
         Log.d(TAG, "Attempting to show Interstitial Ad (Unit ID: $adUnitId)...")
         val ad = mInterstitialAd
         if (ad != null) {
@@ -264,6 +299,7 @@ class WebsCareAdManagerImpl : AdManager {
     }
 
     override fun preloadRewarded(context: Context, adUnitId: String) {
+        if (isProUser) return
         Log.d(TAG, "Preloading Rewarded Ad with Unit ID: $adUnitId")
         try {
             WebsCareAds.preloadRewarded(context, adUnitId)
@@ -278,6 +314,11 @@ class WebsCareAdManagerImpl : AdManager {
         onRewarded: (rewardItem: Any?, amount: Int) -> Unit,
         onNotReady: () -> Unit
     ) {
+        if (isProUser) {
+            Log.d(TAG, "User is PRO. Granting reward immediately without ad.")
+            onRewarded(null, 1)
+            return
+        }
         Log.d(TAG, "Attempting to show Rewarded Ad (Unit ID: $adUnitId)...")
         try {
             WebsCareAds.showRewarded(
@@ -299,6 +340,10 @@ class WebsCareAdManagerImpl : AdManager {
     }
 
     override fun loadBanner(activity: Activity, container: FrameLayout, adUnitId: String) {
+        if (isProUser) {
+            Log.d(TAG, "User is PRO. Skipping Banner Ad load.")
+            return
+        }
         Log.d(TAG, "loadBanner called for activity: ${activity.localClassName}, Ad Unit: $adUnitId")
         try {
             WebsCareAds.loadBanner(activity, container, adUnitId)
@@ -316,22 +361,18 @@ class WebsCareAdManagerImpl : AdManager {
         adUnitId: String,
         onDismissed: () -> Unit
     ) {
+        if (isProUser) {
+            Log.d(TAG, "User is PRO. Instant download without cooldown ad.")
+            onDismissed()
+            return
+        }
         downloadCounter++
-        val isThirdDownload = (downloadCounter % 3 == 0)
-        val isAdLoaded = WebsCareAds.isAdLoaded(adUnitId)
+        Log.d(TAG, "showDownloadInterstitialWithCooldown -> Download #$downloadCounter. Showing Interstitial Ad...")
 
-        Log.d(TAG, "showDownloadInterstitialWithCooldown -> Download #$downloadCounter. Third Download: $isThirdDownload, isAdLoaded: $isAdLoaded")
-
-        if (isThirdDownload) {
-            Log.d(TAG, "3rd Download reached! Showing Interstitial Ad for Unit ID: $adUnitId, isAdLoaded: $isAdLoaded...")
-            showInterstitial(activity, adUnitId) {
-                lastInterstitialTime = System.currentTimeMillis()
-                Log.d(TAG, "Interstitial dismissed callback. Re-preloading for next 3rd download cycle...")
-                preloadInterstitial(activity.applicationContext, adUnitId)
-                onDismissed()
-            }
-        } else {
-            Log.d(TAG, "Download #$downloadCounter (Not 3rd download). Skipping interstitial.")
+        showInterstitial(activity, adUnitId) {
+            lastInterstitialTime = System.currentTimeMillis()
+            Log.d(TAG, "Interstitial dismissed callback. Re-preloading for next download...")
+            preloadInterstitial(activity.applicationContext, adUnitId)
             onDismissed()
         }
     }

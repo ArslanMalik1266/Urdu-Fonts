@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.components.ads
+package com.urdufonts.app.ui.components.ads
 
 import android.app.Activity
 import android.util.Log
@@ -36,8 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.webscare.ads.WebsCareAds
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.urdufonts.app.ads.AdConfig
+import com.urdufonts.app.data.local.UserPreferences
+import com.webscare.ads.WebsCareAds
+import org.koin.compose.koinInject
 
 private const val TAG = "WebsCareAdsLog"
 
@@ -81,7 +84,6 @@ fun BannerShimmerEffect(modifier: Modifier = Modifier) {
                 .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon / Ad Badge Shimmer Box
             Box(
                 modifier = Modifier
                     .size(36.dp)
@@ -91,7 +93,6 @@ fun BannerShimmerEffect(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            // Text Lines (Title + Description Shimmer)
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
@@ -117,7 +118,6 @@ fun BannerShimmerEffect(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            // Action Button Shimmer Pill
             Box(
                 modifier = Modifier
                     .width(56.dp)
@@ -132,8 +132,12 @@ fun BannerShimmerEffect(modifier: Modifier = Modifier) {
 @Composable
 fun ComposableWebsCareBanner(
     modifier: Modifier = Modifier,
-    adUnitId: String = AdConfig.BANNER_AD_UNIT_ID
+    adUnitId: String = AdConfig.BANNER_AD_UNIT_ID,
+    userPreferences: UserPreferences = koinInject()
 ) {
+    val isProUser by userPreferences.isProUser.collectAsStateWithLifecycle(initialValue = false)
+    if (isProUser) return
+
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -145,7 +149,6 @@ fun ComposableWebsCareBanner(
                 .wrapContentHeight(),
             contentAlignment = Alignment.Center
         ) {
-            // Premium Native-style Banner Skeleton Shimmer
             BannerShimmerEffect()
 
             AndroidView(

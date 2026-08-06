@@ -1,27 +1,29 @@
-﻿package com.urdufonts.app.ui.detailScreen
+package com.urdufonts.app.ui.detailScreen
 
+import android.app.Activity
 import android.graphics.Typeface
 import android.os.Environment
 import android.util.Log
+import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.urdufonts.app.ads.AdManager
+import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.domain.usecases.GetFontDetailUseCase
 import com.urdufonts.app.domain.usecases.GetFontPreviewUseCase
 import com.urdufonts.app.domain.usecases.GetFontWeightsUseCase
+import com.urdufonts.app.ui.util.FontDownloadManager
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import androidx.compose.ui.text.font.FontFamily
-import com.urdufonts.app.domain.usecases.DownloadFontToDeviceUseCase
-import com.urdufonts.app.ui.util.FontDownloadManager
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import java.io.File
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -31,11 +33,14 @@ class FontDetailViewModel(
     private val getFontPreviewUseCase: GetFontPreviewUseCase,
     private val getFontWeightsUseCase: GetFontWeightsUseCase,
     private val fontDownloadManager: FontDownloadManager,
+    private val userPreferences: UserPreferences,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
     }
+
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
     private val _uiState = MutableStateFlow(FontDetailUiState())
@@ -59,11 +64,25 @@ class FontDetailViewModel(
     init {
         loadFontDetail()
         observeDownloads()
+        observeUserPreferences()
     }
+
+    private fun observeUserPreferences() {
+        viewModelScope.launch {
+            userPreferences.isProUser.collect { isPro ->
+                _uiState.update { it.copy(isProUser = isPro) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.downloadCount.collect { count ->
+                _uiState.update { it.copy(downloadCount = count) }
+            }
+        }
+    }
+
     private fun observeDownloads() {
         val numericId = fontId.toIntOrNull() ?: return
 
-        // 🟢 Observe download state changes
         viewModelScope.launch {
             fontDownloadManager.downloadStates.collect { states ->
                 val state = states[numericId] ?: DownloadState.IDLE
@@ -71,7 +90,6 @@ class FontDetailViewModel(
             }
         }
 
-        // 🟢 Observe download progress updates
         viewModelScope.launch {
             fontDownloadManager.downloadProgresses.collect { progresses ->
                 val progress = progresses[numericId] ?: 0f
@@ -79,13 +97,15 @@ class FontDetailViewModel(
             }
         }
 
-        // 🟢 Observe completion/error events for Snackbars
         viewModelScope.launch {
             fontDownloadManager.events.collect { event ->
                 when (event) {
                     is FontDownloadManager.DownloadEvent.Success -> {
                         if (event.fontId == numericId) {
                             _eventFlow.emit(UiEvent.ShowSnackbar(event.message))
+                            if (!_uiState.value.isProUser) {
+                                userPreferences.incrementDownloadCount()
+                            }
                         }
                     }
                     is FontDownloadManager.DownloadEvent.Failure -> {
@@ -152,7 +172,6 @@ class FontDetailViewModel(
             }.onFailure { e ->
                 Log.e("FontDebug", "loadPreview FAILED: ${e.message}", e)
                 _fontFamilyState.value = null
-                // Show error with retry if font file can't be loaded (e.g. offline, no cache)
                 _uiState.update {
                     it.copy(errorMessage = friendlyError(e))
                 }
@@ -164,7 +183,6 @@ class FontDetailViewModel(
         viewModelScope.launch {
             getFontWeightsUseCase(fontItem).onSuccess { weightFiles ->
                 val weightFamilies = weightFiles.map { (originalName, file) ->
-
                     val knownWeights = listOf(
                         "Bold Regular", "Bold Italic", "BoldItalic",
                         "Light Italic", "LightItalic",
@@ -211,12 +229,10 @@ class FontDetailViewModel(
                     val typeface = Typeface.createFromFile(file)
                     Pair(
                         "${weightName.replaceFirstChar { it.uppercase() }}  $weightNumber",
-                        typeface // ✅ Store raw Typeface directly
+                        typeface
                     )
                 }
-                // ✅ Save in raw list variable
                 rawWeightTypefaces = weightFamilies
-                // ✅ Wrap with FontFamily to show standard un-bolded list on UI
                 _fontWeightsState.value = weightFamilies.map { Pair(it.first, FontFamily(it.second)) }
 
                 val regularIndex = weightFamilies.indexOfFirst {
@@ -226,7 +242,6 @@ class FontDetailViewModel(
                 _selectedWeightIndex.value = autoIndex
 
                 if (weightFamilies.isNotEmpty()) {
-                    // ✅ Wrap with FontFamily wrapper
                     _fontFamilyState.value = FontFamily(weightFamilies[autoIndex].second)
                     if (_initialFontFamily.value == null) {
                         _initialFontFamily.value = FontFamily(weightFamilies[0].second)
@@ -242,7 +257,6 @@ class FontDetailViewModel(
         _selectedWeightIndex.value = index
         val rawTf = rawWeightTypefaces.getOrNull(index)?.second ?: return
         val isBold = _uiState.value.isBoldEnabled
-        // ✅ Active bold state check karke weight font apply karein
         val activeTf = if (isBold) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 val targetWeight = (rawTf.weight + 300).coerceAtMost(1000)
@@ -267,11 +281,9 @@ class FontDetailViewModel(
     fun onBoldToggle() {
         val newBold = !_uiState.value.isBoldEnabled
         _uiState.update { it.copy(isBoldEnabled = newBold) }
-        // 1. ✅ Dynamic Preview Card (Top Card) ko standard bold karein
         val base = regularTypeface ?: return
         val boldTf = if (newBold) Typeface.create(base, Typeface.BOLD) else base
         _initialFontFamily.value = FontFamily(boldTf)
-        // 2. ✅ Active typing font (selected weight) ko standard bold karein
         val currentRawTf = rawWeightTypefaces.getOrNull(_selectedWeightIndex.value)?.second ?: regularTypeface
         if (currentRawTf != null) {
             val activeTf = if (newBold) Typeface.create(currentRawTf, Typeface.BOLD) else currentRawTf
@@ -287,7 +299,6 @@ class FontDetailViewModel(
         loadFontDetail()
     }
 
-    // Syncs existing download on disk with the global manager
     private fun checkIfAlreadyDownloaded(fontItem: FontItem) {
         val fileName = "${fontItem.name.replace(" ", "_")}.ttf"
         val publicFile = File(
@@ -295,14 +306,36 @@ class FontDetailViewModel(
             fileName
         )
         if (publicFile.exists()) {
-            fontDownloadManager.markAsDownloaded(fontItem.id) // 👈 Tell the manager it's already downloaded
+            fontDownloadManager.markAsDownloaded(fontItem.id)
         }
     }
 
-    // Delegates download to the background application scope manager
     fun downloadFont() {
         val font = _uiState.value.fontDetail ?: return
-        fontDownloadManager.downloadFont(font) // 👈 Starts download inside persistent Application scope
+        val state = _uiState.value
+        if (!state.isProUser && state.downloadCount >= 5) {
+            _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }
+            return
+        }
+        fontDownloadManager.downloadFont(font)
     }
 
+    fun dismissDownloadLimitBottomSheet() {
+        _uiState.update { it.copy(showDownloadLimitBottomSheet = false) }
+    }
+
+    fun onWatchAdAndDownload(activity: Activity, adManager: AdManager) {
+        dismissDownloadLimitBottomSheet()
+        adManager.showRewarded(
+            activity = activity,
+            onRewarded = { _, _ ->
+                val font = _uiState.value.fontDetail ?: return@showRewarded
+                fontDownloadManager.downloadFont(font)
+            },
+            onNotReady = {
+                val font = _uiState.value.fontDetail ?: return@showRewarded
+                fontDownloadManager.downloadFont(font)
+            }
+        )
+    }
 }

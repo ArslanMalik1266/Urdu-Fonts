@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.detailScreen
+package com.urdufonts.app.ui.detailScreen
 
 import com.urdufonts.app.domain.models.FontItem
 
@@ -24,5 +24,8 @@ data class FontDetailUiState(
     val isBoldEnabled: Boolean = false,
     val isUnderlineEnabled: Boolean = false,
     val downloadState: DownloadState = DownloadState.IDLE,
-    val downloadProgress: Float = 0f
+    val downloadProgress: Float = 0f,
+    val showDownloadLimitBottomSheet: Boolean = false,
+    val downloadCount: Int = 0,
+    val isProUser: Boolean = false
 )

@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.data.local
+package com.urdufonts.app.data.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -26,6 +26,48 @@ class UserPreferences(private val context: Context) {
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
         private val USER_AVATAR_KEY = stringPreferencesKey("user_avatar")
         private val USER_ROLE_KEY = stringPreferencesKey("user_role")
+        private val IS_PRO_USER_KEY = booleanPreferencesKey("is_pro_user")
+        private val SUBSCRIPTION_PLAN_KEY = stringPreferencesKey("subscription_plan")
+        private val SUBSCRIPTION_PURCHASE_TOKEN_KEY = stringPreferencesKey("subscription_purchase_token")
+        private val DOWNLOAD_COUNT_KEY = intPreferencesKey("download_count")
+    }
+
+    // Read download count (returns a Flow)
+    val downloadCount: Flow<Int> = context.dataStore.data
+        .map { preferences ->
+            preferences[DOWNLOAD_COUNT_KEY] ?: 0
+        }
+
+    // Increment download count and return new value
+    suspend fun incrementDownloadCount(): Int {
+        var updated = 0
+        context.dataStore.edit { preferences ->
+            val current = preferences[DOWNLOAD_COUNT_KEY] ?: 0
+            updated = current + 1
+            preferences[DOWNLOAD_COUNT_KEY] = updated
+        }
+        return updated
+    }
+
+    // Read subscription pro status (returns a Flow)
+    val isProUser: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_PRO_USER_KEY] == true
+        }
+
+    // Read subscription plan ID (returns a Flow)
+    val subscriptionPlan: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[SUBSCRIPTION_PLAN_KEY]
+        }
+
+    // Save subscription status to DataStore
+    suspend fun saveSubscriptionStatus(isPro: Boolean, planId: String? = null, purchaseToken: String? = null) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_PRO_USER_KEY] = isPro
+            if (planId != null) preferences[SUBSCRIPTION_PLAN_KEY] = planId else preferences.remove(SUBSCRIPTION_PLAN_KEY)
+            if (purchaseToken != null) preferences[SUBSCRIPTION_PURCHASE_TOKEN_KEY] = purchaseToken else preferences.remove(SUBSCRIPTION_PURCHASE_TOKEN_KEY)
+        }
     }
 
     // Read the onboarding completed status (returns a Flow)

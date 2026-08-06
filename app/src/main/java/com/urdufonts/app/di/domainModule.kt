@@ -17,6 +17,9 @@ import com.urdufonts.app.domain.usecases.CheckUserStatusUseCase
 import com.urdufonts.app.domain.usecases.VerifyOtpUseCase
 import com.urdufonts.app.domain.usecases.LoginUseCase
 import com.urdufonts.app.domain.usecases.GetSubscriptionOptionsUseCase
+import com.urdufonts.app.domain.usecases.PurchaseSubscriptionUseCase
+import com.urdufonts.app.domain.usecases.RestoreSubscriptionUseCase
+import com.urdufonts.app.domain.usecases.CheckSubscriptionStatusUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -36,5 +39,8 @@ val domainModule = module {
     factory { CheckUserStatusUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
     factory { LoginUseCase(get()) }
-    factory { GetSubscriptionOptionsUseCase() }
+    factory { GetSubscriptionOptionsUseCase(get()) }
+    factory { PurchaseSubscriptionUseCase(get()) }
+    factory { RestoreSubscriptionUseCase(get()) }
+    factory { CheckSubscriptionStatusUseCase(get()) }
 }

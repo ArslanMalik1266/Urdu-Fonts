@@ -1,15 +1,17 @@
-﻿package com.urdufonts.app.di
+package com.urdufonts.app.di
 
 import androidx.room.Room
 import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.data.local.db.AppDatabase
 import com.urdufonts.app.data.repository.AuthRepositoryImpl
 import com.urdufonts.app.data.repository.BannerRepositoryImpl
+import com.urdufonts.app.data.repository.BillingRepositoryImpl
 import com.urdufonts.app.data.repository.CategoriesRepositoryImpl
 import com.urdufonts.app.data.repository.FontRepositoryImpl
 import com.urdufonts.app.data.repository.StylesRepositoryImpl
 import com.urdufonts.app.domain.repo.AuthRepository
 import com.urdufonts.app.domain.repo.BannerRepository
+import com.urdufonts.app.domain.repo.BillingRepository
 import com.urdufonts.app.domain.repo.CategoriesRepository
 import com.urdufonts.app.domain.repo.FontRepository
 import com.urdufonts.app.domain.repo.StylesRepository
@@ -40,5 +42,6 @@ val dataModule = module {
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }
     single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get(), categoryDao = get()) }
     single<AuthRepository> { AuthRepositoryImpl(apiService = get(), userPreferences = get()) }
+    single<BillingRepository>    { BillingRepositoryImpl(context = androidContext(), userPreferences = get()) }
 
 }

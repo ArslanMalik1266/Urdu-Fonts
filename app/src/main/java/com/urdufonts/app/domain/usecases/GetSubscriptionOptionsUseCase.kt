@@ -3,38 +3,14 @@ package com.urdufonts.app.domain.usecases
 import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.PremiumFeature
 import com.urdufonts.app.domain.models.SubscriptionOption
+import com.urdufonts.app.domain.repo.BillingRepository
 
-class GetSubscriptionOptionsUseCase {
+class GetSubscriptionOptionsUseCase(
+    private val billingRepository: BillingRepository
+) {
 
-    fun getOptions(): List<SubscriptionOption> {
-        return listOf(
-            SubscriptionOption(
-                id = "monthly",
-                title = "Monthly",
-                billingPeriodText = "Billed monthly",
-                priceText = "$9.99",
-                pricePeriodSubtitle = "per month",
-                iconRes = R.drawable.ic_calender
-            ),
-            SubscriptionOption(
-                id = "six_months",
-                title = "6-Months",
-                billingPeriodText = "Billed every 6 months",
-                priceText = "$49.99",
-                originalPriceText = "$59.99",
-                discountTag = "15% OFF",
-                iconRes = R.drawable.ic_six_months,
-                isMostPopular = true
-            ),
-            SubscriptionOption(
-                id = "lifetime",
-                title = "Lifetime",
-                billingPeriodText = "One-time payment",
-                priceText = "$79.99",
-                originalPriceText = "$149.99",
-                iconRes = R.drawable.ic_infinity
-            )
-        )
+    suspend fun getOptions(): List<SubscriptionOption> {
+        return billingRepository.getSubscriptionOptions()
     }
 
     fun getFeatures(): List<PremiumFeature> {

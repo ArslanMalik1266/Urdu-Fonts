@@ -1,5 +1,6 @@
-﻿package com.urdufonts.app.ui.detailScreen
+package com.urdufonts.app.ui.detailScreen
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
@@ -127,6 +128,7 @@ fun FontDetailScreen(
     onBackClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
     onDownloadClick: () -> Unit = {},
+    onNavigateToSubscription: () -> Unit = {},
     viewModel: FontDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -135,6 +137,17 @@ fun FontDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val adManager: com.urdufonts.app.ads.AdManager = org.koin.compose.koinInject()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? Activity
+
+    if (uiState.showDownloadLimitBottomSheet) {
+        DownloadLimitBottomSheet(
+            onDismiss = { viewModel.dismissDownloadLimitBottomSheet() },
+            onUpgradeToPremium = onNavigateToSubscription,
+            onWatchAdToDownload = {
+                activity?.let { viewModel.onWatchAdAndDownload(it, adManager) }
+            }
+        )
+    }
 
     val scope = rememberCoroutineScope()
 

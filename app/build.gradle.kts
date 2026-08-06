@@ -4,8 +4,8 @@ plugins {
     alias(libs.plugins.ksp)
 
 }
-val appVersionCode = 3
-val appVersionName = "1.0.3"
+val appVersionCode = 4
+val appVersionName = "1.0.4"
 
 base.archivesName.set("UrduFonts - V$appVersionCode($appVersionName)")
 android {
@@ -95,5 +95,6 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.webscare.ads)
+    implementation(libs.play.billing.ktx)
 
 }

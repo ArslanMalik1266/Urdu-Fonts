@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ads
+package com.urdufonts.app.ads
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
@@ -68,7 +68,7 @@ object AdConfig {
         get() = if (IS_DEBUG) {
             "ca-app-pub-3940256099942544/5224354917" // Test ID
         } else {
-            "ca-app-pub-4379805490947109/5224354917" // Production ID
+            "ca-app-pub-4379805490947109/6142262704" // Production ID (Download Font Rewarded)
         }
 
     // 5. App Open Ad (App Open)

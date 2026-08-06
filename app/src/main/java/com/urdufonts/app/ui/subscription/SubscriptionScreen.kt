@@ -1,9 +1,12 @@
 package com.urdufonts.app.ui.subscription
 
+import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +35,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +47,6 @@ import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.PremiumFeature
 import com.urdufonts.app.domain.models.SubscriptionOption
 import com.urdufonts.app.ui.components.TopBarButton
-import com.urdufonts.app.ui.theme.AppColor
 import com.urdufonts.app.ui.theme.DarkGreen
 import com.urdufonts.app.ui.theme.GreyColor
 import com.urdufonts.app.ui.theme.HeadingBlackColor
@@ -59,6 +62,13 @@ fun SubscriptionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    uiState.userMessage?.let { msg ->
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        viewModel.clearUserMessage()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Fullscreen background image
@@ -88,151 +98,260 @@ fun SubscriptionScreen(
                 )
             }
 
-            // Scrollable Subscription Form Body
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 24.dp, top = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Header Logo Card
-                Surface(
-                    shape = RoundedCornerShape(18.dp),
-                    color = Color.White,
-                    shadowElevation = 8.dp,
-                    tonalElevation = 2.dp,
-                    modifier = Modifier.size(86.dp)
+            if (!uiState.isLoading && uiState.options.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Surface(
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White,
+                        shadowElevation = 8.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFEFF7F2)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_error),
+                                    contentDescription = "Error",
+                                    modifier = Modifier.size(32.dp),
+                                    colorFilter = ColorFilter.tint(DarkGreen)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "No Subscriptions Available",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = NunitoFontFamily,
+                                color = HeadingBlackColor,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "There are currently no active subscription plans available. Please check back later or retry.",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = NunitoFontFamily,
+                                color = GreyColor,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f)
+                                    .height(44.dp)
+                                    .addPressEffect(onClick = { viewModel.retryLoadData() })
+                                    .softShadow(
+                                        shadowColor = DarkGreen.copy(alpha = 0.2f),
+                                        borderRadius = 22.dp,
+                                        blurValue = 10.dp,
+                                        offsetY = 0.dp
+                                    )
+                                    .clip(CircleShape)
+                                    .background(DarkGreen),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Retry",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = NunitoFontFamily,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Scrollable Subscription Form Body
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 24.dp, top = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Header Logo Card
+                    Surface(
+                        shape = RoundedCornerShape(18.dp),
+                        color = Color.White,
+                        shadowElevation = 8.dp,
+                        tonalElevation = 2.dp,
+                        modifier = Modifier.size(96.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .softShadow(
+                                    shadowColor = HeadingBlackColor.copy(alpha = 0.02f),
+                                    borderRadius = 18.dp,
+                                    blurValue = 20.dp,
+                                    offsetY = 0.dp
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.urdu_icon_splash),
+                                contentDescription = "Urdu Logo",
+                                modifier = Modifier
+                                    .size(76.dp)
+                                    .padding(4.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Go Premium",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = NunitoFontFamily,
+                        color = Color(0xFF0F4C2A)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Unlock all premium features and\nenhance your font experience",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = NunitoFontFamily,
+                        color = HeadingBlackColor.copy(alpha = 0.65f),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        uiState.options.forEach { option ->
+                            SubscriptionOptionCard(
+                                option = option,
+                                isSelected = option.id == uiState.selectedOptionId,
+                                onClick = { viewModel.selectOption(option.id) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    PremiumFeaturesHeader()
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    PremiumFeaturesGrid(features = uiState.features)
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .height(54.dp)
+                            .addPressEffect(onClick = {
+                                if (activity != null) {
+                                    viewModel.purchase(activity)
+                                }
+                            })
                             .softShadow(
-                                shadowColor = HeadingBlackColor.copy(alpha = 0.02f),
-                                borderRadius = 18.dp,
-                                blurValue = 20.dp,
-                                offsetY = 0.dp
-                            ),
+                                shadowColor = DarkGreen.copy(alpha = 0.25f),
+                                borderRadius = 27.dp,
+                                blurValue = 14.dp,
+                                offsetY = 4.dp
+                            )
+                            .clip(CircleShape)
+                            .background(DarkGreen),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.urdu_icon_splash),
-                            contentDescription = "Urdu Logo",
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_premium),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (uiState.isPurchasing) "Processing..." else "Continue",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = NunitoFontFamily,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_pass),
+                                contentDescription = "Lock",
+                                tint = GreyColor.copy(alpha = 0.7f),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Secure Payment",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = NunitoFontFamily,
+                                color = GreyColor.copy(alpha = 0.7f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = "•",
+                            fontSize = 12.sp,
+                            color = GreyColor.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Text(
+                            text = "Restore Purchases",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = NunitoFontFamily,
+                            color = DarkGreen,
                             modifier = Modifier
-                                .size(70.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable { viewModel.restorePurchases() }
                                 .padding(4.dp)
                         )
                     }
-                }
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                // Title & Subtitle
-                Text(
-                    text = "Go Premium",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = NunitoFontFamily,
-                    color = DarkGreen,
-                    lineHeight = 26.sp
-                )
-                Text(
-                    text = "Unlock all premium features and\nenhance your font experience",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = NunitoFontFamily,
-                    color = HeadingBlackColor.copy(alpha = 0.65f),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 16.sp
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Subscription Tier Option Cards
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    uiState.options.forEach { option ->
-                        SubscriptionOptionCard(
-                            option = option,
-                            isSelected = option.id == uiState.selectedOptionId,
-                            onClick = { viewModel.selectOption(option.id) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Premium Features Section Header
-                PremiumFeaturesHeader()
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Premium Features 2x2 Grid
-                PremiumFeaturesGrid(features = uiState.features)
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Continue Action Button
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .addPressEffect(onClick = { /* Handle subscription purchase */ })
-                        .softShadow(
-                            shadowColor = DarkGreen.copy(alpha = 0.25f),
-                            borderRadius = 27.dp,
-                            blurValue = 14.dp,
-                            offsetY = 4.dp
-                        )
-                        .clip(CircleShape)
-                        .background(DarkGreen),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_crown),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Continue",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = NunitoFontFamily,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Secure Payment Footer
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_pass),
-                        contentDescription = "Lock",
-                        tint = GreyColor.copy(alpha = 0.7f),
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Secure Payment",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = NunitoFontFamily,
-                        color = GreyColor.copy(alpha = 0.7f)
-                    )
                 }
             }
         }
@@ -275,7 +394,6 @@ private fun SubscriptionOptionCard(
                 .padding(horizontal = 14.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Custom Radio Button Circle
             Box(
                 modifier = Modifier
                     .size(22.dp)
@@ -299,7 +417,6 @@ private fun SubscriptionOptionCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Plan Icon Box
             Box(
                 modifier = Modifier
                     .size(46.dp)
@@ -317,7 +434,6 @@ private fun SubscriptionOptionCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Middle Info Column
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = option.title,
@@ -354,7 +470,6 @@ private fun SubscriptionOptionCard(
                 }
             }
 
-            // Price Column
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = option.priceText,
@@ -387,7 +502,6 @@ private fun SubscriptionOptionCard(
             }
         }
 
-        // Top-Right "Most Popular" Badge Tag
         if (option.isMostPopular) {
             Box(
                 modifier = Modifier
@@ -398,10 +512,10 @@ private fun SubscriptionOptionCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_star),
+                        painter = painterResource(id = R.drawable.ic_premium),
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(10.dp)
+                        modifier = Modifier.size(11.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(

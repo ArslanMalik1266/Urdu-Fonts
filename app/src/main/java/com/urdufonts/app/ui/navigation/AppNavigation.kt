@@ -187,7 +187,8 @@ fun AppNavigation() {
                             )
                         ) {
                             FontDetailScreen(
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.popBackStack() },
+                                onNavigateToSubscription = { navController.navigate(Screen.Subscription.route) }
                             )
                         }
                         composable(
