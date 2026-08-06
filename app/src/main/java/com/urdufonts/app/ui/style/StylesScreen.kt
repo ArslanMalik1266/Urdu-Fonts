@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.style
+package com.urdufonts.app.ui.style
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -46,6 +46,7 @@ import org.koin.androidx.compose.koinViewModel
 fun StylesScreen(
     onCartClick: () -> Unit = {},
     onStyleClick: (StyleItem) -> Unit = {},
+    onSubscriptionClick: () -> Unit = {},
     viewModel: StylesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,7 +61,7 @@ fun StylesScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                SimpleTopAppBar(title = "Styles", onCartClick = onCartClick)
+                SimpleTopAppBar(title = "Styles", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
             }
         ) { innerPadding ->
             Column(

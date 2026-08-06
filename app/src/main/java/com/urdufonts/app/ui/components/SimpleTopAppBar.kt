@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.urdufonts.app.R
+import com.urdufonts.app.ui.theme.AppColor
 import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
 
@@ -23,6 +24,7 @@ fun SimpleTopAppBar(
     title: String,
     onBackClick: (() -> Unit)? = null,
     onCartClick: () -> Unit = {},
+    onSubscriptionClick: (() -> Unit)? = null,
     containerColor: Color = Color.Transparent
 ) {
     TopAppBar(
@@ -35,7 +37,7 @@ fun SimpleTopAppBar(
                     TopBarButton(
                         iconRes = R.drawable.ic_back,
                         onClick = onBackClick,
-                        contentDescription = "Cart"
+                        contentDescription = "Back"
                     )
                 }
             }
@@ -50,7 +52,16 @@ fun SimpleTopAppBar(
             )
         },
         actions = {
-
+            if (onSubscriptionClick != null) {
+                Box(modifier = Modifier.padding(end = 8.dp)) {
+                    TopBarButton(
+                        iconRes = R.drawable.ic_diamond,
+                        onClick = onSubscriptionClick,
+                        contentDescription = "Subscription",
+                        tint = AppColor
+                    )
+                }
+            }
         },
     )
 }

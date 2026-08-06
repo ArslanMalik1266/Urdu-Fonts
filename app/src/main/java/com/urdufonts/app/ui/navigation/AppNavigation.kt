@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.navigation
+package com.urdufonts.app.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +35,7 @@ import com.urdufonts.app.ui.onboarding.OnboardingViewModel
 import com.urdufonts.app.ui.profile.ProfileScreen
 import com.urdufonts.app.ui.style.StylesScreen
 import com.urdufonts.app.ui.style.StylesViewModel
+import com.urdufonts.app.ui.subscription.SubscriptionScreen
 import com.urdufonts.app.ui.util.BlurOverlay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -133,6 +134,9 @@ fun AppNavigation() {
                                 onFontClick = { fontId ->
                                     navController.navigate(Screen.fontDetail.createRoute(fontId))
                                     viewModel.clearSearch()
+                                },
+                                onSubscriptionClick = {
+                                    navController.navigate(Screen.Subscription.route)
                                 }
                             )
                         }
@@ -149,6 +153,9 @@ fun AppNavigation() {
                                         )
                                     )
                                     viewModel.clearSearch()
+                                },
+                                onSubscriptionClick = {
+                                    navController.navigate(Screen.Subscription.route)
                                 }
                             )
                         }
@@ -165,6 +172,9 @@ fun AppNavigation() {
                                         )
                                     )
                                     viewModel.clearSearch()
+                                },
+                                onSubscriptionClick = {
+                                    navController.navigate(Screen.Subscription.route)
                                 }
                             )
                         }
@@ -196,11 +206,19 @@ fun AppNavigation() {
                                 onFontClick = { fontId ->
                                     navController.navigate(Screen.fontDetail.createRoute(fontId))
                                     viewModel.clearSearch()
+                                },
+                                onSubscriptionClick = {
+                                    navController.navigate(Screen.Subscription.route)
                                 }
                             )
                         }
                         composable(Screen.Profile.route) {
                             ProfileScreen(
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        }
+                        composable(Screen.Subscription.route) {
+                            SubscriptionScreen(
                                 onBackClick = { navController.popBackStack() }
                             )
                         }

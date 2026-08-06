@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.navigation
+package com.urdufonts.app.ui.navigation
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -14,4 +14,5 @@ sealed class Screen(val route: String) {
             "fontListScreen/$filterType/$filterValue/$title"
     }
     object Profile : Screen("profile")
+    object Subscription : Screen("subscription")
 }

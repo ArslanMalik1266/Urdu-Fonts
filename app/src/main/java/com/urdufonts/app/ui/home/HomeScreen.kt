@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.home
+package com.urdufonts.app.ui.home
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -57,6 +57,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeScreen(
     onMenuClick: () -> Unit,
     onFontClick: (fontId: String) -> Unit,
+    onSubscriptionClick: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,7 +79,8 @@ fun HomeScreen(
             topBar = {
                 AppTopBar(
                     onMenuClick = onMenuClick,
-                    onCartClick = { }
+                    onCartClick = { },
+                    onSubscriptionClick = onSubscriptionClick
                 )
             }
         ) { innerPadding ->

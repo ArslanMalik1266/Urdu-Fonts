@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.category
+package com.urdufonts.app.ui.category
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -41,6 +41,7 @@ import org.koin.androidx.compose.koinViewModel
 fun CategoriesScreen(
     onCartClick: () -> Unit = {},
     onCategoryClick: (CategoryItem) -> Unit = {},
+    onSubscriptionClick: () -> Unit = {},
     viewModel: CategoriesViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,7 +52,7 @@ fun CategoriesScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                SimpleTopAppBar(title = "Categories", onCartClick = onCartClick)
+                SimpleTopAppBar(title = "Categories", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
             }
         ) { innerPadding ->
             Column(

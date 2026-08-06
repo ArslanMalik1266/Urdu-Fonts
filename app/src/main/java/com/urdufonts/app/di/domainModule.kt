@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.di
+package com.urdufonts.app.di
 
 import com.urdufonts.app.domain.usecases.DownloadFontToDeviceUseCase
 import com.urdufonts.app.domain.usecases.GetBannersUseCase
@@ -16,6 +16,7 @@ import com.urdufonts.app.domain.usecases.LogoutUseCase
 import com.urdufonts.app.domain.usecases.CheckUserStatusUseCase
 import com.urdufonts.app.domain.usecases.VerifyOtpUseCase
 import com.urdufonts.app.domain.usecases.LoginUseCase
+import com.urdufonts.app.domain.usecases.GetSubscriptionOptionsUseCase
 import org.koin.dsl.module
 
 val domainModule = module {
@@ -35,4 +36,5 @@ val domainModule = module {
     factory { CheckUserStatusUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
     factory { LoginUseCase(get()) }
+    factory { GetSubscriptionOptionsUseCase() }
 }

@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.components
+package com.urdufonts.app.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -14,12 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.urdufonts.app.R
+import com.urdufonts.app.ui.theme.AppColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
     onMenuClick: () -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit = {},
+    onSubscriptionClick: () -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -42,7 +44,14 @@ fun AppTopBar(
             }
         },
         actions = {
-
+            Box(modifier = Modifier.padding(end = 8.dp)) {
+                TopBarButton(
+                    iconRes = R.drawable.ic_diamond,
+                    onClick = onSubscriptionClick,
+                    contentDescription = "Subscription",
+                    tint = AppColor
+                )
+            }
         }
     )
 }

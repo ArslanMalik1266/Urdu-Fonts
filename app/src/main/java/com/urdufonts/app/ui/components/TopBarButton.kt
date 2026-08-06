@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.components
+package com.urdufonts.app.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -29,7 +30,8 @@ fun TopBarButton(
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconSize: Int = 16
+    iconSize: Int = 16,
+    tint: Color? = null
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -50,7 +52,8 @@ fun TopBarButton(
         Image(
             painter = painterResource(id = iconRes),
             contentDescription = contentDescription,
-            modifier = Modifier.size(iconSize.dp)
+            modifier = Modifier.size(iconSize.dp),
+            colorFilter = tint?.let { ColorFilter.tint(it) }
         )
     }
 }

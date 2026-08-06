@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.fontList
+package com.urdufonts.app.ui.fontList
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -47,6 +47,7 @@ fun FontListScreen(
     title: String,
     onBackClick: () -> Unit,
     onFontClick: (fontId: String) -> Unit,
+    onSubscriptionClick: () -> Unit = {},
     viewModel: FontListViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -58,6 +59,7 @@ fun FontListScreen(
             SimpleTopAppBar(
                 title = title,
                 onBackClick = onBackClick,
+                onSubscriptionClick = onSubscriptionClick,
                 containerColor = Color.White
             )
         }
