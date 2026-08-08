@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.data.repository
+package com.urdufonts.app.data.repository
 
 import android.content.Context
 import android.content.pm.PackageManager

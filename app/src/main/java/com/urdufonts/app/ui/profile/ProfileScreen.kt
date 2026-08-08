@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.profile
+package com.urdufonts.app.ui.profile
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility

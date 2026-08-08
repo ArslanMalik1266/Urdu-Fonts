@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.profile
+package com.urdufonts.app.ui.profile
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

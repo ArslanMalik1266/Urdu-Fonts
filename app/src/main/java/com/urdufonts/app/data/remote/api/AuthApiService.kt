@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.data.remote.api
+package com.urdufonts.app.data.remote.api
 
 import com.urdufonts.app.data.remote.dto.RegisterResponseDto
 import com.urdufonts.app.data.remote.dto.GoogleLoginRequestDto

@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.domain.repo
+package com.urdufonts.app.domain.repo
 
 import android.content.Context
 import com.urdufonts.app.domain.models.RegisterParams
