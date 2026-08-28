@@ -97,12 +97,12 @@ fun CategoryItemCard(
     ) {
         Text(
             text = category.title,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,                  // Slightly thicker to match design
             color = HeadingBlackColor.copy(alpha = 0.8f), // High contrast charcoal text
             textAlign = TextAlign.Center,
             fontFamily = NunitoFontFamily,
-            lineHeight = 18.sp,
+            lineHeight = 20.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

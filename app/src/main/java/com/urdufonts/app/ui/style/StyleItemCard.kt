@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.style
+package com.urdufonts.app.ui.style
 
 import android.R.attr.fontFamily
 import androidx.compose.foundation.background
@@ -79,10 +79,10 @@ fun StyleItemCard(
         ) {
             Text(
                 text = style.title,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = GreyColor,
-                lineHeight = 18.sp,
+                lineHeight = 20.sp,
                 fontFamily = NunitoFontFamily
 
             )
