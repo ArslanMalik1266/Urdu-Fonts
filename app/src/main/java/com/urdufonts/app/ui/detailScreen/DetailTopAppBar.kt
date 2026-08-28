@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.detailScreen
+package com.urdufonts.app.ui.detailScreen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -32,7 +32,7 @@ fun DetailTopAppBar(
         title = {
             Text(
                 text = title,
-                fontSize = 18.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = HeadingBlackColor,
                 fontFamily = NunitoFontFamily

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.ui.theme.GreyColor
+import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
 import com.urdufonts.app.ui.util.addPressEffect
 
@@ -65,9 +66,9 @@ private fun FontItemHeader(fontItem: FontItem) {
     ) {
         Text(
             text = fontItem.name,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = GreyColor,
+            color = HeadingBlackColor,
             modifier = Modifier.weight(1f),
             fontFamily = NunitoFontFamily
         )

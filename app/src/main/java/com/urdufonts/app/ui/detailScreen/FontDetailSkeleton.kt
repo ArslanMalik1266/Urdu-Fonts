@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.detailScreen
+package com.urdufonts.app.ui.detailScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

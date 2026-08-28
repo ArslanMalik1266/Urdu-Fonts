@@ -45,7 +45,7 @@ fun SimpleTopAppBar(
         title = {
             Text(
                 text = title,
-                fontSize = 18.sp,
+                fontSize = 22.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = HeadingBlackColor.copy(0.8f),
                 fontFamily = NunitoFontFamily

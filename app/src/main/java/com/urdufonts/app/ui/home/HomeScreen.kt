@@ -89,7 +89,7 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)) {
                     CustomSearchBar(
                         query = uiState.searchQuery,
                         onQueryChange = { viewModel.updateSearchQuery(it) },

@@ -555,7 +555,7 @@ private fun FilterChipItem(
     modifier: Modifier = Modifier
 ) {
     val borderColor = if (isSelected) AppColor else GreyColor.copy(0.15f)
-    val textColor = if (isSelected) AppColor else GreyColor
+    val textColor = HeadingBlackColor
 
     Row(
         modifier = modifier

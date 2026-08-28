@@ -61,7 +61,7 @@ fun StylesScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                SimpleTopAppBar(title = "Styles", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
+                SimpleTopAppBar(title = "Urdu Font Styles", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
             }
         ) { innerPadding ->
             Column(
@@ -69,7 +69,7 @@ fun StylesScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)) {
                     CustomSearchBar(
                         query = uiState.searchQuery,
                         onQueryChange = viewModel::onSearchQueryChange,

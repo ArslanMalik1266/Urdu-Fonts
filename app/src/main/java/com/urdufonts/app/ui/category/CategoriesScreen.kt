@@ -52,7 +52,7 @@ fun CategoriesScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                SimpleTopAppBar(title = "Categories", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
+                SimpleTopAppBar(title = "Urdu Font Categories", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
             }
         ) { innerPadding ->
             Column(
@@ -63,7 +63,7 @@ fun CategoriesScreen(
                         detectTapGestures(onTap = { focusManager.clearFocus() })
                     }
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)) {
                     CustomSearchBar(
                         query = uiState.searchQuery,
                         onQueryChange = viewModel::onSearchQueryChange,

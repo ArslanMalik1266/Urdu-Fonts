@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.baseScreen
+package com.urdufonts.app.ui.baseScreen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +43,9 @@ fun MyBottomNavigationBar(
         onItemSelected = { index ->
             val selectedItem = items.getOrNull(index)
             if (selectedItem != null) {
+                if (currentRoute == selectedItem.screen.route) {
+                    return@SimpleBottomNavigationBar
+                }
                 navController.navigate(selectedItem.screen.route) {
                     popUpTo(navController.graph.startDestinationId) { saveState = true }
                     launchSingleTop = true
