@@ -1,74 +1,70 @@
-﻿package com.urdufonts.app.ui.util
+package com.urdufonts.app.ui.util
 
 import android.graphics.BlurMaskFilter
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 fun Modifier.softShadow(
     shadowColor: Color,
     borderRadius: Dp,
     blurValue: Dp,
     offsetY: Dp
-): Modifier = this.composed {
-    // Cache the Paint object so it isn't recreated 60-120 times/second
-    val paint = remember(shadowColor) {
-        Paint().apply {
-            val fp = asFrameworkPaint()
-            fp.isAntiAlias = true
-            fp.color = shadowColor.toArgb()
+): Modifier = this.drawWithCache {
+    val radiusPx = borderRadius.toPx()
+    val dy = offsetY.toPx()
+    val blurPx = blurValue.toPx().coerceAtMost(24.dp.toPx())
+    val width = size.width
+    val height = size.height
+
+    val paint = Paint().apply {
+        val fp = asFrameworkPaint()
+        fp.isAntiAlias = true
+        fp.color = shadowColor.toArgb()
+        if (blurPx > 0f) {
+            fp.maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
         }
     }
 
-    drawBehind {
-        drawIntoCanvas { canvas ->
-            val blurPx = blurValue.toPx()
-            if (blurPx > 0f) {
-                val frameworkPaint = paint.asFrameworkPaint()
-                frameworkPaint.maskFilter = BlurMaskFilter(
-                    blurPx,
-                    BlurMaskFilter.Blur.NORMAL
-                )
-
-                val radiusPx = borderRadius.toPx()
-                val dy = offsetY.toPx()
-
+    onDrawBehind {
+        if (blurPx > 0f) {
+            drawIntoCanvas { canvas ->
                 canvas.nativeCanvas.drawRoundRect(
                     0f,
-                    0f + dy,
-                    size.width,
-                    size.height,
+                    dy,
+                    width,
+                    height + dy,
                     radiusPx,
                     radiusPx,
-                    frameworkPaint
+                    paint.asFrameworkPaint()
                 )
             }
         }
     }
 }
 
-fun Modifier.softBlur(color: Color, radius: Float): Modifier = this.composed {
-    // Cache the native Paint object
-    val paint = remember(color, radius) {
-        android.graphics.Paint().apply {
-            isAntiAlias = true
-            this.color = android.graphics.Color.TRANSPARENT
-            setShadowLayer(radius, 0f, 0f, color.toArgb())
-        }
+fun Modifier.softBlur(color: Color, radius: Float): Modifier = this.drawWithCache {
+    val paint = android.graphics.Paint().apply {
+        isAntiAlias = true
+        this.color = android.graphics.Color.TRANSPARENT
+        setShadowLayer(radius, 0f, 0f, color.toArgb())
     }
+    val centerX = size.width / 2f
+    val centerY = size.height / 2f
+    val circleRadius = size.width / 2f
 
-    drawBehind {
+    onDrawBehind {
         drawContext.canvas.nativeCanvas.drawCircle(
-            size.width / 2,
-            size.height / 2,
-            size.width / 2,
+            centerX,
+            centerY,
+            circleRadius,
             paint
         )
     }

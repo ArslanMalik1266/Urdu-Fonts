@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app
+package com.urdufonts.app
 
 import android.app.Application
 import coil.ImageLoader
@@ -31,9 +31,21 @@ class MyApplication : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
+            .memoryCache {
+                coil.memory.MemoryCache.Builder(this)
+                    .maxSizePercent(0.15)
+                    .build()
+            }
+            .diskCache {
+                coil.disk.DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizeBytes(50L * 1024L * 1024L)
+                    .build()
+            }
             .components {
                 add(SvgDecoder.Factory())
             }
+            .respectCacheHeaders(false)
             .build()
     }
 }

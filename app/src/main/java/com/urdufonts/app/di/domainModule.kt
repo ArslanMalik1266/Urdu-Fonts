@@ -22,6 +22,8 @@ import com.urdufonts.app.domain.usecases.RestoreSubscriptionUseCase
 import com.urdufonts.app.domain.usecases.CheckSubscriptionStatusUseCase
 import org.koin.dsl.module
 
+import com.urdufonts.app.domain.usecases.GetMoreAppsUseCase
+
 val domainModule = module {
     factory { GetFontsUseCase(get()) }
     factory { GetBannersUseCase(get()) }
@@ -43,4 +45,5 @@ val domainModule = module {
     factory { PurchaseSubscriptionUseCase(get()) }
     factory { RestoreSubscriptionUseCase(get()) }
     factory { CheckSubscriptionStatusUseCase(get()) }
+    factory { GetMoreAppsUseCase(get()) }
 }

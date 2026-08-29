@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.onboarding
+package com.urdufonts.app.ui.onboarding
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -30,6 +30,9 @@ import com.urdufonts.app.ui.theme.NunitoFontFamily
 import com.urdufonts.app.ui.util.addPressEffect
 import kotlinx.coroutines.launch
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel,
@@ -39,76 +42,94 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.weight(0.75f)
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
         ) { position ->
-            OnboardingItem(page = pages[position])
+            val pageOffset = (pagerState.currentPage - position) + pagerState.currentPageOffsetFraction
+            OnboardingItem(
+                page = pages[position],
+                pageOffset = pageOffset
+            )
         }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.1f),
-            verticalArrangement = Arrangement.Top
+                .padding(bottom = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CustomPageIndicator(
                 pageCount = pages.size,
                 currentPage = pagerState.currentPage
             )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(0.15f)
-                .padding(24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            Box(
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp)
-                    .addPressEffect { viewModel.onSkipClicked(onNavigateToHome) }
-                    .clip(RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterStart
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Skip",
-                    color = GreyColor,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    fontFamily = NunitoFontFamily
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp)
-                    .addPressEffect {
-                        scope.launch {
-                            if (pagerState.currentPage < pages.size - 1) {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            } else {
-                                viewModel.onContinueClicked(
-                                    pagerState.currentPage,
-                                    onNavigateToHome
-                                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp)
+                        .addPressEffect { viewModel.onSkipClicked(onNavigateToHome) }
+                        .clip(RoundedCornerShape(14.dp))
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = "Skip",
+                        color = GreyColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        fontFamily = NunitoFontFamily
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp)
+                        .addPressEffect {
+                            scope.launch {
+                                if (pagerState.currentPage < pages.size - 1) {
+                                    pagerState.animateScrollToPage(
+                                        page = pagerState.currentPage + 1,
+                                        animationSpec = tween(
+                                            durationMillis = 650,
+                                            easing = FastOutSlowInEasing
+                                        )
+                                    )
+                                } else {
+                                    viewModel.onContinueClicked(
+                                        pagerState.currentPage,
+                                        onNavigateToHome
+                                    )
+                                }
                             }
                         }
-                    }
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(DarkGreen),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Continue",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    fontFamily = NunitoFontFamily
-                )
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(DarkGreen),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Continue",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        fontFamily = NunitoFontFamily
+                    )
+                }
             }
         }
     }

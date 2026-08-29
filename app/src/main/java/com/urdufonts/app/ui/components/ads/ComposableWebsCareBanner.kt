@@ -165,14 +165,14 @@ fun ComposableWebsCareBanner(
                         ).apply {
                             gravity = Gravity.CENTER_HORIZONTAL
                         }
-                        post {
+                        postDelayed({
                             try {
-                                Log.d(TAG, "Calling WebsCareAds.loadBanner (post-layout) with activity: ${activity.localClassName}")
+                                Log.d(TAG, "Calling WebsCareAds.loadBanner (post-layout offloaded) with activity: ${activity.localClassName}")
                                 WebsCareAds.loadBanner(activity, this, adUnitId)
                             } catch (e: Exception) {
                                 Log.e(TAG, "Error loading banner ad in container", e)
                             }
-                        }
+                        }, 150)
                     }
                 }
             )

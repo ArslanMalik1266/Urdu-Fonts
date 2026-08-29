@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.util
+package com.urdufonts.app.ui.util
 
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.animateFloatAsState
@@ -17,14 +17,16 @@ fun StaggeredFadeIn(
     content: @Composable () -> Unit,
 ) {
     val alreadySeen = remember(index) { seenItems.contains(index) }
-    var visible by remember { mutableStateOf(alreadySeen) }
+    if (alreadySeen) {
+        content()
+        return
+    }
 
+    var visible by remember { mutableStateOf(false) }
     LaunchedEffect(index) {
-        if (!alreadySeen) {
-            delay((index * 40L).coerceAtMost(300L).milliseconds)
-            visible = true
-            seenItems.add(index) // Plain set update — doesn't trigger parent recompositions!
-        }
+        delay((index * 40L).coerceAtMost(300L).milliseconds)
+        visible = true
+        seenItems.add(index)
     }
 
     val alpha by animateFloatAsState(

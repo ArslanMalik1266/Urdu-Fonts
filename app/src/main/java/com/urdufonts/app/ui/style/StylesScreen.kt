@@ -21,8 +21,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -37,6 +39,7 @@ import com.urdufonts.app.domain.models.StyleItem
 import com.urdufonts.app.ui.components.CustomSearchBar
 import com.urdufonts.app.ui.components.OfflineErrorState
 import com.urdufonts.app.ui.components.SimpleTopAppBar
+import com.urdufonts.app.ui.util.BlurOverlay
 import com.urdufonts.app.ui.util.StaggeredFadeIn
 import com.urdufonts.app.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
@@ -52,6 +55,7 @@ fun StylesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val seenItems = remember { mutableStateSetOf<Int>() }
+    com.urdufonts.app.ui.util.LogScreenEntry("StylesScreen")
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -80,60 +84,79 @@ fun StylesScreen(
                     )
                 }
 
-                Crossfade(
-                    targetState = when {
-                        uiState.errorMessage != null -> "error"
-                        uiState.isLoading -> "loading"
-                        else -> "content"
-                    },
-                    animationSpec = tween(durationMillis = 350),
-                    label = "styles_screen_transition"
-                ) { state ->
-                    when (state) {
-                        "loading" -> {
-                            StylesSkeleton()
+                when {
+                    uiState.isLoading -> {
+                        StylesSkeleton()
+                    }
+                    uiState.errorMessage != null -> {
+                        OfflineErrorState(
+                            message = uiState.errorMessage!!,
+                            onRetry = viewModel::retry
+                        )
+                    }
+                    else -> {
+                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                        var renderLimit by remember { mutableStateOf(4) }
+                        androidx.compose.runtime.LaunchedEffect(uiState.styles) {
+                            if (uiState.styles.isNotEmpty()) {
+                                renderLimit = 4
+                                kotlinx.coroutines.delay(30)
+                                renderLimit = uiState.styles.size
+                            }
                         }
-                        "error" -> {
-                            OfflineErrorState(
-                                message = uiState.errorMessage!!,
-                                onRetry = viewModel::retry
-                            )
+                        val visibleStyles = remember(uiState.styles, renderLimit) {
+                            uiState.styles.take(renderLimit)
                         }
-                        "content" -> {
-                            Box(modifier = Modifier.clipToBounds()) {
-                                LazyColumn(
-                                    modifier = Modifier.springOverscroll(),
-                                    contentPadding = PaddingValues(
-                                        start = 18.dp,
-                                        end = 18.dp,
-                                        top = 16.dp,
-                                        bottom = 80.dp
-                                    ),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    itemsIndexed(
-                                        items = uiState.styles,
-                                        key = { _, style -> style.id }
-                                    ) { index, style ->
-                                        StaggeredFadeIn(
-                                            index = index,
-                                            seenItems = seenItems
-                                        ) {
-                                            StyleItemCard(
-                                                style = style,
-                                                onClick = { onStyleClick(style) }
-                                            )
-                                        }
 
-                                        if (index > 0 && (index + 1) % 6 == 0) {
-                                            com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
-                                                adUnitId = com.urdufonts.app.ads.AdConfig.STYLES_NATIVE_AD_UNIT_ID,
-                                                modifier = Modifier.padding(vertical = 0.dp)
-                                            )
-                                        }
+                        androidx.compose.runtime.LaunchedEffect(Unit) {
+                            com.urdufonts.app.ui.util.PerfDiagnostics.logScreenTransition("StylesScreen", "Content Rendered (${uiState.styles.size} items)")
+                        }
+                        androidx.compose.runtime.LaunchedEffect(listState) {
+                            androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex }
+                                .collect { idx ->
+                                    com.urdufonts.app.ui.util.PerfDiagnostics.logScrollEvent("StylesScreen", idx, uiState.styles.size)
+                                }
+                        }
+                        com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
+                            listState = listState,
+                            imageUrls = remember(uiState.styles) { uiState.styles.mapNotNull { it.thumbnailUrl } },
+                            bufferAheadCount = 4
+                        )
+                        Box(modifier = Modifier.clipToBounds()) {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.springOverscroll(),
+                                contentPadding = PaddingValues(
+                                    start = 18.dp,
+                                    end = 18.dp,
+                                    top = 16.dp,
+                                    bottom = 80.dp
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                itemsIndexed(
+                                    items = visibleStyles,
+                                    key = { _, style -> style.id },
+                                    contentType = { _, _ -> "style_card" }
+                                ) { index, style ->
+                                    StaggeredFadeIn(
+                                        index = index,
+                                        seenItems = seenItems
+                                    ) {
+                                        StyleItemCard(
+                                            style = style,
+                                            onClick = { onStyleClick(style) }
+                                        )
                                     }
 
+                                    if (index > 0 && (index + 1) % 6 == 0) {
+                                        com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
+                                            adUnitId = com.urdufonts.app.ads.AdConfig.STYLES_NATIVE_AD_UNIT_ID,
+                                            modifier = Modifier.padding(vertical = 0.dp)
+                                        )
+                                    }
                                 }
+
                             }
                         }
                     }

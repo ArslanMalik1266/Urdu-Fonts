@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.home
+package com.urdufonts.app.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,9 +17,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import android.content.Context
+import com.urdufonts.app.domain.usecases.GetMoreAppsUseCase
+import com.urdufonts.app.ui.util.preloadImageUrls
+
 class HomeViewModel(
     private val getFontsUseCase: GetFontsUseCase,
-    private val getUserSessionUseCase: GetUserSessionUseCase
+    private val getUserSessionUseCase: GetUserSessionUseCase,
+    private val getMoreAppsUseCase: GetMoreAppsUseCase,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -33,6 +39,7 @@ class HomeViewModel(
     init {
         loadFonts()
         observeUserSession()
+        fetchMoreApps()
     }
 
     private fun observeUserSession() {
@@ -47,6 +54,17 @@ class HomeViewModel(
                     )
                 }
             }
+        }
+    }
+
+    private fun fetchMoreApps() {
+        viewModelScope.launch {
+            try {
+                val appsList = getMoreAppsUseCase()
+                if (appsList.isNotEmpty()) {
+                    _drawerUiState.update { it.copy(moreApps = appsList) }
+                }
+            } catch (_: Exception) {}
         }
     }
 
@@ -67,6 +85,12 @@ class HomeViewModel(
                         .distinctBy { it.slug }
 
                     Pair(categories, styles)
+                }
+
+                // Full Atomic Wait: Preload initial visible SVG images while Shimmer is active
+                val initialImageUrls = allFonts.take(6).mapNotNull { it.featureImageUrl }
+                if (initialImageUrls.isNotEmpty()) {
+                    preloadImageUrls(context, initialImageUrls)
                 }
 
                 _uiState.update {

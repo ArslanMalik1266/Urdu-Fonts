@@ -48,6 +48,7 @@ import com.urdufonts.app.ui.components.OfflineErrorState
 import com.urdufonts.app.ui.theme.GreyColor
 import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
+import com.urdufonts.app.ui.util.BlurOverlay
 import com.urdufonts.app.ui.util.StaggeredFadeIn
 import com.urdufonts.app.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
@@ -159,6 +160,11 @@ fun HomeScreen(
                                 previousCategories = uiState.appliedCategories
                                 previousStyles = uiState.appliedStyles
                             }
+                            com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
+                                listState = listState,
+                                imageUrls = remember(uiState.fonts) { uiState.fonts.mapNotNull { it.featureImageUrl } },
+                                bufferAheadCount = 18
+                            )
                             Box(modifier = Modifier.clipToBounds()) {
                                 LazyColumn(
                                     state = listState,

@@ -16,9 +16,15 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.urdufonts.app.ui.home.HomeScreen
 import com.urdufonts.app.ui.navigation.AppNavigation
 import com.urdufonts.app.ui.theme.UrduFontsTheme
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val adManager: com.urdufonts.app.ads.AdManager by lazy {
+        org.koin.java.KoinJavaComponent.getKoin().get()
+    }
+
+    private val userPreferences: com.urdufonts.app.data.local.UserPreferences by lazy {
         org.koin.java.KoinJavaComponent.getKoin().get()
     }
 
@@ -27,8 +33,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         hideBottomBar()
 
-        android.util.Log.d("WebsCareAdsLog", "MainActivity onCreate -> Preloading App Open Ad & requesting consent")
-        adManager.preloadAppOpen(this)
+        android.util.Log.d("WebsCareAdsLog", "MainActivity onCreate -> Requesting consent")
         adManager.requestConsent(this) { isGathered ->
             android.util.Log.d("WebsCareAdsLog", "MainActivity requestConsent finished: isGathered = $isGathered")
         }
@@ -53,11 +58,18 @@ class MainActivity : ComponentActivity() {
         android.util.Log.d("WebsCareAdsLog", "MainActivity onResume -> Activity resumed (isAppInBackground: $isAppInBackground)")
         if (isAppInBackground && !isShowingAppOpenAd) {
             isAppInBackground = false
-            isShowingAppOpenAd = true
-            android.util.Log.d("WebsCareAdsLog", "App resumed from background -> Triggering App Open Ad")
-            adManager.showAppOpenAd(this) {
-                isShowingAppOpenAd = false
-                android.util.Log.d("WebsCareAdsLog", "App Open Ad shown & dismissed on Resume")
+            kotlinx.coroutines.MainScope().launch {
+                val isCompleted = userPreferences.isOnboardingCompleted.firstOrNull() ?: false
+                if (isCompleted) {
+                    isShowingAppOpenAd = true
+                    android.util.Log.d("WebsCareAdsLog", "App resumed from background -> Triggering App Open Ad")
+                    adManager.showAppOpenAd(this@MainActivity) {
+                        isShowingAppOpenAd = false
+                        android.util.Log.d("WebsCareAdsLog", "App Open Ad shown & dismissed on Resume")
+                    }
+                } else {
+                    android.util.Log.d("WebsCareAdsLog", "App resumed from background -> Onboarding not completed yet, skipping App Open Ad.")
+                }
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.fontList
+package com.urdufonts.app.ui.fontList
 
 import androidx.lifecycle.ViewModel
 import com.urdufonts.app.domain.models.FontItem
@@ -10,9 +10,13 @@ import androidx.lifecycle.viewModelScope
 import com.urdufonts.app.domain.usecases.GetFontsUseCase
 import kotlinx.coroutines.launch
 
+import android.content.Context
+import com.urdufonts.app.ui.util.preloadImageUrls
+
 class FontListViewModel(
     private val getFontsUseCase: GetFontsUseCase,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    private val context: Context
 ) : ViewModel() {
 
     // Retrieve parameters passed via route
@@ -47,6 +51,12 @@ class FontListViewModel(
                 }
 
                 allFilteredFonts = filtered
+
+                // Preload top 6 initial visible font preview SVGs atomically
+                val initialUrls = filtered.take(6).mapNotNull { it.featureImageUrl }
+                if (initialUrls.isNotEmpty()) {
+                    preloadImageUrls(context, initialUrls)
+                }
 
                 _uiState.update {
                     it.copy(

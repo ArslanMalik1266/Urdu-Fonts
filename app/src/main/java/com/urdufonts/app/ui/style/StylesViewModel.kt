@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.style
+package com.urdufonts.app.ui.style
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import android.content.Context
+import com.urdufonts.app.ui.util.preloadImageUrls
+
 class StylesViewModel(
-    private val getStylesUseCase: GetStylesUseCase
+    private val getStylesUseCase: GetStylesUseCase,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StylesUiState())
@@ -25,7 +29,11 @@ class StylesViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             getStylesUseCase()
                 .onSuccess { styles ->
-                    println("Styles: $styles")
+                    // Preload top 4 initial visible style thumbnail SVGs atomically
+                    val initialUrls = styles.take(4).mapNotNull { it.thumbnailUrl }
+                    if (initialUrls.isNotEmpty()) {
+                        preloadImageUrls(context, initialUrls)
+                    }
                     _uiState.update {
                         it.copy(
                             isLoading = false,

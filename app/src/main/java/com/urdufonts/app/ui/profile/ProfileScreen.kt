@@ -26,8 +26,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
@@ -122,6 +124,7 @@ fun ProfileScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ProfileScreenInternal(
     uiState: ProfileUiState,
@@ -135,50 +138,35 @@ internal fun ProfileScreenInternal(
     onLogout: () -> Unit,
     onGoogleSignIn: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Image(
-            painter = painterResource(R.drawable.drawar_bg),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.4f)
-                .align(Alignment.BottomCenter)
-        )
-
-        Column(
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            com.urdufonts.app.ui.components.SimpleTopAppBar(
+                title = if (uiState.isLoggedIn) "Profile" else "Account",
+                onBackClick = onBackClick,
+                containerColor = Color.White
+            )
+        }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 20.dp)
+                .padding(innerPadding)
         ) {
-            Row(
+            Image(
+                painter = painterResource(R.drawable.drawar_bg),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxHeight(0.4f)
+                    .align(Alignment.BottomCenter)
+            )
+
+            Column(
+                modifier = Modifier.fillMaxSize()
             ) {
-                TopBarButton(
-                    iconRes = R.drawable.ic_back,
-                    onClick = onBackClick,
-                    contentDescription = "Back"
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Settings",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = NunitoFontFamily,
-                    color = HeadingBlackColor
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AnimatedContent(
+                AnimatedContent(
                 targetState = uiState.isLoggedIn,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "profile_state"
@@ -208,6 +196,7 @@ internal fun ProfileScreenInternal(
 
         ProfileFooter(modifier = Modifier.align(Alignment.BottomCenter))
     }
+}
 }
 
 // ─── Logged-in view ───────────────────────────────────────────────────────────
@@ -585,12 +574,12 @@ private fun LoggedOutContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 6. Dynamic Toggle Account Mode Text Link
+                // 6. Dynamic Toggle  Mode Text Link
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (uiState.isSignUpMode) "Already have an account? " else "Don't have an account? ",
+                        text = if (uiState.isSignUpMode) "Already have an ? " else "Don't have an account? ",
                         fontSize = 13.sp,
                         fontFamily = NunitoFontFamily,
                         color = GreyColor

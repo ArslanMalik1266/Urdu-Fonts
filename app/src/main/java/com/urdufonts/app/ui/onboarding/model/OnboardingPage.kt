@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.onboarding.model
+package com.urdufonts.app.ui.onboarding.model
 
 data class OnboardingPage(
     val imageRes: Int,

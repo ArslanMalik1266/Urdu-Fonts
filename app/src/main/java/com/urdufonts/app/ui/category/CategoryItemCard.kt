@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import coil.compose.AsyncImage
 import com.urdufonts.app.domain.models.CategoryItem
 import com.urdufonts.app.ui.theme.AppColor
@@ -38,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import com.urdufonts.app.ui.util.figmaDropShadow
 import com.urdufonts.app.ui.util.figmaInnerShadow
 
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 
 // Define reusable style tokens at the top of your file to avoid magic values
@@ -51,6 +56,7 @@ fun CategoryItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    com.urdufonts.app.ui.util.LogItemRender("CategoriesScreen", category.id, category.title)
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -58,7 +64,6 @@ fun CategoryItemCard(
             .addPressEffect {
                 onClick()
             }
-            // A. Figma Drop shadow: X=4, Y=4, Blur=14.27, Color=Black (4% Opacity)
             .figmaDropShadow(
                 color = Color.Black.copy(alpha = 0.04f),
                 offsetX = 4.dp,
@@ -107,25 +112,24 @@ fun CategoryItemCard(
             overflow = TextOverflow.Ellipsis
         )
 
+        val context = LocalContext.current
+        val imageRequest = remember(category.thumbnailUrl) {
+            ImageRequest.Builder(context)
+                .data(category.thumbnailUrl)
+                .transformations(com.urdufonts.app.ui.util.TrimTransparentPaddingTransformation())
+                .crossfade(true)
+                .crossfade(300)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .build()
+        }
+
         Box(
             contentAlignment = Alignment.Center
         ) {
-            // Shadow Layer (Offset, Blurred, Soft dark-tint)
-            AsyncImage(
-                model = category.thumbnailUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .height(44.dp)
-                    .padding(horizontal = 4.dp)
-                    .offset(x = 1.dp, y = 1.5.dp)
-                    .blur(2.dp),
-                colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.15f))
-            )
-
             // Main Layer (Green tinted)
             AsyncImage(
-                model = category.thumbnailUrl,
+                model = imageRequest,
                 contentDescription = category.title,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier

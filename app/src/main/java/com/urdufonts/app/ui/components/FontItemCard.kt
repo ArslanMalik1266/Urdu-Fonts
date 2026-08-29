@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.components
+package com.urdufonts.app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.ui.theme.GreyColor
 import com.urdufonts.app.ui.theme.HeadingBlackColor
@@ -120,6 +124,7 @@ private fun FontItemPreview(
     fontItem: FontItem,
     onDownloadClick: (FontItem) -> Unit
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -130,7 +135,15 @@ private fun FontItemPreview(
             onClick = { onDownloadClick(fontItem) }
         )
         AsyncImage(
-            model = fontItem.featureImageUrl,
+            model = remember(fontItem.featureImageUrl) {
+                ImageRequest.Builder(context)
+                    .data(fontItem.featureImageUrl)
+                    .crossfade(true)
+                    .crossfade(300)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .build()
+            },
             contentDescription = fontItem.name,
             modifier = Modifier
                 .weight(1f)

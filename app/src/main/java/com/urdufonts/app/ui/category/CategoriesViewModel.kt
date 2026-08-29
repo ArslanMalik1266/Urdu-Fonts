@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.category
+package com.urdufonts.app.ui.category
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import android.content.Context
+import com.urdufonts.app.ui.util.preloadImageUrls
+
 class CategoriesViewModel(
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoriesUiState())
@@ -25,6 +29,11 @@ class CategoriesViewModel(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             getCategoriesUseCase()
                 .onSuccess { categories ->
+                    // Preload top 4 initial visible category thumbnail SVGs atomically
+                    val initialUrls = categories.take(4).mapNotNull { it.thumbnailUrl }
+                    if (initialUrls.isNotEmpty()) {
+                        preloadImageUrls(context, initialUrls)
+                    }
                     _uiState.update {
                         it.copy(
                             isLoading = false,

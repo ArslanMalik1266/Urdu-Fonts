@@ -43,7 +43,7 @@ fun ComposableWebsCareNative(
     if (activity != null) {
         Log.d(TAG, "ComposableWebsCareNative composed for Ad Unit: $adUnitId, size: $nativeSize")
         AndroidView(
-            modifier = if (isAdVisible) modifier.fillMaxWidth().wrapContentHeight() else Modifier.size(0.dp),
+            modifier = modifier.fillMaxWidth().wrapContentHeight(),
             factory = { ctx ->
                 Log.d(TAG, "Creating FrameLayout container for WebsCareAds.loadNative...")
                 FrameLayout(ctx).apply {
@@ -70,30 +70,10 @@ fun ComposableWebsCareNative(
                         }
                     })
 
-                    post {
+                    postDelayed({
                         try {
-                            Log.d(TAG, "Calling WebsCareAds.loadNative with activity: ${activity.localClassName}, Unit ID: $adUnitId")
+                            Log.d(TAG, "Calling WebsCareAds.loadNative (offloaded) for Unit ID: $adUnitId")
                             WebsCareAds.loadNative(activity, this, adUnitId, nativeSize)
-
-                            try {
-                                val adLoader = com.google.android.gms.ads.AdLoader.Builder(ctx, adUnitId)
-                                    .forNativeAd { nativeAd ->
-                                        Log.d(TAG, "🟢 [DIRECT_NATIVE_SUCCESS] Direct AdMob NativeAd LOADED SUCCESSFULLY! Headline: '${nativeAd.headline}'")
-                                    }
-                                    .withAdListener(object : com.google.android.gms.ads.AdListener() {
-                                        override fun onAdFailedToLoad(loadAdError: com.google.android.gms.ads.LoadAdError) {
-                                            Log.e(
-                                                TAG,
-                                                "🔴 [DIRECT_NATIVE_ERROR] Direct AdMob NativeAd FAILED TO LOAD! Code: ${loadAdError.code}, Message: '${loadAdError.message}', Domain: '${loadAdError.domain}', ResponseInfo: ${loadAdError.responseInfo}"
-                                            )
-                                        }
-                                    })
-                                    .build()
-                                adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Exception running direct Native AdMob diagnostic", e)
-                            }
-
                             if (childCount == 0) {
                                 isAdVisible = false
                                 visibility = View.GONE
@@ -103,7 +83,7 @@ fun ComposableWebsCareNative(
                             isAdVisible = false
                             visibility = View.GONE
                         }
-                    }
+                    }, 150)
                 }
             }
         )

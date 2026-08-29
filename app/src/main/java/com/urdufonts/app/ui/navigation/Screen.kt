@@ -15,4 +15,5 @@ sealed class Screen(val route: String) {
     }
     object Profile : Screen("profile")
     object Subscription : Screen("subscription")
+    object Settings : Screen("settings")
 }

@@ -1,4 +1,6 @@
-﻿package com.urdufonts.app.ui.home.drawer
+package com.urdufonts.app.ui.home.drawer
+
+import com.urdufonts.app.domain.models.MoreAppItem
 
 data class DrawerUiState(
     val isLoggedIn: Boolean = false,
@@ -7,5 +9,6 @@ data class DrawerUiState(
     val profileImageUrl: String? = null,
     val selectedItem: DrawerMenuItem? = null,
     val menuItems: List<DrawerMenuItem> = DrawerMenuItem.all,
-    val appVersion: String = "1.0.0"
+    val appVersion: String = "1.0.0",
+    val moreApps: List<MoreAppItem> = emptyList()
 )

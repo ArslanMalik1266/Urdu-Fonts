@@ -101,8 +101,15 @@ fun FontListScreen(
                         }
                     }
                     "content" -> {
+                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                        com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
+                            listState = listState,
+                            imageUrls = remember(uiState.fonts) { uiState.fonts.mapNotNull { it.featureImageUrl } },
+                            bufferAheadCount = 18
+                        )
                         Box(modifier = Modifier.clipToBounds()) {
                             LazyColumn(
+                                state = listState,
                                 modifier = Modifier.springOverscroll(),
                                 contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
                                 verticalArrangement = Arrangement.spacedBy(12.dp)

@@ -18,6 +18,9 @@ import com.urdufonts.app.domain.repo.StylesRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
+import com.urdufonts.app.data.repository.MoreAppsRepositoryImpl
+import com.urdufonts.app.domain.repo.MoreAppsRepository
+
 val dataModule = module {
 
     single { UserPreferences(androidContext()) }
@@ -41,7 +44,8 @@ val dataModule = module {
     single<BannerRepository>     { BannerRepositoryImpl() }
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }
     single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get(), categoryDao = get()) }
-    single<AuthRepository> { AuthRepositoryImpl(apiService = get(), userPreferences = get()) }
+    single<AuthRepository>       { AuthRepositoryImpl(apiService = get(), userPreferences = get()) }
     single<BillingRepository>    { BillingRepositoryImpl(context = androidContext(), userPreferences = get()) }
+    single<MoreAppsRepository>   { MoreAppsRepositoryImpl(apiService = get()) }
 
 }

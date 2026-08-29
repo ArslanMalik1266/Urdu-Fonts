@@ -19,7 +19,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.urdufonts.app.ui.util.ShimmerBox
@@ -46,14 +48,14 @@ fun FontDetailSkeleton(
             onTabSelected = onTabSelected
         )
 
-        // Shimmering placeholders inside a scrollable column (so the skeleton scrolls exactly like the real page)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .springOverscroll()
-                .padding(horizontal = 16.dp)
-        ) {
+        Box(modifier = Modifier.clipToBounds()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .springOverscroll()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 16.dp)
+            ) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // 1. Top Preview Card Placeholder
@@ -138,4 +140,5 @@ fun FontDetailSkeleton(
             Spacer(modifier = Modifier.height(120.dp)) // Bottom padding for FAB
         }
     }
+}
 }

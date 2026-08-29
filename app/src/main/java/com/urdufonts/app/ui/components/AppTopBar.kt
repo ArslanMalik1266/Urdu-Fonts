@@ -1,14 +1,15 @@
 package com.urdufonts.app.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -23,8 +24,8 @@ fun AppTopBar(
     onCartClick: () -> Unit = {},
     onSubscriptionClick: () -> Unit = {}
 ) {
-    CenterAlignedTopAppBar(
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent
         ),
         title = {
@@ -34,17 +35,17 @@ fun AppTopBar(
                 modifier = Modifier.wrapContentHeight()
             )
         },
-        navigationIcon = {
-            Box(modifier = Modifier.padding(start = 8.dp)) {
-                TopBarButton(
-                    iconRes = R.drawable.ic_drawer,
-                    onClick = onMenuClick,
-                    contentDescription = "Menu"
-                )
-            }
-        },
         actions = {
-            Box(modifier = Modifier.padding(end = 8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                TopBarButton(
+                    iconRes = R.drawable.ic_settings,
+                    onClick = onMenuClick,
+                    contentDescription = "Settings"
+                )
                 TopBarButton(
                     iconRes = R.drawable.ic_diamond,
                     onClick = onSubscriptionClick,

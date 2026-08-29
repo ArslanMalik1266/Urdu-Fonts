@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.baseScreen
+package com.urdufonts.app.ui.baseScreen
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring

@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.urdufonts.app.R
 import com.urdufonts.app.ui.navigation.Screen
@@ -46,8 +47,12 @@ fun MyBottomNavigationBar(
                 if (currentRoute == selectedItem.screen.route) {
                     return@SimpleBottomNavigationBar
                 }
+                com.urdufonts.app.ui.util.PerfDiagnostics.logTabTap(selectedItem.screen.route)
+                com.urdufonts.app.ui.util.PerfDiagnostics.logNavStart(selectedItem.screen.route)
                 navController.navigate(selectedItem.screen.route) {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
                     launchSingleTop = true
                     restoreState = true
                 }

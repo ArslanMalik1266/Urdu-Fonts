@@ -91,10 +91,7 @@ fun AppNavigation() {
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-
-            if (showBottomBar) {
-                BlurOverlay(modifier = Modifier.fillMaxSize())
-            }
+            BlurOverlay(modifier = Modifier.fillMaxSize())
             BaseScreen(
                 bottomBarVisible = showBottomBar,
                 bottomBar = {
@@ -108,8 +105,11 @@ fun AppNavigation() {
                     ) {
                         composable(Screen.Splash.route) {
                             com.urdufonts.app.ui.splash.SplashScreen(
+                                isOnboardingCompleted = false, // COMMENTED FOR TESTING: Forced to false so onboarding shows every time
                                 onNavigateNext = {
-                                    val nextRoute = if (isOnboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
+                                    // COMMENTED FOR TESTING: Forced to Onboarding screen every launch
+                                    // val nextRoute = if (isOnboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
+                                    val nextRoute = Screen.Onboarding.route
                                     navController.navigate(nextRoute) {
                                         popUpTo(Screen.Splash.route) { inclusive = true }
                                     }
@@ -130,7 +130,7 @@ fun AppNavigation() {
                         composable(Screen.Home.route) {
                             val viewModel: HomeViewModel = koinViewModel()
                             HomeScreen(
-                                onMenuClick = { scope.launch { drawerState.open() } },
+                                onMenuClick = { navController.navigate(Screen.Settings.route) },
                                 onFontClick = { fontId ->
                                     navController.navigate(Screen.fontDetail.createRoute(fontId))
                                     viewModel.clearSearch()
@@ -221,6 +221,21 @@ fun AppNavigation() {
                         composable(Screen.Subscription.route) {
                             SubscriptionScreen(
                                 onBackClick = { navController.popBackStack() }
+                            )
+                        }
+                        composable(Screen.Settings.route) {
+                            com.urdufonts.app.ui.settings.SettingsScreen(
+                                onBackClick = { navController.popBackStack() },
+                                onNavigateToHome = {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(Screen.Home.route) { inclusive = true }
+                                    }
+                                },
+                                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                                onNavigateToSubscription = { navController.navigate(Screen.Subscription.route) },
+                                onOpenWebPage = { url -> externalNavigator.openWebPage(url) },
+                                onOpenEmailSupport = { externalNavigator.openEmailSupport() },
+                                onRateUsClick = { externalNavigator.openPlayStoreForRating() }
                             )
                         }
                     }

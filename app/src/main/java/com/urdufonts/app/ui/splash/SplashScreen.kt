@@ -36,10 +36,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import com.urdufonts.app.R
 import com.urdufonts.app.ui.theme.DarkGreen
 import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
+import com.urdufonts.app.ui.util.figmaDropShadow
 import com.urdufonts.app.ui.util.softShadow
 import kotlinx.coroutines.delay
 
@@ -135,6 +147,7 @@ private fun HeartIcon(
 @Composable
 private fun FeatureBadgeItem(
     title: String,
+    shadowAlpha: Float = 1f,
     iconContent: @Composable () -> Unit
 ) {
     Column(
@@ -144,11 +157,12 @@ private fun FeatureBadgeItem(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .softShadow(
-                    shadowColor = HeadingBlackColor.copy(alpha = 0.02f),
-                    borderRadius = 14.dp,
-                    blurValue = 16.dp,
-                    offsetY = 0.dp
+                .figmaDropShadow(
+                    color = Color.Black.copy(alpha = 0.04f * shadowAlpha),
+                    offsetX = 0.dp,
+                    offsetY = 3.dp,
+                    blur = 10.dp,
+                    shape = RoundedCornerShape(14.dp)
                 )
                 .clip(RoundedCornerShape(14.dp))
                 .background(Color.White),
@@ -168,25 +182,146 @@ private fun FeatureBadgeItem(
 }
 
 @Composable
+private fun AnimatedFeatureBadgeWrapper(
+    index: Int,
+    isTriggered: Boolean,
+    content: @Composable (shadowAlpha: Float) -> Unit
+) {
+    var startAnim by remember { mutableStateOf(false) }
+    var showShadow by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isTriggered) {
+        if (isTriggered) {
+            delay(index * 90L) // 90ms slower liquid stagger delay for silky smooth cascading
+            startAnim = true
+            // Delay shadow fade-in until slide motion completes landing
+            delay(350L)
+            showShadow = true
+        }
+    }
+
+    val animatedOffsetY by animateDpAsState(
+        targetValue = if (startAnim) 0.dp else 40.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        ),
+        label = "badge_offset_$index"
+    )
+
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (startAnim) 1f else 0f,
+        animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+        label = "badge_alpha_$index"
+    )
+
+    val animatedScale by animateFloatAsState(
+        targetValue = if (startAnim) 1f else 0.84f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        ),
+        label = "badge_scale_$index"
+    )
+
+    val shadowAlpha by animateFloatAsState(
+        targetValue = if (showShadow) 1f else 0f,
+        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+        label = "shadow_alpha_$index"
+    )
+
+    Box(
+        modifier = Modifier.graphicsLayer {
+            translationY = animatedOffsetY.toPx()
+            alpha = animatedAlpha
+            scaleX = animatedScale
+            scaleY = animatedScale
+        }
+    ) {
+        content(shadowAlpha)
+    }
+}
+
+@Composable
 fun SplashScreen(
+    isOnboardingCompleted: Boolean = false,
     onNavigateNext: () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val activity = context as? android.app.Activity
     val adManager: com.urdufonts.app.ads.AdManager = org.koin.compose.koinInject()
+    var isBrandingVisible by remember { mutableStateOf(false) }
+    var isBadgesVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        if (activity != null) {
-            android.util.Log.d("WebsCareAdsLog", "SplashScreen LaunchedEffect -> Preloading App Open Ad in background...")
+        // Preload App Open Ad ONLY if user has completed onboarding and is going directly to Home Screen
+        if (isOnboardingCompleted && activity != null) {
+            android.util.Log.d("WebsCareAdsLog", "SplashScreen -> Returning user detected (Onboarding completed). Preloading App Open Ad...")
             adManager.preloadAppOpen(activity)
         }
 
-        // Allow Splash Screen branding to display completely for 2.0 seconds
-        delay(2000L)
+        // Step 1 (t = 60ms): Trigger 3D Logo Elastic Spring Pop & Brand Title Fade
+        delay(60L)
+        isBrandingVisible = true
 
-        android.util.Log.d("WebsCareAdsLog", "SplashScreen -> 2.0s branding completed. Navigating next...")
-        onNavigateNext()
+        // Step 2 (t = 560ms): Trigger Feature Badges Row after 500ms delay
+        delay(500L)
+        isBadgesVisible = true
+
+        // Step 3 (t = 3000ms): Allow full 3.0s branding & motion enjoyment (60 + 500 + 2440 = 3000ms)
+        delay(1600L)
+
+        if (isOnboardingCompleted && activity != null) {
+            android.util.Log.d("WebsCareAdsLog", "SplashScreen -> 3.0s branding completed. Showing App Open Ad before Home Screen...")
+            adManager.showAppOpenAd(activity) {
+                onNavigateNext()
+            }
+        } else {
+            android.util.Log.d("WebsCareAdsLog", "SplashScreen -> First-time user detected. Navigating to Onboarding cleanly without App Open Ad.")
+            onNavigateNext()
+        }
     }
+
+    // 3D Logo Card Elastic Spring Animations (Original Speed)
+    val logoScale by animateFloatAsState(
+        targetValue = if (isBrandingVisible) 1f else 0.72f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "logo_scale"
+    )
+
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (isBrandingVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "logo_alpha"
+    )
+
+    val logoOffsetY by animateDpAsState(
+        targetValue = if (isBrandingVisible) 0.dp else (-20).dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "logo_offset"
+    )
+
+    // Brand Title & Subtitle Fade & Slide Animations (Original Speed)
+    val titleAlpha by animateFloatAsState(
+        targetValue = if (isBrandingVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 100, easing = FastOutSlowInEasing),
+        label = "title_alpha"
+    )
+
+    val titleOffsetY by animateDpAsState(
+        targetValue = if (isBrandingVisible) 0.dp else 16.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "title_offset"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
@@ -207,55 +342,63 @@ fun SplashScreen(
             verticalArrangement = Arrangement.Center
         ) {
             // White Rounded Card with Shadow containing Urdu Splash Icon
-            Surface(
-                shape = RoundedCornerShape(26.dp),
-                color = Color.White,
-                shadowElevation = 10.dp,
-                tonalElevation = 2.dp,
-                modifier = Modifier.size(108.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .softShadow(
-                            shadowColor = HeadingBlackColor.copy(alpha = 0.01f),
-                            borderRadius = 26.dp,
-                            blurValue = 26.dp,
-                            offsetY = 0.dp
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.urdu_icon_splash),
-                        contentDescription = "Urdu Fonts Logo",
-                        modifier = Modifier
-                            .size(85.dp)
-                            .padding(4.dp)
+            Box(
+                modifier = Modifier
+                    .size(108.dp)
+                    .graphicsLayer {
+                        translationY = logoOffsetY.toPx()
+                        scaleX = logoScale
+                        scaleY = logoScale
+                        alpha = logoAlpha
+                    }
+                    .figmaDropShadow(
+                        color = Color.Black.copy(alpha = 0.06f),
+                        offsetX = 0.dp,
+                        offsetY = 4.dp,
+                        blur = 16.dp,
+                        shape = RoundedCornerShape(26.dp)
                     )
-                }
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.urdu_icon_splash),
+                    contentDescription = "Urdu Fonts Logo",
+                    modifier = Modifier
+                        .size(85.dp)
+                        .padding(4.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Main Brand Title
-            Text(
-                text = "UrduFonts.com",
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = NunitoFontFamily,
-                color = Color(0xFF185C37)
-            )
+            // Main Brand Title & Subtitle with Animated Entrance
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.graphicsLayer {
+                    translationY = titleOffsetY.toPx()
+                    alpha = titleAlpha
+                }
+            ) {
+                Text(
+                    text = "UrduFonts.com",
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = NunitoFontFamily,
+                    color = Color(0xFF185C37)
+                )
 
-            Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
-            // Subtitle
-            Text(
-                text = "Urdu Font Library",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = NunitoFontFamily,
-                color = Color(0xFF729B8D)
-            )
+                Text(
+                    text = "Urdu Font Library",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = NunitoFontFamily,
+                    color = Color(0xFF729B8D)
+                )
+            }
 
             Spacer(modifier = Modifier.height(56.dp))
 
@@ -269,14 +412,16 @@ fun SplashScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 1. Browse ("Aa")
-                FeatureBadgeItem(title = "Browse") {
-                    Text(
-                        text = "Aa",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = NunitoFontFamily,
-                        color = Color(0xFF185C37)
-                    )
+                AnimatedFeatureBadgeWrapper(index = 0, isTriggered = isBadgesVisible) { shadowAlpha ->
+                    FeatureBadgeItem(title = "Browse", shadowAlpha = shadowAlpha) {
+                        Text(
+                            text = "Aa",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            fontFamily = NunitoFontFamily,
+                            color = Color(0xFF185C37)
+                        )
+                    }
                 }
 
                 Divider(
@@ -287,13 +432,15 @@ fun SplashScreen(
                 )
 
                 // 2. Preview (preview_icon_splash Image)
-                FeatureBadgeItem(title = "Preview") {
-                    Icon(
-                        painter = painterResource(id = R.drawable.preview_icon_splash),
-                        contentDescription = "Preview",
-                        tint = Color(0xFF185C37),
-                        modifier = Modifier.size(24.dp)
-                    )
+                AnimatedFeatureBadgeWrapper(index = 1, isTriggered = isBadgesVisible) { shadowAlpha ->
+                    FeatureBadgeItem(title = "Preview", shadowAlpha = shadowAlpha) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.preview_icon_splash),
+                            contentDescription = "Preview",
+                            tint = Color(0xFF185C37),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 Divider(
@@ -304,13 +451,15 @@ fun SplashScreen(
                 )
 
                 // 3. Download (Cloud Download Icon)
-                FeatureBadgeItem(title = "Download") {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_cloud_download),
-                        contentDescription = "ic_cloud_download",
-                        tint = Color(0xFF185C37),
-                        modifier = Modifier.size(24.dp)
-                    )
+                AnimatedFeatureBadgeWrapper(index = 2, isTriggered = isBadgesVisible) { shadowAlpha ->
+                    FeatureBadgeItem(title = "Download", shadowAlpha = shadowAlpha) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_cloud_download),
+                            contentDescription = "ic_cloud_download",
+                            tint = Color(0xFF185C37),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 Divider(
@@ -321,13 +470,15 @@ fun SplashScreen(
                 )
 
                 // 4. Favorites (Outline Heart Icon)
-                FeatureBadgeItem(title = "Favorites") {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_favorite),
-                        contentDescription = "ic_favorite",
-                        tint = Color(0xFF185C37),
-                        modifier = Modifier.size(24.dp)
-                    )
+                AnimatedFeatureBadgeWrapper(index = 3, isTriggered = isBadgesVisible) { shadowAlpha ->
+                    FeatureBadgeItem(title = "Favorites", shadowAlpha = shadowAlpha) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_favorite),
+                            contentDescription = "ic_favorite",
+                            tint = Color(0xFF185C37),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }

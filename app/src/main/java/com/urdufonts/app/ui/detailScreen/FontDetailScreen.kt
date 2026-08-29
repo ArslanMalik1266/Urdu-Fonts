@@ -61,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -460,12 +461,13 @@ private fun FontDetailContent(
             }
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .springOverscroll()
-        ) {
+        Box(modifier = Modifier.clipToBounds()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .springOverscroll()
+                    .verticalScroll(scrollState)
+            ) {
             // ── FONT section ─────────────────────────────────────────
             Column(
                 modifier = Modifier
@@ -618,6 +620,7 @@ private fun FontDetailContent(
         }
     }
 }
+}
 
 // Internal accessibility so FontDetailSkeleton.kt can draw it as a static anchor
 @Composable
@@ -650,9 +653,9 @@ internal fun DetailTabRow(
                 if (isSelected) {
                     Box(
                         modifier = Modifier
-                            .width(20.dp)
+                            .width(32.dp)
                             .height(2.dp)
-                            .background(AppColor, RoundedCornerShape(1.dp))
+                            .background(AppColor, RoundedCornerShape(2.dp))
                     )
                 }
             }
@@ -676,6 +679,7 @@ private fun FontPreviewCard(
             .height(150.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(color = GreyColor.copy(alpha = 0.06f))
+            .springOverscroll()
             .verticalScroll(cardScrollState)
             .padding(horizontal = 8.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,

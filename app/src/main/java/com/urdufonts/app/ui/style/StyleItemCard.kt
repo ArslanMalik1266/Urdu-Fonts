@@ -30,6 +30,22 @@ import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
 import com.urdufonts.app.ui.util.addPressEffect
 import com.urdufonts.app.ui.util.softShadow
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.graphicsLayer
+
+private val StyleCardShape = RoundedCornerShape(12.dp)
+private val StyleCardBackgroundBrush = Brush.horizontalGradient(
+    colors = listOf(
+        Color(0xFFFFFFFF),
+        Color(0xFFFFFFFF),
+        Color(0xFFFFFFFF),
+        Color(0xFFFFFFFF),
+        Color(0xFFF9FEF8),
+        Color(0xFFEAFBE6)
+    )
+)
 
 @Composable
 fun StyleItemCard(
@@ -37,6 +53,8 @@ fun StyleItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    com.urdufonts.app.ui.util.LogItemRender("StylesScreen", style.id, style.title)
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -51,23 +69,12 @@ fun StyleItemCard(
                 borderRadius = 12.dp
 
             )
-            .clip(RoundedCornerShape(12.dp))
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        Color(0xFFFFFFFF),
-                        Color(0xFFFFFFFF),
-                        Color(0xFFFFFFFF),
-                        Color(0xFFFFFFFF),
-                        Color(0xFFF9FEF8),
-                        Color(0xFFEAFBE6)
-                    )
-                )
-            )
+            .clip(StyleCardShape)
+            .background(brush = StyleCardBackgroundBrush)
             .border(
                 width = 1.dp,
                 color = GreyColor.copy(alpha = 0.05f),
-                shape = RoundedCornerShape(12.dp)
+                shape = StyleCardShape
             )
             .padding(horizontal = 24.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterStart
@@ -87,10 +94,20 @@ fun StyleItemCard(
 
             )
 
-            AsyncImage(
-                model = style.thumbnailUrl,
-                contentDescription = "",
-                modifier = Modifier.height(40.dp),
+            val context = androidx.compose.ui.platform.LocalContext.current
+            coil.compose.AsyncImage(
+                model = androidx.compose.runtime.remember(style.thumbnailUrl) {
+                    coil.request.ImageRequest.Builder(context)
+                        .data(style.thumbnailUrl)
+                        .transformations(com.urdufonts.app.ui.util.TrimTransparentPaddingTransformation())
+                        .crossfade(true)
+                        .crossfade(300)
+                        .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                        .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                        .build()
+                },
+                contentDescription = style.title,
+                modifier = Modifier.height(36.dp),
                 colorFilter = ColorFilter.tint(AppColor)
             )
         }

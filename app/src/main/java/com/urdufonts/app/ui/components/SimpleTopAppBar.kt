@@ -28,6 +28,7 @@ fun SimpleTopAppBar(
     containerColor: Color = Color.Transparent
 ) {
     TopAppBar(
+        modifier = Modifier.padding(horizontal = 4.dp),
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = containerColor
         ),
