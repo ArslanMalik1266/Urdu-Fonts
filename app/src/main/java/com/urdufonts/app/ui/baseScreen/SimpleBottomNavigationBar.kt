@@ -165,7 +165,7 @@ fun SimpleBottomNavigationBar(
                 val isSelected = index == selectedIndex
 
                 val iconScale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.18f else 1.0f,
+                    targetValue = if (isSelected) 1.15f else 1.0f,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessMedium
@@ -185,8 +185,9 @@ fun SimpleBottomNavigationBar(
                         },
                     contentAlignment = Alignment.Center
                 ) {
+                    val currentIconRes = if (isSelected) item.selectedIcon else item.icon
                     Icon(
-                        imageVector = ImageVector.vectorResource(item.icon),
+                        imageVector = ImageVector.vectorResource(currentIconRes),
                         contentDescription = item.label,
                         tint = if (isSelected) indicatorColor else iconTint,
                         modifier = Modifier

@@ -170,11 +170,21 @@ fun FontDetailScreen(
                     if (isSuccess) {
                         (context as? android.app.Activity)?.let { activity ->
                             android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> Calling showDownloadInterstitialWithCooldown")
-                            adManager.showDownloadInterstitialWithCooldown(activity) {}
-                        } ?: android.util.Log.w("WebsCareAdsLog", "FontDetailScreen -> Activity is null, cannot show interstitial")
-                    }
-                    scope.launch {
-                        snackbarHostState.showSnackbar(message = event.message)
+                            adManager.showDownloadInterstitialWithCooldown(activity) {
+                                // 🟢 Trigger snackbar AFTER ad is dismissed by user
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(message = event.message)
+                                }
+                            }
+                        } ?: run {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(message = event.message)
+                            }
+                        }
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(message = event.message)
+                        }
                     }
                 }
             }
@@ -342,20 +352,6 @@ fun FontDetailScreen(
 }
 
 // ─── Visible fraction helper ─────────────────────────────────────────────────
-private fun visibleFraction(
-    sectionY: Float,
-    sectionH: Float,
-    scrollY: Float,
-    screenH: Float
-): Float {
-    if (sectionH == 0f) return 0f
-    val top = sectionY - scrollY
-    val bottom = top + sectionH
-    val visibleTop = maxOf(top, 0f)
-    val visibleBottom = minOf(bottom, screenH)
-    return if (visibleBottom > visibleTop) (visibleBottom - visibleTop) / sectionH else 0f
-}
-
 @Composable
 private fun FontDetailContent(
     uiState: FontDetailUiState,
@@ -376,7 +372,7 @@ private fun FontDetailContent(
 
     var userSelectedTab by remember { mutableStateOf<DetailTab?>(null) }
     var isAboutExpanded by remember { mutableStateOf(false) }
-    var isUserScrolling by remember { mutableStateOf(false) }
+    var isProgrammaticScroll by remember { mutableStateOf(false) }
 
     var fontSectionY by remember { mutableStateOf(0f) }
     var fontSectionH by remember { mutableStateOf(0f) }
@@ -389,44 +385,35 @@ private fun FontDetailContent(
     var infoSectionY by remember { mutableStateOf(0f) }
     var infoSectionH by remember { mutableStateOf(0f) }
 
-    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
-    val screenHeightPx = with(LocalDensity.current) { screenHeightDp.toPx() }
+    val density = LocalDensity.current
+    val thresholdPx = with(density) { 100.dp.toPx() }
     val scrollY = scrollState.value.toFloat()
+    val isAtTop = scrollState.value <= 20
 
-    val fractions = mapOf(
-        DetailTab.FONT to visibleFraction(fontSectionY, fontSectionH, scrollY, screenHeightPx),
-        DetailTab.PREVIEW to visibleFraction(
-            previewSectionY,
-            previewSectionH,
-            scrollY,
-            screenHeightPx
-        ),
-        DetailTab.STYLES to visibleFraction(
-            stylesSectionY,
-            stylesSectionH,
-            scrollY,
-            screenHeightPx
-        ),
-        DetailTab.ABOUT to visibleFraction(aboutSectionY, aboutSectionH, scrollY, screenHeightPx),
-        DetailTab.INFO to visibleFraction(infoSectionY, infoSectionH, scrollY, screenHeightPx),
-    )
-
-    val scrollDerivedTab = fractions.maxByOrNull { it.value }?.key ?: DetailTab.FONT
-    val activeTab = userSelectedTab ?: scrollDerivedTab
-
-    var lastScrollValue by remember { mutableStateOf(0) }
-
-    LaunchedEffect(scrollState.value) {
-        val current = scrollState.value
-        if (!isUserScrolling && current != lastScrollValue) {
-            userSelectedTab = null
+    val scrollDerivedTab = when {
+        isAtTop -> DetailTab.FONT
+        else -> {
+            val currentY = scrollY + thresholdPx
+            when {
+                infoSectionY > 0f && currentY >= infoSectionY -> DetailTab.INFO
+                aboutSectionY > 0f && currentY >= aboutSectionY -> DetailTab.ABOUT
+                stylesSectionY > 0f && currentY >= stylesSectionY -> DetailTab.STYLES
+                previewSectionY > 0f && currentY >= previewSectionY -> DetailTab.PREVIEW
+                else -> DetailTab.FONT
+            }
         }
-        lastScrollValue = current
     }
 
+    val activeTab = userSelectedTab ?: scrollDerivedTab
+
+    // Clear clicked tab override ONLY when user manually drags/swipes with finger
     LaunchedEffect(scrollState.isScrollInProgress) {
-        if (!scrollState.isScrollInProgress && isUserScrolling) {
-            isUserScrolling = false
+        if (scrollState.isScrollInProgress) {
+            if (!isProgrammaticScroll) {
+                userSelectedTab = null
+            }
+        } else {
+            isProgrammaticScroll = false
         }
     }
 
@@ -446,7 +433,7 @@ private fun FontDetailContent(
             onTabSelected = { tab ->
                 onTabSelected(tab)
                 userSelectedTab = tab
-                isUserScrolling = true
+                isProgrammaticScroll = true
                 isAboutExpanded = (tab == DetailTab.ABOUT)
                 coroutineScope.launch {
                     val target = when (tab) {

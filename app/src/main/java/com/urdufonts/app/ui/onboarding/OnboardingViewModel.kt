@@ -12,19 +12,23 @@ class OnboardingViewModel(
 ) : ViewModel() {
     val pages = listOf(
         OnboardingPage(
-            R.drawable.onboarding_screen_one,
+            R.drawable.onboarding_one_image,
             "All Your Urdu Fonts",
-            "Browse, preview, download & use your favourite Urdu fonts on your mobile"
+            "Browse, preview, download & use your favourite Urdu fonts on your mobile",
+            dotsImageRes = R.drawable.dots_image
         ),
         OnboardingPage(
-            R.drawable.onboarding_screen_two,
+            R.drawable.onboarding_two_screen,
             "Choose from Categories",
-            "Explore variety of Urdu fonts and instantly preview them on your mobile."
+            "Explore variety of Urdu fonts and instantly preview them on your mobile.",
+            dotsImageRes = R.drawable.dots_image,
+            dotCount = 4
         ),
         OnboardingPage(
             R.drawable.onboarding_screen_three,
             "Browse Font Styles",
-            "Find your perfect font arranged by styles like bold, round, thin, condensed etc."
+            "Find your perfect font arranged by styles like bold, round, thin, condensed etc.",
+            hasFloatingAnimation = true
         )
     )
 

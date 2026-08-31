@@ -21,9 +21,9 @@ fun MyBottomNavigationBar(
 ) {
     val items = remember {
         listOf(
-            NavBarItem(screen = Screen.Home, icon = R.drawable.ic_home, label = "Home"),
-            NavBarItem(screen = Screen.styles, icon = R.drawable.ic_styles, label = "Styles"),
-            NavBarItem(screen = Screen.categories, icon = R.drawable.ic_categories, label = "Categories"),
+            NavBarItem(screen = Screen.Home, icon = R.drawable.ic_home, selectedIcon = R.drawable.ic_home_selected, label = "Home"),
+            NavBarItem(screen = Screen.styles, icon = R.drawable.ic_styles, selectedIcon = R.drawable.ic_styles_selected, label = "Styles"),
+            NavBarItem(screen = Screen.categories, icon = R.drawable.ic_categories, selectedIcon = R.drawable.ic_categories_selected, label = "Categories"),
         )
     }
 

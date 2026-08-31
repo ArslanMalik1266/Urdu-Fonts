@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,14 +44,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.MoreAppItem
 import com.urdufonts.app.ui.components.SimpleTopAppBar
 import com.urdufonts.app.ui.home.HomeViewModel
+import com.urdufonts.app.ui.theme.AppColor
 import com.urdufonts.app.ui.theme.DarkGreen
 import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
@@ -100,6 +104,18 @@ fun SettingsScreen(
     val context = LocalContext.current
     val appVersion = remember(context) { getAppVersionName(context) }
     var cacheSizeText by remember { mutableStateOf(calculateCacheSize(context)) }
+    var showClearCacheDialog by remember { mutableStateOf(false) }
+
+    if (showClearCacheDialog) {
+        ClearCacheConfirmationDialog(
+            onDismiss = { showClearCacheDialog = false },
+            onConfirm = {
+                showClearCacheDialog = false
+                clearAppCache(context)
+                cacheSizeText = calculateCacheSize(context)
+            }
+        )
+    }
 
     Scaffold(
         containerColor = BackgroundColor,
@@ -166,8 +182,7 @@ fun SettingsScreen(
                         trailingText = cacheSizeText,
                         showDivider = false,
                         onClick = {
-                            clearAppCache(context)
-                            cacheSizeText = calculateCacheSize(context)
+                            showClearCacheDialog = true
                         }
                     )
                 }
@@ -590,5 +605,114 @@ private fun clearAppCache(context: Context) {
         Toast.makeText(context, "Cache cleared successfully", Toast.LENGTH_SHORT).show()
     } catch (e: Exception) {
         Toast.makeText(context, "Failed to clear cache", Toast.LENGTH_SHORT).show()
+    }
+}
+
+// ─── Confirmation Dialog ───────────────────────────────────────────────────────
+
+@Composable
+private fun ClearCacheConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White)
+                .padding(24.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Icon Header in soft tint circle
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(AppColor.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_cloud_download),
+                        contentDescription = null,
+                        tint = AppColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Title
+                Text(
+                    text = "Clear Cache?",
+                    fontSize = 18.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = HeadingBlackColor,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Subtitle
+                Text(
+                    text = "Are you sure you want to clear temporary app cache files? This will free up storage space.",
+                    fontSize = 14.sp,
+                    fontFamily = NunitoFontFamily,
+                    color = Color(0xFF6B7280),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Action Buttons Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Cancel Button
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .addPressEffect { onDismiss() }
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF6B7280)
+                        )
+                    }
+
+                    // Confirm Clear Button
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .addPressEffect { onConfirm() }
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(AppColor)
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "Clear Cache",
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+        }
     }
 }

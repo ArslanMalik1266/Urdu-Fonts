@@ -49,6 +49,31 @@ fun OnboardingScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
+        // ── 1. Top Bar with Skip Button at Top Right ─────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            Box(
+                modifier = Modifier
+                    .addPressEffect { viewModel.onSkipClicked(onNavigateToHome) }
+                    .clip(RoundedCornerShape(14.dp))
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Skip",
+                    color = GreyColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontFamily = NunitoFontFamily
+                )
+            }
+        }
+
+        // ── 2. Onboarding Page Content ───────────────────────────────────────
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -61,76 +86,52 @@ fun OnboardingScreen(
                 pageOffset = pageOffset
             )
         }
-        Column(
+
+        // ── 3. Page Indicator (positioned close to Subtitle) ─────────────────
+        CustomPageIndicator(
+            pageCount = pages.size,
+            currentPage = pagerState.currentPage
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // ── 4. Full-Width Action Button (Continue / Get Started) ─────────────
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CustomPageIndicator(
-                pageCount = pages.size,
-                currentPage = pagerState.currentPage
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp)
-                        .addPressEffect { viewModel.onSkipClicked(onNavigateToHome) }
-                        .clip(RoundedCornerShape(14.dp))
-                        .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Text(
-                        text = "Skip",
-                        color = GreyColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        fontFamily = NunitoFontFamily
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp)
-                        .addPressEffect {
-                            scope.launch {
-                                if (pagerState.currentPage < pages.size - 1) {
-                                    pagerState.animateScrollToPage(
-                                        page = pagerState.currentPage + 1,
-                                        animationSpec = tween(
-                                            durationMillis = 650,
-                                            easing = FastOutSlowInEasing
-                                        )
-                                    )
-                                } else {
-                                    viewModel.onContinueClicked(
-                                        pagerState.currentPage,
-                                        onNavigateToHome
-                                    )
-                                }
-                            }
+                .padding(horizontal = 24.dp)
+                .height(52.dp)
+                .addPressEffect {
+                    scope.launch {
+                        if (pagerState.currentPage < pages.size - 1) {
+                            pagerState.animateScrollToPage(
+                                page = pagerState.currentPage + 1,
+                                animationSpec = tween(
+                                    durationMillis = 650,
+                                    easing = FastOutSlowInEasing
+                                )
+                            )
+                        } else {
+                            viewModel.onContinueClicked(
+                                pagerState.currentPage,
+                                onNavigateToHome
+                            )
                         }
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(DarkGreen),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Continue",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        fontFamily = NunitoFontFamily
-                    )
+                    }
                 }
-            }
+                .clip(RoundedCornerShape(18.dp))
+                .background(DarkGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Continue",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                fontFamily = NunitoFontFamily
+            )
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
