@@ -47,7 +47,6 @@ import kotlinx.coroutines.launch
 fun DownloadLimitBottomSheet(
     onDismiss: () -> Unit,
     onUpgradeToPremium: () -> Unit,
-    onWatchAdToDownload: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     val scope = rememberCoroutineScope()
@@ -118,7 +117,7 @@ fun DownloadLimitBottomSheet(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "You have used your 5 free font downloads limit. Upgrade to Premium for unlimited downloads or watch a short ad to download this font.",
+                text = "You have reached your limit of 5 free font downloads for today. Go to Pro to download unlimited fonts!",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = NunitoFontFamily,
@@ -163,42 +162,6 @@ fun DownloadLimitBottomSheet(
                         fontWeight = FontWeight.Bold,
                         fontFamily = NunitoFontFamily,
                         color = Color.White
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Option 2: Watch Ad to Download Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .addPressEffect {
-                        animateAndExecute(onWatchAdToDownload)
-                    }
-                    .clip(CircleShape)
-                    .background(Color(0xFFEFF7F2))
-                    .border(width = 1.5.dp, color = DarkGreen, shape = CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_download),
-                        contentDescription = null,
-                        tint = DarkGreen,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Watch Ad to Download",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = NunitoFontFamily,
-                        color = DarkGreen
                     )
                 }
             }

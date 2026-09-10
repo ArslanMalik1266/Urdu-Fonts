@@ -46,4 +46,6 @@ val domainModule = module {
     factory { RestoreSubscriptionUseCase(get()) }
     factory { CheckSubscriptionStatusUseCase(get()) }
     factory { GetMoreAppsUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.CheckProStatusUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.GetActivePlanTypeUseCase(get()) }
 }

@@ -24,6 +24,6 @@ val presentationModule = module {
     viewModel { FontListViewModel(get(), get(), androidContext()) } // Only needs GetFontsUseCase and SavedStateHandle
     viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get()) }
-    viewModel { SubscriptionViewModel(get(), get(), get(), get()) }
+    viewModel { SubscriptionViewModel(get(), get(), get(), get(), get(), get()) }
     single { FontDownloadManager(get()) }
 }

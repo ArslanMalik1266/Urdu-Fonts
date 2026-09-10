@@ -1,9 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 
 }
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+val bearerToken = localProperties.getProperty("BEARER_TOKEN") ?: "10|BMT6MLAPGvTcjOZ7ZGQMCgJROsMmakaDkD17LcRJ2f0dc5e8"
+
 val appVersionCode = 4
 val appVersionName = "1.0.4"
 
@@ -22,6 +32,8 @@ android {
         targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName
+
+        buildConfigField("String", "BEARER_TOKEN", "\"$bearerToken\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

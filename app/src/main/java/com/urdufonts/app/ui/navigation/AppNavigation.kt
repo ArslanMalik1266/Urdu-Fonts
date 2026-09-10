@@ -220,7 +220,8 @@ fun AppNavigation() {
                         }
                         composable(Screen.Subscription.route) {
                             SubscriptionScreen(
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.popBackStack() },
+                                onNavigateToLogin = { navController.navigate(Screen.Profile.route) }
                             )
                         }
                         composable(Screen.Settings.route) {

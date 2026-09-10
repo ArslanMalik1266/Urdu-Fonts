@@ -117,6 +117,9 @@ fun SettingsScreen(
         )
     }
 
+    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
+    val userEntitlements by entitlementRepository.entitlementsFlow.collectAsStateWithLifecycle(initialValue = com.urdufonts.app.domain.models.UserEntitlements())
+
     Scaffold(
         containerColor = BackgroundColor,
         topBar = {
@@ -148,6 +151,7 @@ fun SettingsScreen(
                     userName = drawerUiState.userName,
                     userSubtitle = drawerUiState.userSubtitle,
                     profileImageUrl = drawerUiState.profileImageUrl,
+                    activePlanType = userEntitlements.activeSubscriptionType,
                     onLoginClick = onNavigateToProfile,
                     onManageSubscription = onNavigateToSubscription
                 )
@@ -283,6 +287,7 @@ private fun SettingsUserCard(
     userName: String?,
     userSubtitle: String,
     profileImageUrl: String?,
+    activePlanType: com.urdufonts.app.domain.models.SubscriptionType?,
     onLoginClick: () -> Unit,
     onManageSubscription: () -> Unit
 ) {
@@ -301,7 +306,7 @@ private fun SettingsUserCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (isLoggedIn) Color(0xFFE7F5EC) else Color(0xFFF0F2EF)),
+                        .background(if (isLoggedIn || activePlanType != null) Color(0xFFE7F5EC) else Color(0xFFF0F2EF)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isLoggedIn && !profileImageUrl.isNullOrBlank()) {
@@ -328,6 +333,17 @@ private fun SettingsUserCard(
                     }
                 }
 
+                val planSubtitleText = when (activePlanType) {
+                    com.urdufonts.app.domain.models.SubscriptionType.MONTHLY -> "Monthly Plan Active"
+                    com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS -> "6-Months Plan Active"
+                    com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> "Lifetime Access Active"
+                    null -> if (isLoggedIn) {
+                        if (userSubtitle.isNotBlank() && userSubtitle != "Access premium Urdu fonts") userSubtitle else "Free Plan"
+                    } else {
+                        userSubtitle.ifBlank { "Access premium Urdu fonts" }
+                    }
+                }
+
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = if (isLoggedIn && !userName.isNullOrBlank()) userName else "Join Urdu Fonts",
@@ -337,7 +353,7 @@ private fun SettingsUserCard(
                         fontFamily = NunitoFontFamily
                     )
                     Text(
-                        text = if (isLoggedIn) "Premium active · All fonts unlocked" else userSubtitle.ifBlank { "Access premium Urdu fonts" },
+                        text = planSubtitleText,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         color = Color(0xFF8B928D),

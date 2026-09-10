@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import com.urdufonts.app.domain.models.UserSession
 
 // Define the DataStore delegate at the top of the file
@@ -30,21 +31,52 @@ class UserPreferences(private val context: Context) {
         private val SUBSCRIPTION_PLAN_KEY = stringPreferencesKey("subscription_plan")
         private val SUBSCRIPTION_PURCHASE_TOKEN_KEY = stringPreferencesKey("subscription_purchase_token")
         private val DOWNLOAD_COUNT_KEY = intPreferencesKey("download_count")
+        private val FIRST_DOWNLOAD_TIMESTAMP_KEY = longPreferencesKey("first_download_timestamp")
+
+        fun getAnonymousDeviceId(context: Context): String {
+            val androidId = android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                android.provider.Settings.Secure.ANDROID_ID
+            ) ?: "unknown_device"
+            val hashBytes = java.security.MessageDigest.getInstance("SHA-256")
+                .digest(androidId.toByteArray(Charsets.UTF_8))
+            val sha256Hex = hashBytes.joinToString("") { "%02x".format(it) }
+            return "anon_android_$sha256Hex"
+        }
     }
 
-    // Read download count (returns a Flow)
+    // Read download count with automatic 24-hour expiration check (returns a Flow)
     val downloadCount: Flow<Int> = context.dataStore.data
         .map { preferences ->
-            preferences[DOWNLOAD_COUNT_KEY] ?: 0
+            val count = preferences[DOWNLOAD_COUNT_KEY] ?: 0
+            val timestamp = preferences[FIRST_DOWNLOAD_TIMESTAMP_KEY] ?: 0L
+            val now = System.currentTimeMillis()
+            val twentyFourHours = 24 * 60 * 60 * 1000L
+
+            if (timestamp > 0L && now - timestamp >= twentyFourHours) {
+                0
+            } else {
+                count
+            }
         }
 
-    // Increment download count and return new value
+    // Increment download count and return new value, enforcing 24-hour window
     suspend fun incrementDownloadCount(): Int {
         var updated = 0
         context.dataStore.edit { preferences ->
             val current = preferences[DOWNLOAD_COUNT_KEY] ?: 0
-            updated = current + 1
-            preferences[DOWNLOAD_COUNT_KEY] = updated
+            val timestamp = preferences[FIRST_DOWNLOAD_TIMESTAMP_KEY] ?: 0L
+            val now = System.currentTimeMillis()
+            val twentyFourHours = 24 * 60 * 60 * 1000L
+
+            if (timestamp == 0L || now - timestamp >= twentyFourHours) {
+                updated = 1
+                preferences[DOWNLOAD_COUNT_KEY] = 1
+                preferences[FIRST_DOWNLOAD_TIMESTAMP_KEY] = now
+            } else {
+                updated = current + 1
+                preferences[DOWNLOAD_COUNT_KEY] = updated
+            }
         }
         return updated
     }

@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +52,7 @@ import com.urdufonts.app.ui.theme.DarkGreen
 import com.urdufonts.app.ui.theme.GreyColor
 import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
+import com.urdufonts.app.ui.theme.YellowColor
 import com.urdufonts.app.ui.util.addPressEffect
 import com.urdufonts.app.ui.util.softShadow
 import org.koin.androidx.compose.koinViewModel
@@ -58,6 +60,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SubscriptionScreen(
     onBackClick: () -> Unit,
+    onNavigateToLogin: () -> Unit = {},
     viewModel: SubscriptionViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -227,21 +230,53 @@ fun SubscriptionScreen(
                     Text(
                         text = "Go Premium",
                         fontSize = 28.sp,
+                        lineHeight = 30.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = NunitoFontFamily,
                         color = Color(0xFF0F4C2A)
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(1.dp))
 
                     Text(
                         text = "Unlock all premium features and\nenhance your font experience",
                         fontSize = 14.sp,
+                        lineHeight = 16.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = NunitoFontFamily,
                         color = HeadingBlackColor.copy(alpha = 0.65f),
                         textAlign = TextAlign.Center
                     )
+
+                    uiState.pendingChange?.let { pending ->
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFFFFFBEB),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF59E0B)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_pass),
+                                    contentDescription = null,
+                                    tint = Color(0xFFD97706),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Plan change scheduled: ${pending.planName ?: pending.productSku ?: "Monthly"} taking effect on ${pending.effectiveAt ?: "next billing date"}.",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = NunitoFontFamily,
+                                    color = Color(0xFF92400E)
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -250,9 +285,16 @@ fun SubscriptionScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         uiState.options.forEach { option ->
+                            val isCurrentPlan = when (uiState.activePlanType) {
+                                com.urdufonts.app.domain.models.SubscriptionType.MONTHLY -> option.id == "monthly-plan"
+                                com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS -> option.id == "6-month-plan"
+                                com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> option.id == "urdu_fonts_lifetime" || option.id == "lifetime-purchase"
+                                null -> false
+                            }
                             SubscriptionOptionCard(
                                 option = option,
                                 isSelected = option.id == uiState.selectedOptionId,
+                                isCurrentPlan = isCurrentPlan,
                                 onClick = { viewModel.selectOption(option.id) }
                             )
                         }
@@ -268,13 +310,19 @@ fun SubscriptionScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    val buttonText = viewModel.getActionButtonText(uiState)
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp)
                             .addPressEffect(onClick = {
-                                if (activity != null) {
-                                    viewModel.purchase(activity)
+                                if (buttonText == "Manage Subscription") {
+                                    viewModel.openManageSubscriptions(context)
+                                } else if (activity != null && buttonText != "Lifetime Access Active") {
+                                    viewModel.purchase(activity) {
+                                        onNavigateToLogin()
+                                    }
                                 }
                             })
                             .softShadow(
@@ -299,7 +347,7 @@ fun SubscriptionScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = if (uiState.isPurchasing) "Processing..." else "Continue",
+                                text = buttonText,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = NunitoFontFamily,
@@ -362,8 +410,12 @@ fun SubscriptionScreen(
 private fun SubscriptionOptionCard(
     option: SubscriptionOption,
     isSelected: Boolean,
+    isCurrentPlan: Boolean,
     onClick: () -> Unit
 ) {
+    val showTopBadge = isCurrentPlan || option.isMostPopular
+    val displayPrice = remember(option.priceText) { option.priceText.removeSuffix(".00") }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -391,7 +443,7 @@ private fun SubscriptionOptionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 16.dp),
+                .padding(horizontal = 12.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -415,11 +467,11 @@ private fun SubscriptionOptionCard(
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFEFF7F2)),
                 contentAlignment = Alignment.Center
@@ -432,12 +484,12 @@ private fun SubscriptionOptionCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = option.title,
-                    fontSize = 16.sp,
+                    fontSize = 15.5.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = NunitoFontFamily,
                     color = HeadingBlackColor
@@ -450,9 +502,37 @@ private fun SubscriptionOptionCard(
                     fontFamily = NunitoFontFamily,
                     color = GreyColor
                 )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(horizontalAlignment = Alignment.End) {
+                if (showTopBadge) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
+                Text(
+                    text = displayPrice,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = NunitoFontFamily,
+                    color = HeadingBlackColor,
+                    lineHeight = 16.sp
+                )
+
+                if (option.pricePeriodSubtitle != null) {
+                    Text(
+                        text = option.pricePeriodSubtitle,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = NunitoFontFamily,
+                        color = GreyColor,
+                        lineHeight = 11.sp
+                    )
+                }
 
                 if (option.discountTag != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
@@ -469,61 +549,36 @@ private fun SubscriptionOptionCard(
                     }
                 }
             }
-
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = option.priceText,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = NunitoFontFamily,
-                    color = HeadingBlackColor
-                )
-
-                if (option.pricePeriodSubtitle != null) {
-                    Text(
-                        text = option.pricePeriodSubtitle,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = NunitoFontFamily,
-                        color = GreyColor
-                    )
-                }
-
-                if (option.originalPriceText != null) {
-                    Text(
-                        text = option.originalPriceText,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = NunitoFontFamily,
-                        color = GreyColor.copy(alpha = 0.7f),
-                        textDecoration = TextDecoration.LineThrough
-                    )
-                }
-            }
         }
 
-        if (option.isMostPopular) {
+        if (showTopBadge) {
+            val badgeText = if (isCurrentPlan) "Current Plan" else "Most Popular"
+            val badgeBgColor = if (isCurrentPlan) YellowColor else DarkGreen
+            val badgeTextColor = if (isCurrentPlan) HeadingBlackColor else Color.White
+
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .clip(RoundedCornerShape(topEnd = 16.dp, bottomStart = 10.dp))
-                    .background(DarkGreen)
+                    .background(badgeBgColor)
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_premium),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(11.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    if (!isCurrentPlan) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_premium),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(11.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Text(
-                        text = "Most Popular",
+                        text = badgeText,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = NunitoFontFamily,
-                        color = Color.White
+                        color = badgeTextColor
                     )
                 }
             }

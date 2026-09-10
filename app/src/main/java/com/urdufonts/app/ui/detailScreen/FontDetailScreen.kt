@@ -143,10 +143,7 @@ fun FontDetailScreen(
     if (uiState.showDownloadLimitBottomSheet) {
         DownloadLimitBottomSheet(
             onDismiss = { viewModel.dismissDownloadLimitBottomSheet() },
-            onUpgradeToPremium = onNavigateToSubscription,
-            onWatchAdToDownload = {
-                activity?.let { viewModel.onWatchAdAndDownload(it, adManager) }
-            }
+            onUpgradeToPremium = onNavigateToSubscription
         )
     }
 
