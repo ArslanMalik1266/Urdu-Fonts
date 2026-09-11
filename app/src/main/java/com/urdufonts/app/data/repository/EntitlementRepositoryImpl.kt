@@ -54,7 +54,6 @@ class EntitlementRepositoryImpl(
         val lastRefresh = localDataSource.lastRefreshTsFlow.firstOrNull() ?: 0L
         val now = System.currentTimeMillis()
         if (!force && now - lastRefresh < COOLDOWN_MS) {
-            Log.d(TAG, "Cooldown active. Skipping remote fetch.")
             val cached = entitlementsFlow.firstOrNull() ?: UserEntitlements()
             return Result.success(cached)
         }
@@ -63,24 +62,6 @@ class EntitlementRepositoryImpl(
             val dto = remoteDataSource.getEntitlements(externalUserId)
             val jsonString = gson.toJson(dto)
             val domain = EntitlementsMapper.toDomain(dto)
-
-            val pcLog = domain.pendingChange?.let { pc ->
-                "{productSku: ${pc.productSku}, planName: ${pc.planName}, effectiveAt: ${pc.effectiveAt}, updateType: ${pc.updateType}}"
-            } ?: "null"
-            Log.d(TAG, "Successfully refreshed entitlements for $externalUserId. Unlocked: ${domain.unlocked}, ActivePlan: ${domain.activeSubscriptionType}, PendingChange: $pcLog")
-            dto.entitlements.forEach { (key, detail) ->
-                Log.d(
-                    TAG,
-                    " -> EntitlementDetailDto[$key]: type=${detail.type}, unlocked=${detail.unlocked}, expiresAt=${detail.expiresAt}, source=${detail.source}, subId=${detail.subscriptionId}, txId=${detail.transactionId}, sku=${detail.productSku}, planName=${detail.planName}"
-                )
-                if (detail.pendingChange != null) {
-                    val pc = detail.pendingChange
-                    Log.d(
-                        TAG,
-                        "    └─ PendingChangeDto: raw = ${pc} sku=${pc.productSku}, planName=${pc.planName}, effectiveAt=${pc.effectiveAt}, updateType=${pc.updateType}"
-                    )
-                }
-            }
 
             localDataSource.saveExternalUserId(externalUserId)
             localDataSource.saveEntitlements(jsonString, domain.unlocked)
@@ -105,7 +86,6 @@ class EntitlementRepositoryImpl(
         purchaseToken: String,
         productType: String
     ): Result<Boolean> {
-        Log.d(TAG, "confirmPurchase called -> userId: $externalUserId, sku: $sku, productType: $productType")
         val request = PurchaseConfirmRequestDto(
             externalUserId = externalUserId,
             sku = sku,
@@ -116,7 +96,6 @@ class EntitlementRepositoryImpl(
         return try {
             val response = remoteDataSource.confirmPurchase(request)
             if (response.isConfirmed) {
-                Log.d(TAG, "Purchase confirmed on backend! Persisting fresh entitlements for $externalUserId...")
                 if (response.entitlements != null) {
                     val jsonString = gson.toJson(response.entitlements)
                     val domain = EntitlementsMapper.toDomain(response.entitlements)

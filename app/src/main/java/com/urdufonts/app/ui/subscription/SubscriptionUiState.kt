@@ -41,6 +41,17 @@ data class SubscriptionUiState(
                 return SubscriptionActionType.MANAGE_EXTERNAL
             }
 
+            // If a downgrade/plan change is already scheduled to the selected plan, route to Google Play Manage
+            if (pendingChange != null) {
+                val pName = pendingChange.planName.orEmpty().lowercase()
+                val pSku = pendingChange.productSku.orEmpty().lowercase()
+                val isPendingTarget = (selectedType == SubscriptionType.MONTHLY && (pName.contains("monthly") || pSku.contains("monthly") || pSku.contains("pro"))) ||
+                        (selectedType == SubscriptionType.SIX_MONTHS && (pName.contains("6") || pSku.contains("6")))
+                if (isPendingTarget) {
+                    return SubscriptionActionType.MANAGE_EXTERNAL
+                }
+            }
+
             if (activePlanType == SubscriptionType.LIFETIME) {
                 return SubscriptionActionType.LIFETIME_ACTIVE
             }

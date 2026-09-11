@@ -276,8 +276,21 @@ fun SubscriptionScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
+                                val formattedDate = remember(pending.effectiveAt) {
+                                    if (!pending.effectiveAt.isNullOrBlank()) {
+                                        try {
+                                            val instant = java.time.Instant.parse(pending.effectiveAt)
+                                            java.time.format.DateTimeFormatter
+                                                .ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+                                                .withZone(java.time.ZoneId.systemDefault())
+                                                .format(instant)
+                                        } catch (e: Exception) {
+                                            pending.effectiveAt
+                                        }
+                                    } else "next billing date"
+                                }
                                 Text(
-                                    text = "Plan change scheduled: ${pending.planName ?: pending.productSku ?: "Monthly"} taking effect on ${pending.effectiveAt ?: "next billing date"}.",
+                                    text = "Your plan changes to ${pending.planName ?: pending.productSku ?: "Monthly"} on $formattedDate",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     fontFamily = NunitoFontFamily,

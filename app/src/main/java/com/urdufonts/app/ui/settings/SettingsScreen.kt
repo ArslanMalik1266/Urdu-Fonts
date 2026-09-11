@@ -366,7 +366,18 @@ private fun SettingsUserCard(
 
                     pendingChange?.let { pending ->
                         val targetName = pending.planName ?: pending.productSku ?: "Monthly"
-                        val effectiveText = if (!pending.effectiveAt.isNullOrBlank()) " starting ${pending.effectiveAt}" else ""
+                        val formattedDate = if (!pending.effectiveAt.isNullOrBlank()) {
+                            try {
+                                val instant = java.time.Instant.parse(pending.effectiveAt)
+                                java.time.format.DateTimeFormatter
+                                    .ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+                                    .withZone(java.time.ZoneId.systemDefault())
+                                    .format(instant)
+                            } catch (e: Exception) {
+                                pending.effectiveAt
+                            }
+                        } else ""
+                        val effectiveText = if (formattedDate.isNotBlank()) " on $formattedDate" else ""
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))

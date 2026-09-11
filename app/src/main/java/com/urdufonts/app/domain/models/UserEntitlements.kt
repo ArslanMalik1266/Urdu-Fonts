@@ -25,9 +25,11 @@ data class UserEntitlements(
 
             return when {
                 prodId == "urdu_fonts_lifetime" || sku.contains("lifetime") || basePlan.contains("lifetime") -> SubscriptionType.LIFETIME
-                basePlan == "6-month-plan" || basePlan.contains("6-month") || basePlan.contains("6_month") || basePlan.contains("6_months") || basePlan.contains("6-months") || basePlan.contains("6 months") || sku.contains("6_months") || sku.contains("6-month") -> SubscriptionType.SIX_MONTHS
-                basePlan == "monthly-plan" || basePlan.contains("monthly") || basePlan.contains("month") || sku.contains("monthly") -> SubscriptionType.MONTHLY
-                sku.contains("pro") || prodId.contains("pro") -> SubscriptionType.MONTHLY
+                basePlan.contains("6-month") || basePlan.contains("6_month") || basePlan.contains("6_months") ||
+                        basePlan.contains("6 months") || sku.contains("6_month") || sku.contains("6_months") ||
+                        sku.contains("6-month") || basePlan.contains("annual") || basePlan.contains("yearly") ||
+                        sku.contains("annual") || sku.contains("yearly") -> SubscriptionType.SIX_MONTHS
+                basePlan.contains("monthly") || basePlan.contains("month") || sku.contains("monthly") -> SubscriptionType.MONTHLY
                 unlocked -> SubscriptionType.LIFETIME
                 else -> null
             }

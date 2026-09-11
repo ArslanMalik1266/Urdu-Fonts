@@ -19,16 +19,22 @@ object EntitlementsMapper {
         dto.entitlements.forEach { (key, item) ->
             if (item.unlocked) {
                 isUnlocked = true
+            }
+            if (item.pendingChange != null) {
+                pendingChangeDetails = toDomain(item.pendingChange)
+            }
+            // Prioritize primary subscription entitlement keys or items with actual subscription/plan metadata
+            if (key == "urdu_fonts_pro" || key == "pro" || key == "pro_features" || item.subscriptionId != null || !item.planName.isNullOrBlank()) {
                 if (!item.productSku.isNullOrBlank()) {
                     activeSku = item.productSku
                 }
                 if (!item.planName.isNullOrBlank()) {
                     activePlanName = item.planName
                 }
+            } else if (activeSku == null && !item.productSku.isNullOrBlank()) {
+                activeSku = item.productSku
             }
-            if (item.pendingChange != null) {
-                pendingChangeDetails = toDomain(item.pendingChange)
-            }
+
             entitlementList.add(
                 EntitlementItem(
                     key = key,

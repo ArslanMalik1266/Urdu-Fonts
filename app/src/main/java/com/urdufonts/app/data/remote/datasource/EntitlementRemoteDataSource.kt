@@ -19,7 +19,6 @@ class EntitlementRemoteDataSource(
 
     suspend fun getEntitlements(externalUserId: String): EntitlementsResponseDto {
         val url = "$BASE_URL/api/v1/me/entitlements"
-        Log.d(TAG, "Fetching Entitlements GET $url?external_user_id=$externalUserId")
         val response = apiService.getEntitlements(
             url = url,
             externalUserId = externalUserId,
@@ -27,15 +26,21 @@ class EntitlementRemoteDataSource(
         )
 
         val rawPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
-        Log.d(TAG, "GET /api/v1/me/entitlements?external_user_id=$externalUserId\n\n$response")
-        Log.d(TAG, "GET Entitlements Response -> ExternalUser: ${response.externalUserId}, Unlocked: ${response.unlocked}, EntitlementsCount: ${response.entitlements.size}")
-        logEntitlementsDetails(response.entitlements)
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Log.d(TAG, "GET $url?external_user_id=$externalUserId\n\n$rawPrettyJson")
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+        response.entitlements.forEach { (key, item) ->
+            if (item.pendingChange != null) {
+                val pc = item.pendingChange
+                Log.i(TAG, "🔔 [PENDING CHANGE DETECTED in '$key'] -> productSku='${pc.productSku}', planName='${pc.planName}', effectiveAt='${pc.effectiveAt}'")
+            }
+        }
         return response
     }
 
     suspend fun confirmPurchase(request: PurchaseConfirmRequestDto): PurchaseConfirmResponseDto {
         val url = "$BASE_URL/api/v1/purchases/android/confirm"
-        Log.d(TAG, "Confirming Purchase POST $url Payload -> userId: ${request.externalUserId}, sku: ${request.sku}, productType: ${request.productType}, tokenSnippet: ${request.purchaseToken.take(15)}...")
         val response = apiService.confirmPurchase(
             url = url,
             authHeader = "Bearer ${BuildConfig.BEARER_TOKEN}",
@@ -43,32 +48,16 @@ class EntitlementRemoteDataSource(
         )
 
         val rawConfirmPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
-        Log.d(TAG, "POST /api/v1/purchases/android/confirm\n\n$rawConfirmPrettyJson")
-        Log.d(TAG, "POST Confirm Purchase Response -> Status: ${response.status}, SubStatus: ${response.subscriptionStatus}, Confirmed: ${response.isConfirmed}")
-        response.entitlements?.entitlements?.let { details ->
-            logEntitlementsDetails(details)
-        }
-        return response
-    }
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Log.d(TAG, "POST $url\n\n$rawConfirmPrettyJson")
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-    private fun logEntitlementsDetails(entitlements: Map<String, com.urdufonts.app.data.remote.dto.EntitlementDetailDto>) {
-        entitlements.forEach { (key, item) ->
-            Log.d(
-                TAG,
-                "  [EntitlementDetailDto] key='$key' | type=${item.type} | unlocked=${item.unlocked} | " +
-                        "expiresAt=${item.expiresAt} | source=${item.source} | subscriptionId=${item.subscriptionId} | " +
-                        "transactionId=${item.transactionId} | productSku=${item.productSku} | planName=${item.planName}"
-            )
+        response.entitlements?.entitlements?.forEach { (key, item) ->
             if (item.pendingChange != null) {
                 val pc = item.pendingChange
-                Log.d(
-                    TAG,
-                    "    └─ [PendingChangeDto] productSku=${pc.productSku} | planName=${pc.planName} | " +
-                            "effectiveAt=${pc.effectiveAt} | updateType=${pc.updateType}"
-                )
-            } else {
-                Log.d(TAG, "    └─ [PendingChangeDto] null")
+                Log.i(TAG, "🔔 [PENDING CHANGE DETECTED in '$key'] -> productSku='${pc.productSku}', planName='${pc.planName}', effectiveAt='${pc.effectiveAt}'")
             }
         }
+        return response
     }
 }
