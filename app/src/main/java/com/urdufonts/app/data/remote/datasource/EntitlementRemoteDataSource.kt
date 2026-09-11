@@ -27,14 +27,9 @@ class EntitlementRemoteDataSource(
         )
 
         val rawPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
-        Log.d(TAG, "GET /api/v1/me/entitlements?external_user_id=$externalUserId\n\n$rawPrettyJson")
-        Log.d(TAG, "GET Entitlements Response -> ExternalUser: ${response.externalUserId}, EntitlementsCount: ${response.entitlements.size}")
-        response.entitlements.forEach { (key, item) ->
-            val pendingLog = item.pendingChange?.let { pc ->
-                "{productSku: ${pc.productSku}, planName: ${pc.planName}, effectiveAt: ${pc.effectiveAt}}"
-            } ?: "null"
-            Log.d(TAG, "  -> Entitlement [$key]: unlocked=${item.unlocked}, sku=${item.productSku}, planName=${item.planName}, pendingChange=$pendingLog")
-        }
+        Log.d(TAG, "GET /api/v1/me/entitlements?external_user_id=$externalUserId\n\n$response")
+        Log.d(TAG, "GET Entitlements Response -> ExternalUser: ${response.externalUserId}, Unlocked: ${response.unlocked}, EntitlementsCount: ${response.entitlements.size}")
+        logEntitlementsDetails(response.entitlements)
         return response
     }
 
@@ -50,12 +45,30 @@ class EntitlementRemoteDataSource(
         val rawConfirmPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
         Log.d(TAG, "POST /api/v1/purchases/android/confirm\n\n$rawConfirmPrettyJson")
         Log.d(TAG, "POST Confirm Purchase Response -> Status: ${response.status}, SubStatus: ${response.subscriptionStatus}, Confirmed: ${response.isConfirmed}")
-        response.entitlements?.entitlements?.forEach { (key, item) ->
-            val pendingLog = item.pendingChange?.let { pc ->
-                "{productSku: ${pc.productSku}, planName: ${pc.planName}, effectiveAt: ${pc.effectiveAt}}"
-            } ?: "null"
-            Log.d(TAG, "  -> Confirm Entitlement [$key]: unlocked=${item.unlocked}, sku=${item.productSku}, planName=${item.planName}, pendingChange=$pendingLog")
+        response.entitlements?.entitlements?.let { details ->
+            logEntitlementsDetails(details)
         }
         return response
+    }
+
+    private fun logEntitlementsDetails(entitlements: Map<String, com.urdufonts.app.data.remote.dto.EntitlementDetailDto>) {
+        entitlements.forEach { (key, item) ->
+            Log.d(
+                TAG,
+                "  [EntitlementDetailDto] key='$key' | type=${item.type} | unlocked=${item.unlocked} | " +
+                        "expiresAt=${item.expiresAt} | source=${item.source} | subscriptionId=${item.subscriptionId} | " +
+                        "transactionId=${item.transactionId} | productSku=${item.productSku} | planName=${item.planName}"
+            )
+            if (item.pendingChange != null) {
+                val pc = item.pendingChange
+                Log.d(
+                    TAG,
+                    "    └─ [PendingChangeDto] productSku=${pc.productSku} | planName=${pc.planName} | " +
+                            "effectiveAt=${pc.effectiveAt} | updateType=${pc.updateType}"
+                )
+            } else {
+                Log.d(TAG, "    └─ [PendingChangeDto] null")
+            }
+        }
     }
 }

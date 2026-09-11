@@ -93,6 +93,12 @@ class UserPreferences(private val context: Context) {
             preferences[SUBSCRIPTION_PLAN_KEY]
         }
 
+    // Read subscription purchase token (returns a Flow)
+    val subscriptionPurchaseToken: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[SUBSCRIPTION_PURCHASE_TOKEN_KEY]
+        }
+
     // Save subscription status to DataStore
     suspend fun saveSubscriptionStatus(isPro: Boolean, planId: String? = null, purchaseToken: String? = null) {
         context.dataStore.edit { preferences ->

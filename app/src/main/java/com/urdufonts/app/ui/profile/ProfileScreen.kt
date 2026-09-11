@@ -222,18 +222,37 @@ private fun LoggedInContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Avatar
-            Image(
-                painter = if (uiState.profileImageUrl != null) {
-                    rememberAsyncImagePainter(uiState.profileImageUrl)
-                } else {
-                    painterResource(R.drawable.profile_image)
-                },
-                contentDescription = "Profile photo",
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-            )
+                    .background(Color(0xFFE7F5EC)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!uiState.profileImageUrl.isNullOrBlank()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(uiState.profileImageUrl),
+                        contentDescription = "Profile photo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else if (uiState.userName.isNotBlank()) {
+                    Text(
+                        text = uiState.userName.take(1).uppercase(),
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColor,
+                        fontFamily = NunitoFontFamily
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.ic_drawer_profile),
+                        contentDescription = null,
+                        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(AppColor),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
         }

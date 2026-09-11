@@ -52,11 +52,20 @@ fun CategoriesScreen(
     val seenItems = remember { mutableStateSetOf<Int>() }
     com.urdufonts.app.ui.util.LogScreenEntry("CategoriesScreen")
 
+    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
+    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
+    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                SimpleTopAppBar(title = "Urdu Font Categories", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
+                SimpleTopAppBar(
+                    title = "Urdu Font Categories",
+                    onCartClick = onCartClick,
+                    onSubscriptionClick = onSubscriptionClick,
+                    showSubscriptionIcon = showSubIcon
+                )
             }
         ) { innerPadding ->
             Column(

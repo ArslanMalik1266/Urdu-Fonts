@@ -239,20 +239,24 @@ class BillingRepositoryImpl(
                 .setProductDetailsParamsList(listOf(productDetailsParams))
 
             val existingPurchases = queryPurchasesForType(BillingClient.ProductType.SUBS)
-            val activeSubPurchase = existingPurchases.find { it.purchaseState == Purchase.PurchaseState.PURCHASED }
-            if (activeSubPurchase != null) {
+            val activeSubPurchaseToken = existingPurchases.find { it.purchaseState == Purchase.PurchaseState.PURCHASED }?.purchaseToken
+                ?: userPreferences.subscriptionPurchaseToken.firstOrNull()
+
+            if (!activeSubPurchaseToken.isNullOrBlank()) {
                 val isUpgrade = option.id == BASE_PLAN_SIX_MONTHS
                 val replacementMode = if (isUpgrade) {
                     BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE
                 } else {
                     BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION
                 }
-                Log.d(TAG, "Active subscription found. Applying replacement mode: $replacementMode (isUpgrade: $isUpgrade)")
+                Log.d(TAG, "Active subscription token found (${activeSubPurchaseToken.take(15)}...). Applying SubscriptionUpdateParams replacementMode: $replacementMode (isUpgrade: $isUpgrade)")
                 val updateParams = BillingFlowParams.SubscriptionUpdateParams.newBuilder()
-                    .setOldPurchaseToken(activeSubPurchase.purchaseToken)
+                    .setOldPurchaseToken(activeSubPurchaseToken)
                     .setSubscriptionReplacementMode(replacementMode)
                     .build()
                 flowBuilder.setSubscriptionUpdateParams(updateParams)
+            } else {
+                Log.d(TAG, "No active subscription token found for update params.")
             }
 
             flowBuilder.build()

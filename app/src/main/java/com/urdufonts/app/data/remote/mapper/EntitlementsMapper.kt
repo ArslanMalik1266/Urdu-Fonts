@@ -12,6 +12,7 @@ object EntitlementsMapper {
     fun toDomain(dto: EntitlementsResponseDto): UserEntitlements {
         var isUnlocked = dto.unlocked
         var activeSku: String? = null
+        var activePlanName: String? = null
         var pendingChangeDetails: PendingChangeDetails? = null
         val entitlementList = mutableListOf<EntitlementItem>()
 
@@ -20,6 +21,9 @@ object EntitlementsMapper {
                 isUnlocked = true
                 if (!item.productSku.isNullOrBlank()) {
                     activeSku = item.productSku
+                }
+                if (!item.planName.isNullOrBlank()) {
+                    activePlanName = item.planName
                 }
             }
             if (item.pendingChange != null) {
@@ -35,8 +39,12 @@ object EntitlementsMapper {
             )
         }
 
-        val subDetails = if (isUnlocked && activeSku != null) {
-            SubscriptionDetails(sku = activeSku, productId = activeSku, basePlanId = activeSku)
+        val subDetails = if (isUnlocked && (activeSku != null || activePlanName != null)) {
+            SubscriptionDetails(
+                sku = activeSku,
+                productId = activeSku,
+                basePlanId = activePlanName ?: activeSku
+            )
         } else null
 
         return UserEntitlements(

@@ -25,6 +25,7 @@ fun SimpleTopAppBar(
     onBackClick: (() -> Unit)? = null,
     onCartClick: () -> Unit = {},
     onSubscriptionClick: (() -> Unit)? = null,
+    showSubscriptionIcon: Boolean = true,
     containerColor: Color = Color.Transparent
 ) {
     TopAppBar(
@@ -53,7 +54,7 @@ fun SimpleTopAppBar(
             )
         },
         actions = {
-            if (onSubscriptionClick != null) {
+            if (showSubscriptionIcon && onSubscriptionClick != null) {
                 Box(modifier = Modifier.padding(end = 8.dp)) {
                     TopBarButton(
                         iconRes = R.drawable.ic_diamond,

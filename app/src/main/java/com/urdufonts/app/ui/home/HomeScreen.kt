@@ -68,6 +68,10 @@ fun HomeScreen(
     val listState = rememberLazyListState()
 
 
+    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
+    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
+    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -81,7 +85,8 @@ fun HomeScreen(
                 AppTopBar(
                     onMenuClick = onMenuClick,
                     onCartClick = { },
-                    onSubscriptionClick = onSubscriptionClick
+                    onSubscriptionClick = onSubscriptionClick,
+                    showSubscriptionIcon = showSubIcon
                 )
             }
         ) { innerPadding ->

@@ -19,7 +19,9 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 import com.urdufonts.app.data.repository.MoreAppsRepositoryImpl
+import com.urdufonts.app.data.repository.ProductsRepositoryImpl
 import com.urdufonts.app.domain.repo.MoreAppsRepository
+import com.urdufonts.app.domain.repo.ProductsRepository
 
 val dataModule = module {
 
@@ -56,5 +58,6 @@ val dataModule = module {
     single<AuthRepository>       { AuthRepositoryImpl(apiService = get(), userPreferences = get()) }
     single<BillingRepository>    { BillingRepositoryImpl(context = androidContext(), userPreferences = get(), entitlementRepository = get()) }
     single<MoreAppsRepository>   { MoreAppsRepositoryImpl(apiService = get()) }
+    single<ProductsRepository>   { ProductsRepositoryImpl(apiService = get()) }
 
 }

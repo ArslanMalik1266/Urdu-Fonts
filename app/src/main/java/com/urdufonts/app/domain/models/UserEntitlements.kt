@@ -16,12 +16,20 @@ data class UserEntitlements(
 
     val activeSubscriptionType: SubscriptionType?
         get() {
-            if (!unlocked) return null
+            if (unlocked && (subscription == null || (subscription.sku == null && subscription.basePlanId == null))) {
+                return SubscriptionType.LIFETIME
+            }
+            val basePlan = subscription?.basePlanId.orEmpty().lowercase()
+            val sku = subscription?.sku.orEmpty().lowercase()
+            val prodId = subscription?.productId.orEmpty().lowercase()
+
             return when {
-                subscription?.productId == "urdu_fonts_lifetime" || subscription?.sku?.contains("lifetime", ignoreCase = true) == true -> SubscriptionType.LIFETIME
-                subscription?.basePlanId == "6-month-plan" || subscription?.sku?.contains("6_months", ignoreCase = true) == true || subscription?.sku?.contains("6-month", ignoreCase = true) == true -> SubscriptionType.SIX_MONTHS
-                subscription?.basePlanId == "monthly-plan" || subscription?.sku?.contains("monthly", ignoreCase = true) == true -> SubscriptionType.MONTHLY
-                else -> SubscriptionType.LIFETIME
+                prodId == "urdu_fonts_lifetime" || sku.contains("lifetime") || basePlan.contains("lifetime") -> SubscriptionType.LIFETIME
+                basePlan == "6-month-plan" || basePlan.contains("6-month") || basePlan.contains("6_month") || basePlan.contains("6_months") || basePlan.contains("6-months") || basePlan.contains("6 months") || sku.contains("6_months") || sku.contains("6-month") -> SubscriptionType.SIX_MONTHS
+                basePlan == "monthly-plan" || basePlan.contains("monthly") || basePlan.contains("month") || sku.contains("monthly") -> SubscriptionType.MONTHLY
+                sku.contains("pro") || prodId.contains("pro") -> SubscriptionType.MONTHLY
+                unlocked -> SubscriptionType.LIFETIME
+                else -> null
             }
         }
 }

@@ -119,6 +119,7 @@ fun SettingsScreen(
 
     val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
     val userEntitlements by entitlementRepository.entitlementsFlow.collectAsStateWithLifecycle(initialValue = com.urdufonts.app.domain.models.UserEntitlements())
+    val showSubIcon = userEntitlements.activeSubscriptionType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
 
     Scaffold(
         containerColor = BackgroundColor,
@@ -127,6 +128,7 @@ fun SettingsScreen(
                 title = "Settings",
                 onBackClick = onBackClick,
                 onSubscriptionClick = onNavigateToSubscription,
+                showSubscriptionIcon = showSubIcon,
                 containerColor = BackgroundColor
             )
         }
@@ -152,6 +154,7 @@ fun SettingsScreen(
                     userSubtitle = drawerUiState.userSubtitle,
                     profileImageUrl = drawerUiState.profileImageUrl,
                     activePlanType = userEntitlements.activeSubscriptionType,
+                    pendingChange = userEntitlements.pendingChange,
                     onLoginClick = onNavigateToProfile,
                     onManageSubscription = onNavigateToSubscription
                 )
@@ -288,6 +291,7 @@ private fun SettingsUserCard(
     userSubtitle: String,
     profileImageUrl: String?,
     activePlanType: com.urdufonts.app.domain.models.SubscriptionType?,
+    pendingChange: com.urdufonts.app.domain.models.PendingChangeDetails? = null,
     onLoginClick: () -> Unit,
     onManageSubscription: () -> Unit
 ) {
@@ -344,7 +348,7 @@ private fun SettingsUserCard(
                     }
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
                         text = if (isLoggedIn && !userName.isNullOrBlank()) userName else "Join Urdu Fonts",
                         fontSize = 16.sp,
@@ -359,6 +363,26 @@ private fun SettingsUserCard(
                         color = Color(0xFF8B928D),
                         fontFamily = NunitoFontFamily
                     )
+
+                    pendingChange?.let { pending ->
+                        val targetName = pending.planName ?: pending.productSku ?: "Monthly"
+                        val effectiveText = if (!pending.effectiveAt.isNullOrBlank()) " starting ${pending.effectiveAt}" else ""
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFFFFBEB))
+                                .border(0.5.dp, Color(0xFFFDE68A), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "Downgrading to $targetName$effectiveText",
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFD97706),
+                                fontFamily = NunitoFontFamily
+                            )
+                        }
+                    }
                 }
             }
 

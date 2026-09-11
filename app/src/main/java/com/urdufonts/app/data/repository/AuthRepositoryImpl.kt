@@ -31,12 +31,15 @@ class AuthRepositoryImpl(
     override suspend fun registerUser(
         params: RegisterParams
     ): Result<AuthResult> = withContext(Dispatchers.IO) {
-        runCatching {
-            apiService.registerUser(
+        try {
+            val response = apiService.registerUser(
                 name = params.name,
                 email = params.email,
                 pass = params.pass
             ).toDomain()
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e.extractErrorMessage())
         }
     }
 
@@ -136,9 +139,12 @@ class AuthRepositoryImpl(
     override suspend fun loginWithGoogle(
         idToken: String
     ): Result<UserSession> = withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             val request = GoogleLoginRequestDto(idToken)
-            apiService.googleLogin(request).toDomain()
+            val session = apiService.googleLogin(request).toDomain()
+            Result.success(session)
+        } catch (e: Exception) {
+            Result.failure(e.extractErrorMessage())
         }
     }
 
@@ -155,33 +161,55 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun checkUserExists(email: String): Result<Boolean> = withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             apiService.checkUser(email)
-            true
-        }.recoverCatching { throwable ->
-            if (throwable is retrofit2.HttpException && throwable.code() == 404) {
-                false
+            Result.success(true)
+        } catch (e: Exception) {
+            if (e is retrofit2.HttpException && e.code() == 404) {
+                Result.success(false)
             } else {
-                throw throwable
+                Result.failure(e.extractErrorMessage())
             }
         }
     }
 
     override suspend fun verifyOtp(email: String, otp: String): Result<UserSession> = withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             val response = apiService.verifyOtp(email = email, otp = otp)
             val session = response.toDomain()
             saveSession(session)
-            session
+            Result.success(session)
+        } catch (e: Exception) {
+            Result.failure(e.extractErrorMessage())
         }
     }
 
     override suspend fun login(email: String, password: String): Result<UserSession> = withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             val response = apiService.login(email = email, pass = password)
             val session = response.toDomain()
             saveSession(session)
-            session
+            Result.success(session)
+        } catch (e: Exception) {
+            Result.failure(e.extractErrorMessage())
         }
+    }
+
+    private fun Throwable.extractErrorMessage(): Exception {
+        if (this is retrofit2.HttpException) {
+            try {
+                val errorJson = response()?.errorBody()?.string()
+                if (!errorJson.isNullOrBlank()) {
+                    val jsonObject = com.google.gson.JsonParser.parseString(errorJson).asJsonObject
+                    val message = jsonObject.get("message")?.asString
+                        ?: jsonObject.get("error")?.asString
+                        ?: jsonObject.get("msg")?.asString
+                    if (!message.isNullOrBlank()) {
+                        return Exception(message)
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+        return if (this is Exception) this else Exception(message ?: "An unexpected error occurred.")
     }
 }

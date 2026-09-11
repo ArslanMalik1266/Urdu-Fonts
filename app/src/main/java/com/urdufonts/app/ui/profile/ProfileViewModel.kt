@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.urdufonts.app.domain.usecases.SetPasswordUseCase
+
 class ProfileViewModel(
     private val registerUserUseCase: RegisterUserUseCase,
     private val googleSignInUseCase: GoogleSignInUseCase,
@@ -25,7 +27,8 @@ class ProfileViewModel(
     private val getUserSessionUseCase: GetUserSessionUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val verifyOtpUseCase: VerifyOtpUseCase,
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val setPasswordUseCase: SetPasswordUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -114,36 +117,26 @@ class ProfileViewModel(
     }
 
     fun onSignUpClick(name: String, email: String, pass: String, confirmPass: String) {
-        // 1. Client-side input validation
-        if (name.isBlank() || email.isBlank() || pass.isBlank() || confirmPass.isBlank()) {
-            onError("All fields are required")
-            return
-        }
-        if (pass != confirmPass) {
-            onError("Passwords do not match")
-            return
-        }
-
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-        // 2. Launch coroutine to execute registration in UseCase
         viewModelScope.launch {
-            val params = RegisterParams(name = name, email = email, pass = pass)
-
-            registerUserUseCase(params)
-                .onSuccess { authResult ->
-                    _uiState.update {
-                        it.copy(
-                            isOtpMode = true,
-                            registrationEmail = email,
-                            isLoading = false,
-                            errorMessage = null
-                        )
-                    }
+            setPasswordUseCase(
+                name = name,
+                email = email,
+                password = pass,
+                confirmPassword = confirmPass
+            ).onSuccess { authResult ->
+                _uiState.update {
+                    it.copy(
+                        isOtpMode = true,
+                        registrationEmail = email,
+                        isLoading = false,
+                        errorMessage = null
+                    )
                 }
-                .onFailure { error ->
-                    onError(error.localizedMessage ?: "Registration failed")
-                }
+            }.onFailure { error ->
+                onError(error.localizedMessage ?: "Registration failed")
+            }
         }
     }
 

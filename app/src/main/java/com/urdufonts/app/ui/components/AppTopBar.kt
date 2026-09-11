@@ -22,7 +22,8 @@ import com.urdufonts.app.ui.theme.AppColor
 fun AppTopBar(
     onMenuClick: () -> Unit,
     onCartClick: () -> Unit = {},
-    onSubscriptionClick: () -> Unit = {}
+    onSubscriptionClick: () -> Unit = {},
+    showSubscriptionIcon: Boolean = true
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -46,12 +47,14 @@ fun AppTopBar(
                     onClick = onMenuClick,
                     contentDescription = "Settings"
                 )
-                TopBarButton(
-                    iconRes = R.drawable.ic_diamond,
-                    onClick = onSubscriptionClick,
-                    contentDescription = "Subscription",
-                    tint = AppColor
-                )
+                if (showSubscriptionIcon) {
+                    TopBarButton(
+                        iconRes = R.drawable.ic_diamond,
+                        onClick = onSubscriptionClick,
+                        contentDescription = "Subscription",
+                        tint = AppColor
+                    )
+                }
             }
         }
     )

@@ -54,12 +54,17 @@ fun FontListScreen(
     val focusManager = LocalFocusManager.current
     val seenItems = remember { mutableStateSetOf<Int>() }
 
+    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
+    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
+    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
+
     Scaffold(
         topBar = {
             SimpleTopAppBar(
                 title = title,
                 onBackClick = onBackClick,
                 onSubscriptionClick = onSubscriptionClick,
+                showSubscriptionIcon = showSubIcon,
                 containerColor = Color.White
             )
         }

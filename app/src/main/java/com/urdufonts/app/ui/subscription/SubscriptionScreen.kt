@@ -1,6 +1,7 @@
 package com.urdufonts.app.ui.subscription
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -27,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -56,6 +58,7 @@ import com.urdufonts.app.ui.theme.YellowColor
 import com.urdufonts.app.ui.util.addPressEffect
 import com.urdufonts.app.ui.util.softShadow
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.platform.LocalUriHandler
 
 @Composable
 fun SubscriptionScreen(
@@ -67,6 +70,12 @@ fun SubscriptionScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val activity = context as? Activity
+    val uriHandler = LocalUriHandler.current
+
+    // Reset selection to active plan every time this screen opens — mirrors Unit Converter's onSheetOpened()
+    LaunchedEffect(Unit) {
+        viewModel.onScreenOpened()
+    }
 
     uiState.userMessage?.let { msg ->
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -291,10 +300,21 @@ fun SubscriptionScreen(
                                 com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> option.id == "urdu_fonts_lifetime" || option.id == "lifetime-purchase"
                                 null -> false
                             }
+                            val isPendingTargetPlan = uiState.pendingChange?.let { pending ->
+                                val pName = pending.planName.orEmpty().lowercase()
+                                val pSku = pending.productSku.orEmpty().lowercase()
+                                when (option.id) {
+                                    "monthly-plan" -> pName.contains("monthly") || pSku.contains("monthly") || pSku.contains("pro")
+                                    "6-month-plan" -> pName.contains("6") || pSku.contains("6")
+                                    else -> false
+                                }
+                            } ?: false
+
                             SubscriptionOptionCard(
                                 option = option,
                                 isSelected = option.id == uiState.selectedOptionId,
                                 isCurrentPlan = isCurrentPlan,
+                                isPendingTargetPlan = isPendingTargetPlan,
                                 onClick = { viewModel.selectOption(option.id) }
                             )
                         }
@@ -310,18 +330,71 @@ fun SubscriptionScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    val buttonText = viewModel.getActionButtonText(uiState)
+                    val currentActionType = uiState.actionType
+                    val buttonText = uiState.actionButtonText
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp)
                             .addPressEffect(onClick = {
-                                if (buttonText == "Manage Subscription") {
-                                    viewModel.openManageSubscriptions(context)
-                                } else if (activity != null && buttonText != "Lifetime Access Active") {
-                                    viewModel.purchase(activity) {
-                                        onNavigateToLogin()
+                                if (uiState.isPurchasing) return@addPressEffect
+
+                                val actionType = uiState.actionType
+
+                                // ── BUTTON CLICK DIAGNOSTIC LOG ──────────────────────
+                                Log.d("SubsScreen", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                                Log.d("SubsScreen", "BUTTON CLICKED")
+                                Log.d("SubsScreen", "  activePlanType   = ${uiState.activePlanType}")
+                                Log.d("SubsScreen", "  selectedOptionId = ${uiState.selectedOptionId}")
+                                Log.d("SubsScreen", "  selectedType     = ${uiState.selectedSubscriptionType}")
+                                Log.d("SubsScreen", "  actionType       = $actionType")
+                                Log.d("SubsScreen", "  buttonText       = '${uiState.actionButtonText}'")
+                                Log.d("SubsScreen", "  → routing to: ${when (actionType) {
+                                    SubscriptionActionType.MANAGE_EXTERNAL -> "PLAY STORE (browser)"
+                                    SubscriptionActionType.UPGRADE         -> "BILLING SHEET (upgrade)"
+                                    SubscriptionActionType.DOWNGRADE       -> "BILLING SHEET (downgrade)"
+                                    SubscriptionActionType.SUBSCRIBE       -> "BILLING SHEET (new sub)"
+                                    else                                   -> "NO-OP ($actionType)"
+                                }}")
+
+                                when (actionType) {
+                                    SubscriptionActionType.MANAGE_EXTERNAL -> {
+                                        // Build Play Store subscription URL — UI concern, stays in Screen
+                                        val activeSku = when (uiState.activePlanType) {
+                                            com.urdufonts.app.domain.models.SubscriptionType.MONTHLY,
+                                            com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS -> "urdu_fonts_pro"
+                                            com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> "urdu_fonts_lifetime"
+                                            null -> null
+                                        }
+                                        val url = if (activeSku != null) {
+                                            "https://play.google.com/store/account/subscriptions?sku=$activeSku&package=${context.packageName}"
+                                        } else {
+                                            "https://play.google.com/store/account/subscriptions?package=${context.packageName}"
+                                        }
+                                        Log.d("SubsScreen", "  MANAGE_EXTERNAL: opening url=$url")
+                                        try {
+                                            uriHandler.openUri(url)
+                                        } catch (e: Exception) {
+                                            Log.e("SubsScreen", "  MANAGE_EXTERNAL: failed to open URI", e)
+                                            Toast.makeText(context, "Unable to open Google Play Store", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    SubscriptionActionType.SUBSCRIBE,
+                                    SubscriptionActionType.UPGRADE,
+                                    SubscriptionActionType.DOWNGRADE -> {
+                                        Log.d("SubsScreen", "  PURCHASE: calling viewModel.purchase() for selectedOptionId=${uiState.selectedOptionId}")
+                                        if (activity != null) {
+                                            viewModel.purchase(activity) {
+                                                onNavigateToLogin()
+                                            }
+                                        } else {
+                                            Log.e("SubsScreen", "  PURCHASE: activity is null, cannot launch billing")
+                                        }
+                                    }
+                                    SubscriptionActionType.LIFETIME_ACTIVE,
+                                    SubscriptionActionType.PROCESSING -> {
+                                        Log.d("SubsScreen", "  NO-OP: actionType=$actionType")
                                     }
                                 }
                             })
@@ -411,9 +484,10 @@ private fun SubscriptionOptionCard(
     option: SubscriptionOption,
     isSelected: Boolean,
     isCurrentPlan: Boolean,
+    isPendingTargetPlan: Boolean = false,
     onClick: () -> Unit
 ) {
-    val showTopBadge = isCurrentPlan || option.isMostPopular
+    val showTopBadge = isCurrentPlan || option.isMostPopular || isPendingTargetPlan
     val displayPrice = remember(option.priceText) { option.priceText.removeSuffix(".00") }
 
     Box(
@@ -552,9 +626,21 @@ private fun SubscriptionOptionCard(
         }
 
         if (showTopBadge) {
-            val badgeText = if (isCurrentPlan) "Current Plan" else "Most Popular"
-            val badgeBgColor = if (isCurrentPlan) YellowColor else DarkGreen
-            val badgeTextColor = if (isCurrentPlan) HeadingBlackColor else Color.White
+            val badgeText = when {
+                isPendingTargetPlan -> "Downgrade Scheduled"
+                isCurrentPlan -> "Current Plan"
+                else -> "Most Popular"
+            }
+            val badgeBgColor = when {
+                isPendingTargetPlan -> Color(0xFFD97706)
+                isCurrentPlan -> YellowColor
+                else -> DarkGreen
+            }
+            val badgeTextColor = when {
+                isPendingTargetPlan -> Color.White
+                isCurrentPlan -> HeadingBlackColor
+                else -> Color.White
+            }
 
             Box(
                 modifier = Modifier
@@ -564,7 +650,7 @@ private fun SubscriptionOptionCard(
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!isCurrentPlan) {
+                    if (!isCurrentPlan && !isPendingTargetPlan) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_premium),
                             contentDescription = null,

@@ -65,9 +65,22 @@ class EntitlementRepositoryImpl(
             val domain = EntitlementsMapper.toDomain(dto)
 
             val pcLog = domain.pendingChange?.let { pc ->
-                "{productSku: ${pc.productSku}, planName: ${pc.planName}, effectiveAt: ${pc.effectiveAt}}"
+                "{productSku: ${pc.productSku}, planName: ${pc.planName}, effectiveAt: ${pc.effectiveAt}, updateType: ${pc.updateType}}"
             } ?: "null"
             Log.d(TAG, "Successfully refreshed entitlements for $externalUserId. Unlocked: ${domain.unlocked}, ActivePlan: ${domain.activeSubscriptionType}, PendingChange: $pcLog")
+            dto.entitlements.forEach { (key, detail) ->
+                Log.d(
+                    TAG,
+                    " -> EntitlementDetailDto[$key]: type=${detail.type}, unlocked=${detail.unlocked}, expiresAt=${detail.expiresAt}, source=${detail.source}, subId=${detail.subscriptionId}, txId=${detail.transactionId}, sku=${detail.productSku}, planName=${detail.planName}"
+                )
+                if (detail.pendingChange != null) {
+                    val pc = detail.pendingChange
+                    Log.d(
+                        TAG,
+                        "    └─ PendingChangeDto: raw = ${pc} sku=${pc.productSku}, planName=${pc.planName}, effectiveAt=${pc.effectiveAt}, updateType=${pc.updateType}"
+                    )
+                }
+            }
 
             localDataSource.saveExternalUserId(externalUserId)
             localDataSource.saveEntitlements(jsonString, domain.unlocked)
@@ -114,9 +127,9 @@ class EntitlementRepositoryImpl(
                         isPro = domain.unlocked || domain.hasUnlimitedDownloads,
                         planId = domain.subscription?.sku
                     )
-                } else {
-                    refreshEntitlements(externalUserId, force = true)
                 }
+                // Always force refresh GET /api/v1/me/entitlements to obtain complete state including pending_change
+                refreshEntitlements(externalUserId, force = true)
                 Result.success(true)
             } else {
                 Log.e(TAG, "Backend returned purchase confirm failure: ${response.message}")

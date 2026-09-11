@@ -57,6 +57,10 @@ fun StylesScreen(
     val seenItems = remember { mutableStateSetOf<Int>() }
     com.urdufonts.app.ui.util.LogScreenEntry("StylesScreen")
 
+    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
+    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
+    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
+
     Box(modifier = Modifier
         .fillMaxSize()
         .pointerInput(Unit) {
@@ -65,7 +69,12 @@ fun StylesScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                SimpleTopAppBar(title = "Urdu Font Styles", onCartClick = onCartClick, onSubscriptionClick = onSubscriptionClick)
+                SimpleTopAppBar(
+                    title = "Urdu Font Styles",
+                    onCartClick = onCartClick,
+                    onSubscriptionClick = onSubscriptionClick,
+                    showSubscriptionIcon = showSubIcon
+                )
             }
         ) { innerPadding ->
             Column(

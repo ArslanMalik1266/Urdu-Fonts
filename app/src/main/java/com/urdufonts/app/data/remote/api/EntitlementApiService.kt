@@ -25,4 +25,10 @@ interface EntitlementApiService {
         @Header("Authorization") authHeader: String,
         @Body request: PurchaseConfirmRequestDto
     ): PurchaseConfirmResponseDto
+
+    @GET
+    suspend fun getProducts(
+        @Url url: String,
+        @Header("Authorization") authHeader: String
+    ): com.urdufonts.app.data.remote.dto.ProductsResponseDto
 }
