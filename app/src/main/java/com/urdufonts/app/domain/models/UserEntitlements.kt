@@ -24,7 +24,7 @@ data class UserEntitlements(
             val prodId = subscription?.productId.orEmpty().lowercase()
 
             return when {
-                prodId == "urdu_fonts_lifetime" || sku.contains("lifetime") || basePlan.contains("lifetime") -> SubscriptionType.LIFETIME
+                prodId == "lifetime-purchase" || prodId == "urdu_fonts_lifetime" || sku.contains("lifetime") || basePlan.contains("lifetime") -> SubscriptionType.LIFETIME
                 basePlan.contains("6-month") || basePlan.contains("6_month") || basePlan.contains("6_months") ||
                         basePlan.contains("6 months") || sku.contains("6_month") || sku.contains("6_months") ||
                         sku.contains("6-month") || basePlan.contains("annual") || basePlan.contains("yearly") ||

@@ -404,7 +404,15 @@ class BillingRepositoryImpl(
             }
 
             val productType = if (productId == PRODUCT_ID_LIFETIME) "non_consumable" else "subscription"
-            val backendSku = if (productId == PRODUCT_ID_LIFETIME) "lifetime" else PRODUCT_ID_SUBS
+            val backendSku = when {
+                productId == PRODUCT_ID_LIFETIME -> PRODUCT_ID_LIFETIME
+                lastSelectedOptionId == BASE_PLAN_SIX_MONTHS -> BASE_PLAN_SIX_MONTHS
+                lastSelectedOptionId == BASE_PLAN_MONTHLY -> BASE_PLAN_MONTHLY
+                else -> {
+                    val savedPlan = userPreferences.subscriptionPlan.firstOrNull()
+                    if (savedPlan == BASE_PLAN_SIX_MONTHS) BASE_PLAN_SIX_MONTHS else BASE_PLAN_MONTHLY
+                }
+            }
 
             val oldToken = lastSentOldPurchaseToken ?: userPreferences.subscriptionPurchaseToken.firstOrNull()
             val isSameToken = !oldToken.isNullOrBlank() && oldToken == token
@@ -447,7 +455,7 @@ class BillingRepositoryImpl(
 
             userPreferences.saveSubscriptionStatus(
                 isPro = true,
-                planId = productId,
+                planId = backendSku,
                 purchaseToken = token
             )
         } finally {

@@ -68,7 +68,7 @@ class SubscriptionViewModel(
             val activeOptionId = when (activePlanType) {
                 SubscriptionType.MONTHLY    -> "monthly-plan"
                 SubscriptionType.SIX_MONTHS -> "6-month-plan"
-                SubscriptionType.LIFETIME   -> "urdu_fonts_lifetime"
+                SubscriptionType.LIFETIME   -> options.find { it.id == "urdu_fonts_lifetime" || it.id == "lifetime-purchase" }?.id ?: "urdu_fonts_lifetime"
             }
             if (options.any { it.id == activeOptionId }) {
                 return activeOptionId
@@ -104,7 +104,7 @@ class SubscriptionViewModel(
                     product.sku.equals(option.id, ignoreCase = true) ||
                     (option.id == "monthly-plan" && (product.sku.contains("monthly", ignoreCase = true) || product.sku.contains("pro", ignoreCase = true))) ||
                     (option.id == "6-month-plan" && product.sku.contains("6", ignoreCase = true)) ||
-                    (option.id == "urdu_fonts_lifetime" && product.sku.contains("lifetime", ignoreCase = true))
+                    ((option.id == "lifetime-purchase" || option.id == "urdu_fonts_lifetime") && product.sku.contains("lifetime", ignoreCase = true))
                 }
                 val backendTitle = matchingProduct?.name?.takeIf { it.isNotBlank() }
 

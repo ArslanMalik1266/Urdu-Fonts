@@ -2,14 +2,10 @@ package com.urdufonts.app.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
@@ -28,8 +24,6 @@ import com.urdufonts.app.ui.detailScreen.FontDetailScreen
 import com.urdufonts.app.ui.fontList.FontListViewModel
 import com.urdufonts.app.ui.home.HomeScreen
 import com.urdufonts.app.ui.home.HomeViewModel
-import com.urdufonts.app.ui.home.drawer.AppDrawerContent
-import com.urdufonts.app.ui.home.drawer.DrawerMenuItem
 import com.urdufonts.app.ui.onboarding.OnboardingScreen
 import com.urdufonts.app.ui.onboarding.OnboardingViewModel
 import com.urdufonts.app.ui.profile.ProfileScreen
@@ -37,7 +31,6 @@ import com.urdufonts.app.ui.style.StylesScreen
 import com.urdufonts.app.ui.style.StylesViewModel
 import com.urdufonts.app.ui.subscription.SubscriptionScreen
 import com.urdufonts.app.ui.util.BlurOverlay
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -51,8 +44,6 @@ private val bottomBarRoutes = setOf(
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     val userPreferences: UserPreferences = koinInject()
     val context = LocalContext.current
     val externalNavigator = remember(context) { ExternalNavigator(context) }
@@ -66,31 +57,8 @@ fun AppNavigation() {
         return
     }
     val startDestination = Screen.Splash.route
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        gesturesEnabled = currentRoute == Screen.Home.route,
-        drawerContent = {
-            AppDrawerContent(
-                onCloseDrawer = { scope.launch { drawerState.close() } },
 
-                onMenuItemClick = { item ->
-                    scope.launch { drawerState.close() }
-                    when (item) {
-                        is DrawerMenuItem.Profile -> navController.navigate("profile")
-                        is DrawerMenuItem.Support -> externalNavigator.openEmailSupport()
-                        is DrawerMenuItem.PrivacyPolicy -> externalNavigator.openWebPage("https://urdufonts.com/privacy-policy")
-                        is DrawerMenuItem.RateUs -> externalNavigator.openPlayStoreForRating()
-                        else -> {}
-                    }
-                },
-                onLoginClick = {
-                    scope.launch { drawerState.close() }
-                    navController.navigate("profile")
-                }
-            )
-        }
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
             BlurOverlay(modifier = Modifier.fillMaxSize())
             BaseScreen(
                 bottomBarVisible = showBottomBar,
@@ -245,5 +213,4 @@ fun AppNavigation() {
 
             )
         }
-    }
 }

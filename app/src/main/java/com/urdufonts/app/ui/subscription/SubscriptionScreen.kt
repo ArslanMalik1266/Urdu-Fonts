@@ -377,7 +377,7 @@ fun SubscriptionScreen(
                                         val activeSku = when (uiState.activePlanType) {
                                             com.urdufonts.app.domain.models.SubscriptionType.MONTHLY,
                                             com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS -> "urdu_fonts_pro"
-                                            com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> "urdu_fonts_lifetime"
+                                            com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> "lifetime-purchase"
                                             null -> null
                                         }
                                         val url = if (activeSku != null) {
