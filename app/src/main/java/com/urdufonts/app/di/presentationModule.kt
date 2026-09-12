@@ -22,7 +22,7 @@ val presentationModule = module {
     // Pass get() to resolve SavedStateHandle injection automatically
     viewModel { FontDetailViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { FontListViewModel(get(), get(), androidContext()) } // Only needs GetFontsUseCase and SavedStateHandle
-    viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), androidContext()) }
     viewModel { OnboardingViewModel(get()) }
     viewModel { SubscriptionViewModel(get(), get(), get(), get(), get(), get(), get()) }
     single { FontDownloadManager(get()) }

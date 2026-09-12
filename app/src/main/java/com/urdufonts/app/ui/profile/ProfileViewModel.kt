@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.urdufonts.app.data.local.UserPreferences
+import com.urdufonts.app.domain.repo.EntitlementRepository
 import com.urdufonts.app.domain.usecases.SetPasswordUseCase
 
 class ProfileViewModel(
@@ -28,7 +30,9 @@ class ProfileViewModel(
     private val logoutUseCase: LogoutUseCase,
     private val verifyOtpUseCase: VerifyOtpUseCase,
     private val loginUseCase: LoginUseCase,
-    private val setPasswordUseCase: SetPasswordUseCase
+    private val setPasswordUseCase: SetPasswordUseCase,
+    private val entitlementRepository: EntitlementRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -58,7 +62,10 @@ class ProfileViewModel(
             googleSignInUseCase(context)
                 .onSuccess { googleUser ->
                     loginWithGoogleUseCase(googleUser.idToken)
-                        .onSuccess {
+                        .onSuccess { session ->
+                            if (session.email.isNotBlank()) {
+                                entitlementRepository.refreshEntitlements(session.email, force = true)
+                            }
                             _uiState.update { it.copy(navigateToHome = true) }
                         }
                         .onFailure { error ->
@@ -82,6 +89,9 @@ class ProfileViewModel(
         viewModelScope.launch {
             loginUseCase(email = email, password = password)
                 .onSuccess { session ->
+                    if (session.email.isNotBlank()) {
+                        entitlementRepository.refreshEntitlements(session.email, force = true)
+                    }
                     _uiState.update {
                         it.copy(
                             isLoggedIn = true,
@@ -103,6 +113,8 @@ class ProfileViewModel(
     fun onLogoutClick() {
         viewModelScope.launch {
             logoutUseCase()
+            val anonymousId = UserPreferences.getAnonymousDeviceId(context)
+            entitlementRepository.refreshEntitlements(anonymousId, force = true)
         }
     }
 
@@ -149,6 +161,9 @@ class ProfileViewModel(
         viewModelScope.launch {
             verifyOtpUseCase(email = _uiState.value.registrationEmail, otp = otp)
                 .onSuccess { session ->
+                    if (session.email.isNotBlank()) {
+                        entitlementRepository.refreshEntitlements(session.email, force = true)
+                    }
                     _uiState.update {
                         it.copy(
                             isOtpMode = false,

@@ -37,8 +37,13 @@ class FontDetailViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    companion object {
+        // Tracks unique font IDs downloaded in the current app session (resets on app restart)
+        private val sessionDownloadedFontIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+    }
+
     sealed class UiEvent {
-        data class ShowSnackbar(val message: String) : UiEvent()
+        data class ShowSnackbar(val message: String, val shouldShowAd: Boolean = false) : UiEvent()
     }
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
@@ -102,15 +107,18 @@ class FontDetailViewModel(
                 when (event) {
                     is FontDownloadManager.DownloadEvent.Success -> {
                         if (event.fontId == numericId) {
-                            _eventFlow.emit(UiEvent.ShowSnackbar(event.message))
+                            val currentIdStr = numericId.toString()
+                            val isFirstDownloadInSession = sessionDownloadedFontIds.add(currentIdStr)
+                            val shouldShowAd = isFirstDownloadInSession && !_uiState.value.isProUser
+                            _eventFlow.emit(UiEvent.ShowSnackbar(message = event.message, shouldShowAd = shouldShowAd))
                             if (!_uiState.value.isProUser) {
-                                userPreferences.incrementDownloadCount()
+                                userPreferences.recordFontDownloaded(currentIdStr)
                             }
                         }
                     }
                     is FontDownloadManager.DownloadEvent.Failure -> {
                         if (event.fontId == numericId) {
-                            _eventFlow.emit(UiEvent.ShowSnackbar(event.error))
+                            _eventFlow.emit(UiEvent.ShowSnackbar(message = event.error, shouldShowAd = false))
                         }
                     }
                 }
@@ -313,11 +321,14 @@ class FontDetailViewModel(
     fun downloadFont() {
         val font = _uiState.value.fontDetail ?: return
         val state = _uiState.value
-        if (!state.isProUser && state.downloadCount >= 5) {
-            _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }
-            return
+        viewModelScope.launch {
+            val isAlreadyDownloadedToday = userPreferences.isFontDownloadedToday(fontId)
+            if (!state.isProUser && state.downloadCount >= 5 && !isAlreadyDownloadedToday) {
+                _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }
+                return@launch
+            }
+            fontDownloadManager.downloadFont(font)
         }
-        fontDownloadManager.downloadFont(font)
     }
 
     fun dismissDownloadLimitBottomSheet() {

@@ -164,7 +164,7 @@ fun FontDetailScreen(
                             event.message.contains("saved", ignoreCase = true) ||
                             event.message.contains("success", ignoreCase = true)
                     android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> isSuccess: $isSuccess")
-                    if (isSuccess) {
+                    if (isSuccess && event.shouldShowAd) {
                         (context as? android.app.Activity)?.let { activity ->
                             android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> Calling showDownloadInterstitialWithCooldown")
                             adManager.showDownloadInterstitialWithCooldown(activity) {
