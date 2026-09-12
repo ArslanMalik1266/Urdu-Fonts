@@ -43,6 +43,5 @@ val networkModule = module {
 
     single { get<Retrofit>().create(FontApiService::class.java) }
     single { get<Retrofit>().create(AuthApiService::class.java) }
-    single { get<Retrofit>().create(com.urdufonts.app.data.remote.api.EntitlementApiService::class.java) }
 
 }

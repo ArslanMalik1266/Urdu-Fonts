@@ -105,11 +105,9 @@ fun AppNavigation() {
                     ) {
                         composable(Screen.Splash.route) {
                             com.urdufonts.app.ui.splash.SplashScreen(
-                                isOnboardingCompleted = false, // COMMENTED FOR TESTING: Forced to false so onboarding shows every time
+                                isOnboardingCompleted = isOnboardingCompleted == true,
                                 onNavigateNext = {
-                                    // COMMENTED FOR TESTING: Forced to Onboarding screen every launch
-                                    // val nextRoute = if (isOnboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
-                                    val nextRoute = Screen.Onboarding.route
+                                    val nextRoute = if (isOnboardingCompleted == true) Screen.Home.route else Screen.Onboarding.route
                                     navController.navigate(nextRoute) {
                                         popUpTo(Screen.Splash.route) { inclusive = true }
                                     }

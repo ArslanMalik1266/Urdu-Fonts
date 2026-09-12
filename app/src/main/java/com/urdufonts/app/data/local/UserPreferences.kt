@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.firstOrNull
 
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -30,8 +31,8 @@ class UserPreferences(private val context: Context) {
         private val IS_PRO_USER_KEY = booleanPreferencesKey("is_pro_user")
         private val SUBSCRIPTION_PLAN_KEY = stringPreferencesKey("subscription_plan")
         private val SUBSCRIPTION_PURCHASE_TOKEN_KEY = stringPreferencesKey("subscription_purchase_token")
-        private val DOWNLOAD_COUNT_KEY = intPreferencesKey("download_count")
-        private val FIRST_DOWNLOAD_TIMESTAMP_KEY = longPreferencesKey("first_download_timestamp")
+        private val DOWNLOAD_DATE_KEY = stringPreferencesKey("download_date")
+        private val DOWNLOADED_FONT_IDS_KEY = androidx.datastore.preferences.core.stringSetPreferencesKey("downloaded_font_ids")
 
         fun getAnonymousDeviceId(context: Context): String {
             val androidId = android.provider.Settings.Secure.getString(
@@ -43,42 +44,58 @@ class UserPreferences(private val context: Context) {
             val sha256Hex = hashBytes.joinToString("") { "%02x".format(it) }
             return "anon_android_$sha256Hex"
         }
+
+        private fun getTodayDate(): String {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            return sdf.format(java.util.Date())
+        }
     }
 
-    // Read download count with automatic 24-hour expiration check (returns a Flow)
-    val downloadCount: Flow<Int> = context.dataStore.data
+    // Read set of unique font IDs downloaded today (resets at midnight calendar day)
+    val downloadedFontIds: Flow<Set<String>> = context.dataStore.data
         .map { preferences ->
-            val count = preferences[DOWNLOAD_COUNT_KEY] ?: 0
-            val timestamp = preferences[FIRST_DOWNLOAD_TIMESTAMP_KEY] ?: 0L
-            val now = System.currentTimeMillis()
-            val twentyFourHours = 24 * 60 * 60 * 1000L
-
-            if (timestamp > 0L && now - timestamp >= twentyFourHours) {
-                0
+            val storedDate = preferences[DOWNLOAD_DATE_KEY]
+            val today = getTodayDate()
+            if (storedDate == today) {
+                preferences[DOWNLOADED_FONT_IDS_KEY] ?: emptySet()
             } else {
-                count
+                emptySet()
             }
         }
 
-    // Increment download count and return new value, enforcing 24-hour window
-    suspend fun incrementDownloadCount(): Int {
-        var updated = 0
+    // Read download count of unique fonts downloaded today
+    val downloadCount: Flow<Int> = downloadedFontIds.map { it.size }
+
+    // Record a font download. Returns true if it's a new unique font today, false if already downloaded today.
+    suspend fun recordFontDownloaded(fontId: String): Boolean {
+        var isNewUnique = false
+        val today = getTodayDate()
         context.dataStore.edit { preferences ->
-            val current = preferences[DOWNLOAD_COUNT_KEY] ?: 0
-            val timestamp = preferences[FIRST_DOWNLOAD_TIMESTAMP_KEY] ?: 0L
-            val now = System.currentTimeMillis()
-            val twentyFourHours = 24 * 60 * 60 * 1000L
-
-            if (timestamp == 0L || now - timestamp >= twentyFourHours) {
-                updated = 1
-                preferences[DOWNLOAD_COUNT_KEY] = 1
-                preferences[FIRST_DOWNLOAD_TIMESTAMP_KEY] = now
+            val storedDate = preferences[DOWNLOAD_DATE_KEY]
+            val currentSet = if (storedDate == today) {
+                preferences[DOWNLOADED_FONT_IDS_KEY]?.toMutableSet() ?: mutableSetOf()
             } else {
-                updated = current + 1
-                preferences[DOWNLOAD_COUNT_KEY] = updated
+                mutableSetOf()
+            }
+
+            if (!currentSet.contains(fontId)) {
+                currentSet.add(fontId)
+                preferences[DOWNLOAD_DATE_KEY] = today
+                preferences[DOWNLOADED_FONT_IDS_KEY] = currentSet
+                isNewUnique = true
             }
         }
-        return updated
+        return isNewUnique
+    }
+
+    // Check if a font was already downloaded today
+    suspend fun isFontDownloadedToday(fontId: String): Boolean {
+        val today = getTodayDate()
+        val prefs = context.dataStore.data.firstOrNull() ?: return false
+        val storedDate = prefs[DOWNLOAD_DATE_KEY]
+        if (storedDate != today) return false
+        val set = prefs[DOWNLOADED_FONT_IDS_KEY] ?: return false
+        return set.contains(fontId)
     }
 
     // Read subscription pro status (returns a Flow)

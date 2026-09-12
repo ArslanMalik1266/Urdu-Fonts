@@ -17,22 +17,23 @@ import com.android.billingclient.api.QueryPurchasesParams
 import com.urdufonts.app.R
 import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.domain.models.SubscriptionOption
+import com.urdufonts.app.domain.models.SubscriptionType
 import com.urdufonts.app.domain.repo.BillingRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-import com.urdufonts.app.domain.repo.EntitlementRepository
-import kotlinx.coroutines.flow.firstOrNull
-
 class BillingRepositoryImpl(
     private val context: Context,
-    private val userPreferences: UserPreferences,
-    private val entitlementRepository: EntitlementRepository? = null
+    private val userPreferences: UserPreferences
 ) : BillingRepository, PurchasesUpdatedListener {
 
     companion object {
@@ -46,8 +47,19 @@ class BillingRepositoryImpl(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var cachedSubProductDetails: ProductDetails? = null
     private var cachedLifetimeProductDetails: ProductDetails? = null
+    private val inFlightMutex = Mutex()
+    private val inFlightPurchaseTokens = mutableSetOf<String>()
 
     override val isProUser: Flow<Boolean> = userPreferences.isProUser
+    override val activePlanId: Flow<String?> = userPreferences.subscriptionPlan
+    override val activePlanType: Flow<SubscriptionType?> = userPreferences.subscriptionPlan.map { planId ->
+        when (planId) {
+            BASE_PLAN_MONTHLY, "monthly" -> SubscriptionType.MONTHLY
+            BASE_PLAN_SIX_MONTHS, "6_months", "6-month-plan" -> SubscriptionType.SIX_MONTHS
+            PRODUCT_ID_LIFETIME, "lifetime", "lifetime-purchase" -> SubscriptionType.LIFETIME
+            else -> null
+        }
+    }
 
     private val billingClient: BillingClient by lazy {
         BillingClient.newBuilder(context)
@@ -70,7 +82,6 @@ class BillingRepositoryImpl(
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    Log.d(TAG, "Billing Client Setup Finished Successfully.")
                     scope.launch {
                         querySubProductDetails()
                         queryLifetimeProductDetails()
@@ -82,7 +93,7 @@ class BillingRepositoryImpl(
             }
 
             override fun onBillingServiceDisconnected() {
-                Log.w(TAG, "Billing Service Disconnected. Reconnecting...")
+                Log.w(TAG, "Billing Service Disconnected.")
             }
         })
     }
@@ -162,10 +173,8 @@ class BillingRepositoryImpl(
             billingClient.queryProductDetailsAsync(queryParams) { billingResult, queryProductDetailsResult ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && queryProductDetailsResult.productDetailsList.orEmpty().isNotEmpty()) {
                     cachedSubProductDetails = queryProductDetailsResult.productDetailsList.first()
-                    Log.d(TAG, "Queried SUBS Product Details Success: ${cachedSubProductDetails?.title}")
                     continuation.resume(cachedSubProductDetails)
                 } else {
-                    Log.e(TAG, "Query Sub Product Details Failed: ${billingResult.debugMessage}")
                     continuation.resume(null)
                 }
             }
@@ -191,10 +200,8 @@ class BillingRepositoryImpl(
             billingClient.queryProductDetailsAsync(queryParams) { billingResult, queryProductDetailsResult ->
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && queryProductDetailsResult.productDetailsList.orEmpty().isNotEmpty()) {
                     cachedLifetimeProductDetails = queryProductDetailsResult.productDetailsList.first()
-                    Log.d(TAG, "Queried INAPP Lifetime Details Success: ${cachedLifetimeProductDetails?.title}")
                     continuation.resume(cachedLifetimeProductDetails)
                 } else {
-                    Log.e(TAG, "Query Lifetime Product Details Failed: ${billingResult.debugMessage}")
                     continuation.resume(null)
                 }
             }
@@ -202,18 +209,25 @@ class BillingRepositoryImpl(
     }
 
     private var lastSelectedOptionId: String? = null
+    private var lastSentOldPurchaseToken: String? = null
 
     override suspend fun launchPurchase(activity: Activity, option: SubscriptionOption): Result<Unit> {
-        Log.d(TAG, "launchPurchase called for option: ${option.id} (${option.title})")
         lastSelectedOptionId = option.id
 
         val billingFlowParams = if (option.id == PRODUCT_ID_LIFETIME || option.id == "lifetime-purchase") {
+            lastSentOldPurchaseToken = null
             val lifetimeDetails = queryLifetimeProductDetails()
                 ?: return Result.failure(Exception("Lifetime product details unavailable from Google Play"))
 
             val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
                 .setProductDetails(lifetimeDetails)
                 .build()
+
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "🛒 INITIATING ONE-TIME PURCHASE:")
+            Log.d(TAG, "  Product ID            : $PRODUCT_ID_LIFETIME")
+            Log.d(TAG, "  Title                 : ${option.title}")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
             BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(listOf(productDetailsParams))
@@ -243,30 +257,54 @@ class BillingRepositoryImpl(
                 ?: userPreferences.subscriptionPurchaseToken.firstOrNull()
 
             if (!activeSubPurchaseToken.isNullOrBlank()) {
-                val isUpgrade = option.id == BASE_PLAN_SIX_MONTHS
-                val replacementMode = if (isUpgrade) {
-                    BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE
-                } else {
+                lastSentOldPurchaseToken = activeSubPurchaseToken
+                val currentPlanType = activePlanType.firstOrNull()
+                val tierRank = mapOf(
+                    SubscriptionType.MONTHLY to 1,
+                    SubscriptionType.SIX_MONTHS to 2,
+                    SubscriptionType.LIFETIME to 3
+                )
+                val targetType = if (option.id == BASE_PLAN_MONTHLY) SubscriptionType.MONTHLY else SubscriptionType.SIX_MONTHS
+                val currentRank = currentPlanType?.let { tierRank[it] }
+                val targetRank = tierRank[targetType]
+                val isDowngrade = currentRank != null && targetRank != null && targetRank < currentRank
+                val replacementMode = if (isDowngrade) {
                     BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION
+                } else {
+                    BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.CHARGE_FULL_PRICE
                 }
-                Log.d(TAG, "Active subscription token found (${activeSubPurchaseToken.take(15)}...). Applying SubscriptionUpdateParams replacementMode: $replacementMode (isUpgrade: $isUpgrade)")
+
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "🛒 INITIATING SUBSCRIPTION UPDATE / CHANGE FLOW:")
+                Log.d(TAG, "  Target Plan           : ${option.id} (${option.title})")
+                Log.d(TAG, "  Current Active Plan   : ${currentPlanType ?: "UNKNOWN"}")
+                Log.d(TAG, "  Is Downgrade          : $isDowngrade")
+                Log.d(TAG, "  Replacement Mode      : $replacementMode")
+                Log.d(TAG, "  OLD TOKEN SENT        : $activeSubPurchaseToken")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
                 val updateParams = BillingFlowParams.SubscriptionUpdateParams.newBuilder()
                     .setOldPurchaseToken(activeSubPurchaseToken)
                     .setSubscriptionReplacementMode(replacementMode)
                     .build()
                 flowBuilder.setSubscriptionUpdateParams(updateParams)
             } else {
-                Log.d(TAG, "No active subscription token found for update params.")
+                lastSentOldPurchaseToken = null
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                Log.d(TAG, "🛒 INITIATING NEW PURCHASE:")
+                Log.d(TAG, "  Target Plan           : ${option.id} (${option.title})")
+                Log.d(TAG, "  OLD TOKEN SENT        : NONE (Fresh Purchase)")
+                Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             }
 
             flowBuilder.build()
         }
 
         val result = billingClient.launchBillingFlow(activity, billingFlowParams)
-        Log.d(TAG, "launchBillingFlow response -> code: ${result.responseCode}, message: ${result.debugMessage}")
         return if (result.responseCode == BillingClient.BillingResponseCode.OK) {
             Result.success(Unit)
         } else {
+            Log.e(TAG, "launchBillingFlow failed: code=${result.responseCode}, message=${result.debugMessage}")
             Result.failure(Exception(result.debugMessage))
         }
     }
@@ -286,24 +324,13 @@ class BillingRepositoryImpl(
         }
 
         return if (activePurchase != null) {
-            Log.d(TAG, "Restored active purchase: ${activePurchase.products}")
             scope.launch {
                 handlePurchase(activePurchase)
             }
             Result.success(true)
         } else {
-            Log.d(TAG, "No active purchase restored.")
             scope.launch {
-                userPreferences.saveSubscriptionStatus(isPro = false)
-                if (entitlementRepository != null) {
-                    val session = userPreferences.userSession.firstOrNull()
-                    val externalUserId = if (!session?.email.isNullOrBlank()) {
-                        session.email
-                    } else {
-                        UserPreferences.getAnonymousDeviceId(context)
-                    }
-                    entitlementRepository.refreshEntitlements(externalUserId, force = true)
-                }
+                userPreferences.saveSubscriptionStatus(isPro = false, planId = null, purchaseToken = null)
             }
             Result.success(false)
         }
@@ -319,7 +346,6 @@ class BillingRepositoryImpl(
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     continuation.resume(purchasesList)
                 } else {
-                    Log.e(TAG, "Query purchases failed for type $productType: ${billingResult.debugMessage}")
                     continuation.resume(emptyList())
                 }
             }
@@ -327,7 +353,6 @@ class BillingRepositoryImpl(
     }
 
     override fun onPurchasesUpdated(billingResult: BillingResult, purchases: List<Purchase>?) {
-        Log.d(TAG, "onPurchasesUpdated -> responseCode: ${billingResult.responseCode}, debugMessage: ${billingResult.debugMessage}, purchasesCount: ${purchases?.size ?: 0}")
         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (purchase in purchases) {
                 if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
@@ -339,62 +364,77 @@ class BillingRepositoryImpl(
         } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
             Log.d(TAG, "User canceled billing flow.")
         } else {
-            Log.e(TAG, "Error updating purchases: ${billingResult.debugMessage}")
+            Log.e(TAG, "Error in onPurchasesUpdated: ${billingResult.debugMessage}")
         }
     }
 
     private suspend fun handlePurchase(purchase: Purchase) {
-        Log.d(TAG, "handlePurchase -> products: ${purchase.products}, tokenSnippet: ${purchase.purchaseToken.take(15)}...")
-        if (!purchase.isAcknowledged) {
-            val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.purchaseToken)
-                .build()
+        if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) {
+            return
+        }
 
-            billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
-                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                    Log.d(TAG, "Purchase Acknowledged Successfully.")
-                }
+        val token = purchase.purchaseToken
+        val alreadyInFlight = inFlightMutex.withLock {
+            if (inFlightPurchaseTokens.contains(token)) {
+                true
+            } else {
+                inFlightPurchaseTokens.add(token)
+                false
             }
         }
 
-        val productId = purchase.products.firstOrNull() ?: PRODUCT_ID_SUBS
-        val session = userPreferences.userSession.firstOrNull()
-        val externalUserId = if (!session?.email.isNullOrBlank()) {
-            session!!.email
-        } else {
-            UserPreferences.getAnonymousDeviceId(context)
+        if (alreadyInFlight) {
+            return
         }
 
-        if (entitlementRepository != null) {
-            val (backendSku, productType) = when {
-                productId == PRODUCT_ID_LIFETIME -> "lifetime" to "non_consumable"
-                else -> {
-                    val extractedBasePlan = try {
-                        val jsonObject = org.json.JSONObject(purchase.originalJson)
-                        if (jsonObject.has("basePlanId")) jsonObject.getString("basePlanId") else null
-                    } catch (e: Exception) {
-                        null
+        try {
+            val productId = purchase.products.firstOrNull() ?: PRODUCT_ID_SUBS
+            val oldToken = lastSentOldPurchaseToken ?: userPreferences.subscriptionPurchaseToken.firstOrNull()
+            val isSameToken = !oldToken.isNullOrBlank() && oldToken == token
+            val tokenComparison = when {
+                oldToken.isNullOrBlank() -> "FRESH PURCHASE TOKEN (No previous token)"
+                isSameToken -> "SAME TOKEN REUSED BY GOOGLE PLAY (Old Token == New Token)"
+                else -> "NEW TOKEN GENERATED BY GOOGLE PLAY (Different from Old Token)"
+            }
+
+            val savedPlanId = if (productId == PRODUCT_ID_LIFETIME) {
+                PRODUCT_ID_LIFETIME
+            } else {
+                lastSelectedOptionId ?: userPreferences.subscriptionPlan.firstOrNull() ?: BASE_PLAN_SIX_MONTHS
+            }
+
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            Log.d(TAG, "📦 GOOGLE PLAY PURCHASE RETURNED & ACTIVATED LOCALLY:")
+            Log.d(TAG, "  Product ID            : $productId")
+            Log.d(TAG, "  Plan ID               : $savedPlanId")
+            Log.d(TAG, "  Order ID              : ${purchase.orderId ?: "N/A"}")
+            Log.d(TAG, "  Token Comparison      : $tokenComparison")
+            Log.d(TAG, "  Old Token (Sent)      : ${oldToken ?: "NONE"}")
+            Log.d(TAG, "  New Token (Received)  : $token")
+            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+            if (!purchase.isAcknowledged) {
+                val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
+                    .setPurchaseToken(token)
+                    .build()
+
+                billingClient.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
+                    if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                        Log.e(TAG, "Acknowledge purchase failed: ${billingResult.debugMessage}")
                     }
-                    val planId = extractedBasePlan ?: lastSelectedOptionId ?: BASE_PLAN_SIX_MONTHS
-                    val sku = if (planId == BASE_PLAN_MONTHLY) "monthly" else "6_months"
-                    sku to "subscription"
                 }
             }
 
-            Log.d(TAG, "Sending confirmPurchase to backend for externalUserId $externalUserId, sku: $backendSku, productType: $productType...")
-            entitlementRepository.confirmPurchase(
-                externalUserId = externalUserId,
-                sku = backendSku,
-                purchaseToken = purchase.purchaseToken,
-                productType = productType
+            userPreferences.saveSubscriptionStatus(
+                isPro = true,
+                planId = savedPlanId,
+                purchaseToken = token
             )
+        } finally {
+            inFlightMutex.withLock {
+                inFlightPurchaseTokens.remove(token)
+            }
         }
-
-        userPreferences.saveSubscriptionStatus(
-            isPro = true,
-            planId = productId,
-            purchaseToken = purchase.purchaseToken
-        )
     }
 
     override fun endConnection() {

@@ -1,12 +1,12 @@
 package com.urdufonts.app.domain.usecases
 
-import com.urdufonts.app.domain.repo.EntitlementRepository
+import com.urdufonts.app.domain.repo.BillingRepository
 import kotlinx.coroutines.flow.Flow
 
 class CheckProStatusUseCase(
-    private val entitlementRepository: EntitlementRepository
+    private val billingRepository: BillingRepository
 ) {
     operator fun invoke(): Flow<Boolean> {
-        return entitlementRepository.isProUserFlow
+        return billingRepository.isProUser
     }
 }

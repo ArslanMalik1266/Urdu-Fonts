@@ -1,6 +1,5 @@
 package com.urdufonts.app.ui.detailScreen
 
-import android.app.Activity
 import android.graphics.Typeface
 import android.os.Environment
 import android.util.Log
@@ -8,7 +7,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.urdufonts.app.ads.AdManager
 import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.domain.usecases.GetFontDetailUseCase
@@ -37,8 +35,13 @@ class FontDetailViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    companion object {
+        @Volatile
+        private var lastDownloadedFontId: String? = null
+    }
+
     sealed class UiEvent {
-        data class ShowSnackbar(val message: String) : UiEvent()
+        data class ShowSnackbar(val message: String, val shouldShowAd: Boolean = false) : UiEvent()
     }
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
@@ -102,15 +105,21 @@ class FontDetailViewModel(
                 when (event) {
                     is FontDownloadManager.DownloadEvent.Success -> {
                         if (event.fontId == numericId) {
-                            _eventFlow.emit(UiEvent.ShowSnackbar(event.message))
+                            val currentIdStr = numericId.toString()
+                            val isDifferentFromLastInSession = lastDownloadedFontId != currentIdStr
+                            if (isDifferentFromLastInSession) {
+                                lastDownloadedFontId = currentIdStr
+                            }
+                            val shouldShowAd = isDifferentFromLastInSession && !_uiState.value.isProUser
+                            _eventFlow.emit(UiEvent.ShowSnackbar(message = event.message, shouldShowAd = shouldShowAd))
                             if (!_uiState.value.isProUser) {
-                                userPreferences.incrementDownloadCount()
+                                userPreferences.recordFontDownloaded(currentIdStr)
                             }
                         }
                     }
                     is FontDownloadManager.DownloadEvent.Failure -> {
                         if (event.fontId == numericId) {
-                            _eventFlow.emit(UiEvent.ShowSnackbar(event.error))
+                            _eventFlow.emit(UiEvent.ShowSnackbar(message = event.error, shouldShowAd = false))
                         }
                     }
                 }
@@ -138,7 +147,10 @@ class FontDetailViewModel(
                 }
             } catch (e: TimeoutCancellationException) {
                 _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "Request timed out. Check your connection.")
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Request timed out. Please check your internet connection and try again."
+                    )
                 }
             } catch (e: UnknownHostException) {
                 _uiState.update {
@@ -313,29 +325,17 @@ class FontDetailViewModel(
     fun downloadFont() {
         val font = _uiState.value.fontDetail ?: return
         val state = _uiState.value
-        if (!state.isProUser && state.downloadCount >= 5) {
-            _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }
-            return
+        viewModelScope.launch {
+            val isAlreadyDownloadedToday = userPreferences.isFontDownloadedToday(fontId)
+            if (!state.isProUser && state.downloadCount >= 5 && !isAlreadyDownloadedToday) {
+                _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }
+                return@launch
+            }
+            fontDownloadManager.downloadFont(font)
         }
-        fontDownloadManager.downloadFont(font)
     }
 
     fun dismissDownloadLimitBottomSheet() {
         _uiState.update { it.copy(showDownloadLimitBottomSheet = false) }
-    }
-
-    fun onWatchAdAndDownload(activity: Activity, adManager: AdManager) {
-        dismissDownloadLimitBottomSheet()
-        adManager.showRewarded(
-            activity = activity,
-            onRewarded = { _, _ ->
-                val font = _uiState.value.fontDetail ?: return@showRewarded
-                fontDownloadManager.downloadFont(font)
-            },
-            onNotReady = {
-                val font = _uiState.value.fontDetail ?: return@showRewarded
-                fontDownloadManager.downloadFont(font)
-            }
-        )
     }
 }

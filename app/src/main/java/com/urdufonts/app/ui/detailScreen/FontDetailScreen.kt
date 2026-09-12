@@ -159,16 +159,12 @@ fun FontDetailScreen(
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is FontDetailViewModel.UiEvent.ShowSnackbar -> {
-                    android.util.Log.d("WebsCareAdsLog", "FontDetailScreen event received: ${event.message}")
                     val isSuccess = event.message.contains("download", ignoreCase = true) ||
                             event.message.contains("saved", ignoreCase = true) ||
                             event.message.contains("success", ignoreCase = true)
-                    android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> isSuccess: $isSuccess")
-                    if (isSuccess) {
+                    if (isSuccess && event.shouldShowAd) {
                         (context as? android.app.Activity)?.let { activity ->
-                            android.util.Log.d("WebsCareAdsLog", "FontDetailScreen -> Calling showDownloadInterstitialWithCooldown")
                             adManager.showDownloadInterstitialWithCooldown(activity) {
-                                // 🟢 Trigger snackbar AFTER ad is dismissed by user
                                 scope.launch {
                                     snackbarHostState.showSnackbar(message = event.message)
                                 }

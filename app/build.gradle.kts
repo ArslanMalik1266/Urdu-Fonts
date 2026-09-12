@@ -14,8 +14,8 @@ if (localPropertiesFile.exists()) {
 }
 val bearerToken = localProperties.getProperty("BEARER_TOKEN") ?: "10|BMT6MLAPGvTcjOZ7ZGQMCgJROsMmakaDkD17LcRJ2f0dc5e8"
 
-val appVersionCode = 4
-val appVersionName = "1.0.4"
+val appVersionCode = 5
+val appVersionName = "1.0.5"
 
 base.archivesName.set("UrduFonts - V$appVersionCode($appVersionName)")
 android {

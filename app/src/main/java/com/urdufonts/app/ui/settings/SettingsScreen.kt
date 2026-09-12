@@ -117,9 +117,9 @@ fun SettingsScreen(
         )
     }
 
-    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
-    val userEntitlements by entitlementRepository.entitlementsFlow.collectAsStateWithLifecycle(initialValue = com.urdufonts.app.domain.models.UserEntitlements())
-    val showSubIcon = userEntitlements.activeSubscriptionType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
+    val billingRepository: com.urdufonts.app.domain.repo.BillingRepository = org.koin.compose.koinInject()
+    val activePlanType by billingRepository.activePlanType.collectAsStateWithLifecycle(initialValue = null)
+    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
 
     Scaffold(
         containerColor = BackgroundColor,
@@ -153,8 +153,8 @@ fun SettingsScreen(
                     userName = drawerUiState.userName,
                     userSubtitle = drawerUiState.userSubtitle,
                     profileImageUrl = drawerUiState.profileImageUrl,
-                    activePlanType = userEntitlements.activeSubscriptionType,
-                    pendingChange = userEntitlements.pendingChange,
+                    activePlanType = activePlanType,
+                    pendingChange = null,
                     onLoginClick = onNavigateToProfile,
                     onManageSubscription = onNavigateToSubscription
                 )

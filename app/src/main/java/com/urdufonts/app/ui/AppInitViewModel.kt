@@ -2,12 +2,11 @@ package com.urdufonts.app.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.urdufonts.app.domain.usecases.CheckUserStatusUseCase
 import com.urdufonts.app.domain.usecases.GetCategoriesUseCase
 import com.urdufonts.app.domain.usecases.GetFontsUseCase
 import com.urdufonts.app.domain.usecases.GetStylesUseCase
-import com.urdufonts.app.domain.usecases.CheckUserStatusUseCase
 import com.urdufonts.app.domain.usecases.RestoreSubscriptionUseCase
-import com.urdufonts.app.domain.usecases.GetProductsUseCase
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,8 +18,7 @@ class AppInitViewModel(
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getStylesUseCase: GetStylesUseCase,
     private val checkUserStatusUseCase: CheckUserStatusUseCase,
-    private val restoreSubscriptionUseCase: RestoreSubscriptionUseCase,
-    private val getProductsUseCase: GetProductsUseCase
+    private val restoreSubscriptionUseCase: RestoreSubscriptionUseCase
 ) : ViewModel() {
 
     private val _isReady = MutableStateFlow(false)
@@ -32,10 +30,6 @@ class AppInitViewModel(
 
     private fun preloadAll() {
         viewModelScope.launch {
-            // Launch products pre-fetch independently in the background (non-blocking for splash)
-            launch { runCatching { getProductsUseCase("urdufonts") } }
-
-            // Mandatory splash preloads
             val fontsDeferred       = async { runCatching { getFontsUseCase() } }
             val categoriesDeferred  = async { getCategoriesUseCase() }
             val stylesDeferred      = async { getStylesUseCase() }
@@ -48,7 +42,6 @@ class AppInitViewModel(
             checkUserDeferred.await()
             restoreSubDeferred.await()
 
-            // Main app data is ready — screen can open instantly
             _isReady.value = true
         }
     }

@@ -23,7 +23,6 @@ import com.urdufonts.app.domain.usecases.CheckSubscriptionStatusUseCase
 import org.koin.dsl.module
 
 import com.urdufonts.app.domain.usecases.GetMoreAppsUseCase
-import com.urdufonts.app.domain.usecases.GetProductsUseCase
 import com.urdufonts.app.domain.usecases.SetPasswordUseCase
 
 val domainModule = module {
@@ -49,7 +48,6 @@ val domainModule = module {
     factory { RestoreSubscriptionUseCase(get()) }
     factory { CheckSubscriptionStatusUseCase(get()) }
     factory { GetMoreAppsUseCase(get()) }
-    factory { GetProductsUseCase(get()) }
     factory { com.urdufonts.app.domain.usecases.CheckProStatusUseCase(get()) }
     factory { com.urdufonts.app.domain.usecases.GetActivePlanTypeUseCase(get()) }
 }

@@ -57,8 +57,8 @@ fun StylesScreen(
     val seenItems = remember { mutableStateSetOf<Int>() }
     com.urdufonts.app.ui.util.LogScreenEntry("StylesScreen")
 
-    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
-    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
+    val billingRepository: com.urdufonts.app.domain.repo.BillingRepository = org.koin.compose.koinInject()
+    val activePlanType by billingRepository.activePlanType.collectAsStateWithLifecycle(initialValue = null)
     val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
 
     Box(modifier = Modifier
