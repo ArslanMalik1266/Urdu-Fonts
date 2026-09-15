@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Urdu Fonts</string>
+    <string name="urdu_canvas_app_name">Urdu Canvas</string>
+    <string name="promo_urdu_canvas_title">Create beautiful designs\nwith this font</string>
+    <string name="promo_urdu_canvas_subtitle">Try it in Urdu Canvas</string>
+    <string name="promo_open_app">Open App</string>
+    <string name="promo_dialog_title">Try this app</string>
+    <string name="action_done">Done</string>
+    <string name="action_skip">Skip</string>
+    <string name="cd_close_dialog">Close dialog</string>
+    <string name="cd_urdu_canvas_promo_image">Urdu Canvas promotional banner</string>
 </resources>

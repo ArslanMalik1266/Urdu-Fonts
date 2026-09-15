@@ -60,9 +60,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.os.Build
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
+import kotlinx.coroutines.delay
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -92,6 +95,8 @@ import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.FontClassifier
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.ui.components.AnimatedDownloadButton
+import com.urdufonts.app.ui.components.UrduCanvasPromoCard
+import com.urdufonts.app.ui.navigation.ExternalNavigator
 import com.urdufonts.app.ui.theme.AppColor
 import com.urdufonts.app.ui.theme.DarkGreen
 import com.urdufonts.app.ui.theme.GreyColor
@@ -130,6 +135,7 @@ fun FontDetailScreen(
     onShareClick: () -> Unit = {},
     onDownloadClick: () -> Unit = {},
     onNavigateToSubscription: () -> Unit = {},
+    onOpenUrduCanvas: (() -> Unit)? = null,
     viewModel: FontDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -138,6 +144,7 @@ fun FontDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val adManager: com.urdufonts.app.ads.AdManager = org.koin.compose.koinInject()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val externalNavigator = remember(context) { ExternalNavigator(context) }
     val activity = context as? Activity
 
     if (uiState.showDownloadLimitBottomSheet) {
@@ -154,30 +161,61 @@ fun FontDetailScreen(
         adManager.preloadInterstitial(context)
     }
 
-    // 🟢 Listen to ViewModel events (Show Interstitial & Snackbar when download completes)
+    var showUrduCanvasPromoDialog by remember { mutableStateOf(false) }
+    var pendingDownloadSuccessEvent by remember { mutableStateOf<FontDetailViewModel.UiEvent.DownloadSuccess?>(null) }
+
+    val handleDownloadSuccessDismiss = {
+        val pendingEvent = pendingDownloadSuccessEvent
+        showUrduCanvasPromoDialog = false
+        pendingDownloadSuccessEvent = null
+        if (pendingEvent != null) {
+            if (pendingEvent.shouldShowAd) {
+                (context as? Activity)?.let { act ->
+                    adManager.showDownloadInterstitialWithCooldown(act) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(message = pendingEvent.message)
+                        }
+                    }
+                } ?: run {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = pendingEvent.message)
+                    }
+                }
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar(message = pendingEvent.message)
+                }
+            }
+        }
+    }
+
+    if (showUrduCanvasPromoDialog) {
+        UrduCanvasPromoDialog(
+            onDismiss = handleDownloadSuccessDismiss,
+            onOpenApp = {
+                externalNavigator.openOrInstallApp()
+            }
+        )
+    }
+
+    // 🟢 Listen to ViewModel events (Show Promo Dialog on download success, or Snackbar on error)
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
+                is FontDetailViewModel.UiEvent.DownloadSuccess -> {
+                    // Smoothly wait for button animation to reach 100% and show "Downloaded" state
+                    delay(400)
+                    pendingDownloadSuccessEvent = event
+                    showUrduCanvasPromoDialog = true
+                }
+                is FontDetailViewModel.UiEvent.DownloadFailure -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = event.error)
+                    }
+                }
                 is FontDetailViewModel.UiEvent.ShowSnackbar -> {
-                    val isSuccess = event.message.contains("download", ignoreCase = true) ||
-                            event.message.contains("saved", ignoreCase = true) ||
-                            event.message.contains("success", ignoreCase = true)
-                    if (isSuccess && event.shouldShowAd) {
-                        (context as? android.app.Activity)?.let { activity ->
-                            adManager.showDownloadInterstitialWithCooldown(activity) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(message = event.message)
-                                }
-                            }
-                        } ?: run {
-                            scope.launch {
-                                snackbarHostState.showSnackbar(message = event.message)
-                            }
-                        }
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message = event.message)
-                        }
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = event.message)
                     }
                 }
             }
@@ -204,7 +242,12 @@ fun FontDetailScreen(
         lastScrollValue = currentScroll
     }
 
+    val isBlurActive = showUrduCanvasPromoDialog && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
     Scaffold(
+        modifier = Modifier.then(
+            if (isBlurActive) Modifier.blur(16.dp) else Modifier
+        ),
         topBar = {
             DetailTopAppBar(
                 title = uiState.fontDetail?.name ?: "",
@@ -336,6 +379,7 @@ fun FontDetailScreen(
                         onPreviewFontSizeChange = viewModel::onPreviewFontSizeChange,
                         onBoldToggle = viewModel::onBoldToggle,
                         onUnderlineToggle = viewModel::onUnderlineToggle,
+                        onOpenUrduCanvas = onOpenUrduCanvas ?: { externalNavigator.openOrInstallApp() },
                         scrollState = scrollState
                     )
                 }
@@ -358,6 +402,7 @@ private fun FontDetailContent(
     onBoldToggle: () -> Unit,
     scrollState: ScrollState,
     onUnderlineToggle: () -> Unit,
+    onOpenUrduCanvas: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val detail = uiState.fontDetail ?: return
@@ -465,12 +510,19 @@ private fun FontDetailContent(
                     isBoldEnabled = uiState.isBoldEnabled,
                     isUnderlineEnabled = uiState.isUnderlineEnabled,
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 MetadataRow(
                     fontWeight = detail.weightCount.toString(),
                     categories = detail.categories ?: emptyList()
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            UrduCanvasPromoCard(
+                onOpenApp = onOpenUrduCanvas,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 

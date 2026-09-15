@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.data.repository
+package com.urdufonts.app.data.repository
 
 import android.content.Context
 import com.urdufonts.app.data.local.dao.FontDao
@@ -181,57 +181,9 @@ class FontRepositoryImpl(
             // Subfolder path: UrduFonts/FontName (e.g. UrduFonts/Jameel_Noori)
             val cleanSubfolderName = "UrduFonts/${fontItem.name.replace(" ", "_")}"
 
-            // 3. Save each extracted weight into the public subfolder
-            val resolver = context.contentResolver
-
-            extractedWeights.forEach { (weightName, weightFile) ->
-                val fileName = weightFile.name // e.g. "JameelNoori-Bold.ttf"
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // ✅ Android 10+ (Scoped Storage Subfolder creation)
-                    val contentValues = ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                        put(MediaStore.MediaColumns.MIME_TYPE, "font/ttf")
-                        // Sets target relative path to Downloads/UrduFonts/Font_Name
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$cleanSubfolderName")
-                        put(MediaStore.MediaColumns.IS_PENDING, 1) // 🟢 Hide from system while writing
-                    }
-
-                    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                    if (uri != null) {
-                        resolver.openOutputStream(uri).use { outputStream ->
-                            if (outputStream != null) {
-                                weightFile.inputStream().use { inputStream ->
-                                    inputStream.copyTo(outputStream)
-                                }
-                            }
-                        }
-
-                        // 🟢 Publish the weight file so it registers in Recents & Downloads
-                        contentValues.clear()
-                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                        resolver.update(uri, contentValues, null, null)
-                    }
-                } else {
-                    // ✅ Android 9 and below (Create public subfolder directories)
-                    val publicDownloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    val targetSubfolder = File(publicDownloadsDir, cleanSubfolderName).apply { mkdirs() }
-                    val targetFile = File(targetSubfolder, fileName)
-
-                    weightFile.inputStream().use { inputStream ->
-                        targetFile.outputStream().use { outputStream ->
-                            inputStream.copyTo(outputStream)
-                        }
-                    }
-
-                    // 🟢 Force media scan so it shows up immediately in the Downloads & Recents directory
-                    android.media.MediaScannerConnection.scanFile(
-                        context,
-                        arrayOf(targetFile.absolutePath),
-                        arrayOf("font/ttf"),
-                        null
-                    )
-                }
+            // 3. Save each extracted weight into the public subfolder safely
+            extractedWeights.forEach { (_, weightFile) ->
+                saveExtractedWeightFile(weightFile, cleanSubfolderName)
             }
 
             // Clean up temporary local weight cache directory
@@ -240,6 +192,79 @@ class FontRepositoryImpl(
 
             // Return a reference to the first extracted file
             extractedWeights.first().second
+        }
+    }
+
+    private fun saveExtractedWeightFile(
+        weightFile: File,
+        cleanSubfolderName: String
+    ) {
+        val fileName = weightFile.name
+        val resolver = context.contentResolver
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/$cleanSubfolderName/"
+            try {
+                // Clean up any stale MediaStore entries with same filename in this relative path
+                val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.RELATIVE_PATH} = ?"
+                val selectionArgs = arrayOf(fileName, relativePath)
+                resolver.delete(MediaStore.Downloads.EXTERNAL_CONTENT_URI, selection, selectionArgs)
+            } catch (_: Exception) {
+                // Ignore and proceed
+            }
+
+            try {
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "font/ttf")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                if (uri != null) {
+                    resolver.openOutputStream(uri, "wt")?.use { outputStream ->
+                        weightFile.inputStream().use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    contentValues.clear()
+                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    resolver.update(uri, contentValues, null, null)
+                    return
+                }
+            } catch (_: Exception) {
+                // Fallback to direct file writing if MediaStore insert fails
+                saveViaDirectFile(weightFile, cleanSubfolderName)
+                return
+            }
+            saveViaDirectFile(weightFile, cleanSubfolderName)
+        } else {
+            saveViaDirectFile(weightFile, cleanSubfolderName)
+        }
+    }
+
+    private fun saveViaDirectFile(weightFile: File, cleanSubfolderName: String) {
+        try {
+            val publicDownloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val targetSubfolder = File(publicDownloadsDir, cleanSubfolderName).apply { mkdirs() }
+            val targetFile = File(targetSubfolder, weightFile.name)
+
+            weightFile.inputStream().use { inputStream ->
+                targetFile.outputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+
+            android.media.MediaScannerConnection.scanFile(
+                context,
+                arrayOf(targetFile.absolutePath),
+                arrayOf("font/ttf"),
+                null
+            )
+        } catch (_: Exception) {
+            // Safe fallback completed
         }
     }
 
