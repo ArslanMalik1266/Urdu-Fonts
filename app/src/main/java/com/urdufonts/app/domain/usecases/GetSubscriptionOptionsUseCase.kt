@@ -27,26 +27,27 @@ class GetSubscriptionOptionsUseCase(
     }
 
     private fun mapEntitlementToFeature(item: EntitlementItem): PremiumFeature {
-        return when (item.key.lowercase()) {
-            "unlimited_downloads" -> PremiumFeature(
+        val key = item.key.lowercase()
+        return when {
+            key.contains("unlimited") || key.contains("download") -> PremiumFeature(
                 id = item.key,
                 title = "Unlimited Downloads",
                 subtitle = "No Daily Limit",
                 iconRes = R.drawable.ic_download
             )
-            "no_ads" -> PremiumFeature(
+            key.contains("ad") -> PremiumFeature(
                 id = item.key,
                 title = "No Ads",
                 subtitle = "Download Seamless",
                 iconRes = R.drawable.ic_no_ads
             )
-            "premium_fonts" -> PremiumFeature(
+            key.contains("premium") -> PremiumFeature(
                 id = item.key,
                 title = "Premium Fonts",
                 subtitle = "Access to Premium Fonts",
                 iconRes = R.drawable.ic_premium
             )
-            "font_family" -> PremiumFeature(
+            key.contains("font") || key.contains("family") || key.contains("weight") -> PremiumFeature(
                 id = item.key,
                 title = "Urdu Font Family",
                 subtitle = "Download Multiple\nFont Weights",
@@ -68,6 +69,12 @@ class GetSubscriptionOptionsUseCase(
     private fun getDefaultFeatures(): List<PremiumFeature> {
         return listOf(
             PremiumFeature(
+                id = "no_ads",
+                title = "No Ads",
+                subtitle = "Download Seamless",
+                iconRes = R.drawable.ic_no_ads
+            ),
+            PremiumFeature(
                 id = "unlimited_downloads",
                 title = "Unlimited Downloads",
                 subtitle = "No Daily Limit",
@@ -84,12 +91,6 @@ class GetSubscriptionOptionsUseCase(
                 title = "Urdu Font Family",
                 subtitle = "Download Multiple\nFont Weights",
                 iconRes = R.drawable.preview_icon_splash
-            ),
-            PremiumFeature(
-                id = "no_ads",
-                title = "No Ads",
-                subtitle = "Download Seamless",
-                iconRes = R.drawable.ic_no_ads
             )
         )
     }

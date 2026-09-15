@@ -35,7 +35,7 @@ class OnboardingViewModel(
     fun onContinueClicked(currentPage: Int, onFinished: () -> Unit) {
         if (currentPage == pages.size - 1) {
             viewModelScope.launch {
-                // userPreferences.saveOnboardingCompleted(true) // COMMENTED FOR TESTING: Allows onboarding to show every time
+                userPreferences.saveOnboardingCompleted(true)
                 onFinished()
             }
         }
@@ -43,7 +43,7 @@ class OnboardingViewModel(
 
     fun onSkipClicked(onFinished: () -> Unit) {
         viewModelScope.launch {
-            // userPreferences.saveOnboardingCompleted(true) // COMMENTED FOR TESTING: Allows onboarding to show every time
+            userPreferences.saveOnboardingCompleted(true)
             onFinished()
         }
     }

@@ -100,10 +100,11 @@ fun UrduCanvasPromoDialog(
                     ) {
                         Text(
                             text = stringResource(id = R.string.promo_dialog_title),
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = HeadingBlackColor,
-                            fontFamily = NunitoFontFamily
+                            fontFamily = NunitoFontFamily,
+                            modifier = Modifier.weight(1f)
                         )
                         Box(
                             modifier = Modifier
