@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.util
+package com.urdufonts.app.ui.util
 
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.domain.usecases.DownloadFontToDeviceUseCase
@@ -76,7 +76,19 @@ class FontDownloadManager(
                             downloadJob.cancel()
                             _downloadStates.update { it + (font.id to DownloadState.IDLE) }
                             _downloadProgresses.update { it + (font.id to 0f) }
-                            _events.emit(DownloadEvent.Failure(font.id, "Download failed: ${result.exceptionOrNull()?.localizedMessage}"))
+                            val rawError = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
+                            val cleanError = when {
+                                rawError.contains("Failed to build unique file", ignoreCase = true) ||
+                                rawError.contains("bucket_display_name", ignoreCase = true) ->
+                                    "Unable to save font to Downloads. Please check storage permissions."
+                                rawError.contains("No internet", ignoreCase = true) ||
+                                rawError.contains("UnknownHostException", ignoreCase = true) ->
+                                    "No internet connection."
+                                rawError.contains("timeout", ignoreCase = true) ->
+                                    "Connection timed out. Please try again."
+                                else -> rawError.take(100)
+                            }
+                            _events.emit(DownloadEvent.Failure(font.id, "Download failed: $cleanError"))
                             break
                         } else if (reportedProgress >= 1.0f) {
                             // If succeeded and visual progress reached 100%, finalize state

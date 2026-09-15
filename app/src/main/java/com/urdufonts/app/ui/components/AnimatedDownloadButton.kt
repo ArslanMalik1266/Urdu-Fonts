@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.components
+package com.urdufonts.app.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState

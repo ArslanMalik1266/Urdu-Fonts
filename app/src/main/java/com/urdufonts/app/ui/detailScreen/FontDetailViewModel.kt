@@ -43,6 +43,8 @@ class FontDetailViewModel(
     }
 
     sealed class UiEvent {
+        data class DownloadSuccess(val message: String, val shouldShowAd: Boolean = false) : UiEvent()
+        data class DownloadFailure(val error: String) : UiEvent()
         data class ShowSnackbar(val message: String, val shouldShowAd: Boolean = false) : UiEvent()
     }
 
@@ -110,7 +112,7 @@ class FontDetailViewModel(
                             val currentIdStr = numericId.toString()
                             val isFirstDownloadInSession = sessionDownloadedFontIds.add(currentIdStr)
                             val shouldShowAd = isFirstDownloadInSession && !_uiState.value.isProUser
-                            _eventFlow.emit(UiEvent.ShowSnackbar(message = event.message, shouldShowAd = shouldShowAd))
+                            _eventFlow.emit(UiEvent.DownloadSuccess(message = event.message, shouldShowAd = shouldShowAd))
                             if (!_uiState.value.isProUser) {
                                 userPreferences.recordFontDownloaded(currentIdStr)
                             }
@@ -118,7 +120,7 @@ class FontDetailViewModel(
                     }
                     is FontDownloadManager.DownloadEvent.Failure -> {
                         if (event.fontId == numericId) {
-                            _eventFlow.emit(UiEvent.ShowSnackbar(message = event.error, shouldShowAd = false))
+                            _eventFlow.emit(UiEvent.DownloadFailure(error = event.error))
                         }
                     }
                 }

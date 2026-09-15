@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.navigation
+package com.urdufonts.app.ui.navigation
 
 import android.content.Context
 import android.content.Intent
@@ -25,7 +25,9 @@ class ExternalNavigator(private val context: Context) {
             return
         }
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             context.startActivity(intent)
         } catch (e: Exception) {
             Toast.makeText(context, "Cannot open link", Toast.LENGTH_SHORT).show()
@@ -49,4 +51,37 @@ class ExternalNavigator(private val context: Context) {
             openWebPage(webUri)
         }
     }
+
+    fun openOrInstallApp(packageName: String = "com.webscare.urducanvas") {
+        try {
+            val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(launchIntent)
+            } else {
+                openPlayStoreForPackage(packageName)
+            }
+        } catch (e: Exception) {
+            openPlayStoreForPackage(packageName)
+        }
+    }
+
+    fun openPlayStoreForPackage(packageName: String) {
+        val marketUri = Uri.parse("market://details?id=$packageName")
+        val marketIntent = Intent(Intent.ACTION_VIEW, marketUri).apply {
+            addFlags(
+                Intent.FLAG_ACTIVITY_NO_HISTORY or
+                Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
+                Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
+                Intent.FLAG_ACTIVITY_NEW_TASK
+            )
+        }
+        try {
+            context.startActivity(marketIntent)
+        } catch (e: Exception) {
+            val webUri = "https://play.google.com/store/apps/details?id=$packageName"
+            openWebPage(webUri)
+        }
+    }
 }
+
