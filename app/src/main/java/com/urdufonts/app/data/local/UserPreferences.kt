@@ -31,8 +31,9 @@ class UserPreferences(private val context: Context) {
         private val IS_PRO_USER_KEY = booleanPreferencesKey("is_pro_user")
         private val SUBSCRIPTION_PLAN_KEY = stringPreferencesKey("subscription_plan")
         private val SUBSCRIPTION_PURCHASE_TOKEN_KEY = stringPreferencesKey("subscription_purchase_token")
-        private val DOWNLOAD_DATE_KEY = stringPreferencesKey("download_date")
+        private val DOWNLOAD_CYCLE_START_TIMESTAMP_KEY = longPreferencesKey("download_cycle_start_timestamp")
         private val DOWNLOADED_FONT_IDS_KEY = androidx.datastore.preferences.core.stringSetPreferencesKey("downloaded_font_ids")
+        private const val TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000L
 
         fun getAnonymousDeviceId(context: Context): String {
             val androidId = android.provider.Settings.Secure.getString(
@@ -44,43 +45,42 @@ class UserPreferences(private val context: Context) {
             val sha256Hex = hashBytes.joinToString("") { "%02x".format(it) }
             return "anon_android_$sha256Hex"
         }
-
-        private fun getTodayDate(): String {
-            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
-            return sdf.format(java.util.Date())
-        }
     }
 
-    // Read set of unique font IDs downloaded today (resets at midnight calendar day)
+    // Read set of unique font IDs downloaded in the current 24-hour cycle (resets 24h after 1st download)
     val downloadedFontIds: Flow<Set<String>> = context.dataStore.data
         .map { preferences ->
-            val storedDate = preferences[DOWNLOAD_DATE_KEY]
-            val today = getTodayDate()
-            if (storedDate == today) {
+            val startTimestamp = preferences[DOWNLOAD_CYCLE_START_TIMESTAMP_KEY] ?: 0L
+            val now = System.currentTimeMillis()
+            if (now - startTimestamp < TWENTY_FOUR_HOURS_MS) {
                 preferences[DOWNLOADED_FONT_IDS_KEY] ?: emptySet()
             } else {
                 emptySet()
             }
         }
 
-    // Read download count of unique fonts downloaded today
+    // Read download count of unique fonts downloaded in the active 24-hour window
     val downloadCount: Flow<Int> = downloadedFontIds.map { it.size }
 
-    // Record a font download. Returns true if it's a new unique font today, false if already downloaded today.
+    // Record a font download. Starts 24-hour cycle on first download; resets after 24h.
     suspend fun recordFontDownloaded(fontId: String): Boolean {
         var isNewUnique = false
-        val today = getTodayDate()
+        val now = System.currentTimeMillis()
         context.dataStore.edit { preferences ->
-            val storedDate = preferences[DOWNLOAD_DATE_KEY]
-            val currentSet = if (storedDate == today) {
+            val startTimestamp = preferences[DOWNLOAD_CYCLE_START_TIMESTAMP_KEY] ?: 0L
+            val isExpired = (now - startTimestamp >= TWENTY_FOUR_HOURS_MS)
+
+            val currentSet = if (!isExpired) {
                 preferences[DOWNLOADED_FONT_IDS_KEY]?.toMutableSet() ?: mutableSetOf()
             } else {
                 mutableSetOf()
             }
 
             if (!currentSet.contains(fontId)) {
+                if (currentSet.isEmpty() || isExpired) {
+                    preferences[DOWNLOAD_CYCLE_START_TIMESTAMP_KEY] = now
+                }
                 currentSet.add(fontId)
-                preferences[DOWNLOAD_DATE_KEY] = today
                 preferences[DOWNLOADED_FONT_IDS_KEY] = currentSet
                 isNewUnique = true
             }
@@ -88,12 +88,12 @@ class UserPreferences(private val context: Context) {
         return isNewUnique
     }
 
-    // Check if a font was already downloaded today
+    // Check if a font was already downloaded in the active 24-hour window
     suspend fun isFontDownloadedToday(fontId: String): Boolean {
-        val today = getTodayDate()
+        val now = System.currentTimeMillis()
         val prefs = context.dataStore.data.firstOrNull() ?: return false
-        val storedDate = prefs[DOWNLOAD_DATE_KEY]
-        if (storedDate != today) return false
+        val startTimestamp = prefs[DOWNLOAD_CYCLE_START_TIMESTAMP_KEY] ?: 0L
+        if (now - startTimestamp >= TWENTY_FOUR_HOURS_MS) return false
         val set = prefs[DOWNLOADED_FONT_IDS_KEY] ?: return false
         return set.contains(fontId)
     }

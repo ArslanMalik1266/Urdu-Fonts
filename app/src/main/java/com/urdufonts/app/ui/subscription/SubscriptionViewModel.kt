@@ -49,6 +49,12 @@ class SubscriptionViewModel(
     fun onScreenOpened() {
         userSelectedOptionId = null
         _uiState.update { resolveSelection(it) }
+        viewModelScope.launch {
+            val session = getUserSessionUseCase().firstOrNull()
+            if (!session?.email.isNullOrBlank()) {
+                entitlementRepository.refreshEntitlements(session!!.email, force = true)
+            }
+        }
     }
 
     // ─── Single Source of Truth for Selection ────────────────────────────────
@@ -198,6 +204,12 @@ class SubscriptionViewModel(
 
     fun restorePurchases() {
         viewModelScope.launch {
+            val session = getUserSessionUseCase().firstOrNull()
+            if (session == null || session.email.isBlank()) {
+                _uiState.update { it.copy(userMessage = "Please log in to restore purchases.") }
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, userMessage = null) }
             val result = restoreSubscriptionUseCase()
             result.onSuccess { restored ->

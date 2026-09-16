@@ -52,4 +52,6 @@ val domainModule = module {
     factory { GetProductsUseCase(get()) }
     factory { com.urdufonts.app.domain.usecases.CheckProStatusUseCase(get()) }
     factory { com.urdufonts.app.domain.usecases.GetActivePlanTypeUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.GlobalSearchUseCase(get(), get(), get()) }
 }
+

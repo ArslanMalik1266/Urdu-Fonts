@@ -77,9 +77,11 @@ class EntitlementLocalDataSource(private val context: Context) {
 
     suspend fun clearEntitlements() {
         context.entitlementDataStore.edit { preferences ->
+            preferences.remove(KEY_EXTERNAL_USER_ID)
             preferences.remove(KEY_ENTITLEMENTS_JSON)
             preferences[KEY_IS_PRO_UNLOCKED] = false
             preferences.remove(KEY_PURCHASED_PLAN_TYPE)
+            preferences.remove(KEY_LAST_REFRESH_TS)
         }
     }
 }

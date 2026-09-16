@@ -128,7 +128,7 @@ fun SettingsScreen(
                 title = "Settings",
                 onBackClick = onBackClick,
                 onSubscriptionClick = onNavigateToSubscription,
-                showSubscriptionIcon = showSubIcon,
+                showSubscriptionIcon = true,
                 containerColor = BackgroundColor
             )
         }
@@ -258,14 +258,17 @@ fun SettingsScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Urdu Fonts App · Version $appVersion",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF8B928D),
-                        fontFamily = NunitoFontFamily
+                        text = "UrduFonts.com",
+                        fontSize = 13.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkGreenAccent,
+                        fontFamily = NunitoFontFamily,
+                        modifier = Modifier
+                            .addPressEffect { onOpenWebPage("https://urdufonts.com") }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                     Text(
                         text = "© 2026 WebsCare Pvt. Ltd. All rights reserved.",

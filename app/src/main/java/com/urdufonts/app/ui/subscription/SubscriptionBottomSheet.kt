@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -86,7 +88,8 @@ fun SubscriptionBottomSheet(
         },
         sheetState = sheetState,
         containerColor = Color.Transparent,
-        dragHandle = null
+        dragHandle = null,
+        contentWindowInsets = { WindowInsets(0) }
     ) {
         Box(
             modifier = Modifier
@@ -105,9 +108,9 @@ fun SubscriptionBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(scrollState)
-                    .navigationBarsPadding()
+                    .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(horizontal = Dimens.space24)
-                    .padding(bottom = Dimens.space24),
+                    .padding(bottom = Dimens.space12),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -143,15 +146,23 @@ fun SubscriptionBottomSheet(
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(Dimens.space16))
+                    Spacer(modifier = Modifier.height(Dimens.space8))
 
-                    uiState.pendingChange?.let { pending ->
-                        PendingChangeBanner(
-                            pendingPlanName = pending.planName ?: pending.productSku ?: "Monthly",
-                            effectiveAt = pending.effectiveAt
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.space12))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(Dimens.space32),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        uiState.pendingChange?.let { pending ->
+                            PendingChangeBanner(
+                                pendingPlanName = pending.planName ?: pending.productSku ?: "Monthly",
+                                effectiveAt = pending.effectiveAt
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(Dimens.space8))
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(Dimens.space12),
@@ -192,6 +203,7 @@ fun SubscriptionBottomSheet(
 
                     SubscriptionFooter(
                         buttonText = uiState.actionButtonText,
+                        enabled = uiState.isActionEnabled,
                         onActionClick = {
                             if (uiState.isPurchasing) return@SubscriptionFooter
                             when (uiState.actionType) {

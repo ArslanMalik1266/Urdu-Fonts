@@ -58,6 +58,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeScreen(
     onMenuClick: () -> Unit,
     onFontClick: (fontId: String) -> Unit,
+    onSearchClick: () -> Unit = {},
     onSubscriptionClick: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
@@ -67,10 +68,6 @@ fun HomeScreen(
     val seenItems = remember { mutableStateSetOf<Int>() }
     val listState = rememberLazyListState()
 
-
-    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
-    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
-    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
 
     Box(
         modifier = Modifier
@@ -86,7 +83,7 @@ fun HomeScreen(
                     onMenuClick = onMenuClick,
                     onCartClick = { },
                     onSubscriptionClick = onSubscriptionClick,
-                    showSubscriptionIcon = showSubIcon
+                    showSubscriptionIcon = true
                 )
             }
         ) { innerPadding ->
@@ -95,12 +92,12 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)) {
                     CustomSearchBar(
-                        query = uiState.searchQuery,
-                        onQueryChange = { viewModel.updateSearchQuery(it) },
-                        modifier = Modifier.padding(horizontal = 0.dp),
-                        onDone = { focusManager.clearFocus() }
+                        readOnly = true,
+                        placeholderText = "Search fonts, categories, styles...",
+                        onClick = onSearchClick,
+                        modifier = Modifier.padding(horizontal = 0.dp)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))

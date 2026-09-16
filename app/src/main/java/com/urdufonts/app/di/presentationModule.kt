@@ -7,6 +7,7 @@ import com.urdufonts.app.ui.fontList.FontListViewModel
 import com.urdufonts.app.ui.home.HomeViewModel
 import com.urdufonts.app.ui.onboarding.OnboardingViewModel
 import com.urdufonts.app.ui.profile.ProfileViewModel
+import com.urdufonts.app.ui.search.SearchViewModel
 import com.urdufonts.app.ui.style.StylesViewModel
 import com.urdufonts.app.ui.subscription.SubscriptionViewModel
 import com.urdufonts.app.ui.util.FontDownloadManager
@@ -25,5 +26,7 @@ val presentationModule = module {
     viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), androidContext()) }
     viewModel { OnboardingViewModel(get()) }
     viewModel { SubscriptionViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { SearchViewModel(get()) }
     single { FontDownloadManager(get()) }
 }
+

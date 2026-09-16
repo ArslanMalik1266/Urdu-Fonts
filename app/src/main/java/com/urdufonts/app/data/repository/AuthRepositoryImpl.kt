@@ -23,9 +23,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 
+import com.urdufonts.app.data.local.EntitlementLocalDataSource
+
 class AuthRepositoryImpl(
     private val apiService: AuthApiService,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val entitlementLocalDataSource: EntitlementLocalDataSource? = null
 ) : AuthRepository {
 
     override suspend fun registerUser(
@@ -157,6 +160,9 @@ class AuthRepositoryImpl(
     override suspend fun logout(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             userPreferences.clearUserSession()
+            userPreferences.saveSubscriptionStatus(isPro = false, planId = null, purchaseToken = null)
+            entitlementLocalDataSource?.clearEntitlements()
+            Unit
         }
     }
 

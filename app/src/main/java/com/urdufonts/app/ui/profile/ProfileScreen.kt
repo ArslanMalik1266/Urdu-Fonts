@@ -734,6 +734,11 @@ private fun OtpVerificationContent(
 
                     otpValue = updatedValue
                     otpCode = updatedValue.text
+
+                    if (updatedValue.text.length == 6 && oldText.length < 6) {
+                        focusManager.clearFocus()
+                        onVerifyOtp(updatedValue.text)
+                    }
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,

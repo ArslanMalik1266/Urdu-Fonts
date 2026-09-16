@@ -312,6 +312,13 @@ class BillingRepositoryImpl(
             startConnection()
         }
 
+        val session = userPreferences.userSession.firstOrNull()
+        val userEmail = session?.email
+        if (userEmail.isNullOrBlank()) {
+            Log.d(TAG, "restorePurchases skipped: user is not logged in.")
+            return Result.success(false)
+        }
+
         val subsPurchases = queryPurchasesForType(BillingClient.ProductType.SUBS)
         val inAppPurchases = queryPurchasesForType(BillingClient.ProductType.INAPP)
 
@@ -329,15 +336,7 @@ class BillingRepositoryImpl(
         } else {
             scope.launch {
                 userPreferences.saveSubscriptionStatus(isPro = false)
-                if (entitlementRepository != null) {
-                    val session = userPreferences.userSession.firstOrNull()
-                    val externalUserId = if (!session?.email.isNullOrBlank()) {
-                        session.email
-                    } else {
-                        UserPreferences.getAnonymousDeviceId(context)
-                    }
-                    entitlementRepository.refreshEntitlements(externalUserId, force = true)
-                }
+                entitlementRepository?.refreshEntitlements(userEmail, force = true)
             }
             Result.success(false)
         }
@@ -380,6 +379,13 @@ class BillingRepositoryImpl(
             return
         }
 
+        val session = userPreferences.userSession.firstOrNull()
+        val externalUserId = session?.email
+        if (externalUserId.isNullOrBlank()) {
+            Log.w(TAG, "handlePurchase skipped: User is not logged in. Purchases are not linked to anonymous sessions.")
+            return
+        }
+
         val token = purchase.purchaseToken
         val alreadyInFlight = inFlightMutex.withLock {
             if (inFlightPurchaseTokens.contains(token)) {
@@ -396,12 +402,6 @@ class BillingRepositoryImpl(
 
         try {
             val productId = purchase.products.firstOrNull() ?: PRODUCT_ID_SUBS
-            val session = userPreferences.userSession.firstOrNull()
-            val externalUserId = if (!session?.email.isNullOrBlank()) {
-                session!!.email
-            } else {
-                UserPreferences.getAnonymousDeviceId(context)
-            }
 
             val productType = if (productId == PRODUCT_ID_LIFETIME) "non_consumable" else "subscription"
             val backendSku = when {

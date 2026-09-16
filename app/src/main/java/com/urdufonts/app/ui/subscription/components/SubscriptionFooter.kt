@@ -39,8 +39,12 @@ fun SubscriptionFooter(
     buttonText: String,
     onActionClick: () -> Unit,
     onRestoreClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
+    val buttonBgColor = if (enabled) DarkGreen else DarkGreen.copy(alpha = 0.5f)
+    val buttonContentAlpha = if (enabled) 1f else 0.85f
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -50,15 +54,20 @@ fun SubscriptionFooter(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
-                .addPressEffect(onClick = onActionClick)
-                .softShadow(
-                    shadowColor = DarkGreen.copy(alpha = 0.25f),
-                    borderRadius = Dimens.cornerLarge,
-                    blurValue = 14.dp,
-                    offsetY = 4.dp
+                .then(
+                    if (enabled) {
+                        Modifier
+                            .addPressEffect(onClick = onActionClick)
+                            .softShadow(
+                                shadowColor = DarkGreen.copy(alpha = 0.25f),
+                                borderRadius = Dimens.cornerLarge,
+                                blurValue = 14.dp,
+                                offsetY = 4.dp
+                            )
+                    } else Modifier
                 )
                 .clip(RoundedCornerShape(Dimens.cornerPill))
-                .background(DarkGreen),
+                .background(buttonBgColor),
             contentAlignment = Alignment.Center
         ) {
             Row(
@@ -68,7 +77,7 @@ fun SubscriptionFooter(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_premium),
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = Color.White.copy(alpha = buttonContentAlpha),
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(Dimens.space8))
@@ -77,7 +86,7 @@ fun SubscriptionFooter(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = NunitoFontFamily,
-                    color = Color.White
+                    color = Color.White.copy(alpha = buttonContentAlpha)
                 )
             }
         }

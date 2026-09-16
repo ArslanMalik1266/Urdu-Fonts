@@ -37,6 +37,10 @@ data class SubscriptionUiState(
         get() {
             val selectedType = selectedSubscriptionType
 
+            if (activePlanType == SubscriptionType.LIFETIME) {
+                return SubscriptionActionType.LIFETIME_ACTIVE
+            }
+
             if (activePlanType != null && activePlanType == selectedType) {
                 return SubscriptionActionType.MANAGE_EXTERNAL
             }
@@ -50,10 +54,6 @@ data class SubscriptionUiState(
                 if (isPendingTarget) {
                     return SubscriptionActionType.MANAGE_EXTERNAL
                 }
-            }
-
-            if (activePlanType == SubscriptionType.LIFETIME) {
-                return SubscriptionActionType.LIFETIME_ACTIVE
             }
 
             if (activePlanType == SubscriptionType.MONTHLY && selectedType == SubscriptionType.SIX_MONTHS) {
@@ -82,4 +82,7 @@ data class SubscriptionUiState(
             }
             else -> "Subscribe"
         }
+
+    val isActionEnabled: Boolean
+        get() = actionType != SubscriptionActionType.LIFETIME_ACTIVE && !isPurchasing
 }

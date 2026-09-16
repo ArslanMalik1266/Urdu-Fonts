@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.components
+package com.urdufonts.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,58 +31,95 @@ import com.urdufonts.app.ui.theme.NunitoFontFamily
 import com.urdufonts.app.ui.util.addPressEffect // Imported your custom press effect modifier
 import com.urdufonts.app.ui.util.softShadow
 
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+
 @Composable
 fun CustomSearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    query: String = "",
+    onQueryChange: (String) -> Unit = {},
     modifier: Modifier = Modifier,
+    readOnly: Boolean = false,
+    placeholderText: String = "Search fonts, categories, styles...",
+    focusRequester: FocusRequester? = null,
+    onClick: (() -> Unit)? = null,
     onDone: () -> Unit = {}
 ) {
-    // 1. Focus state tracking
     var isFocused by remember { mutableStateOf(false) }
-
-    // 2. Focused/Unfocused border color selection
     val borderColor = if (isFocused) AppColor.copy(alpha = 0.3f) else GreyColor.copy(alpha = 0.2f)
 
-    Row(
-        modifier = modifier
+    val rowModifier = if (readOnly && onClick != null) {
+        modifier
             .fillMaxWidth()
-            .height(52.dp)
+            .height(44.dp)
             .softShadow(
                 shadowColor = HeadingBlackColor.copy(0.02f),
                 offsetY = (0).dp,
-                blurValue = 8.dp,
+                blurValue = 6.dp,
                 borderRadius = 999.dp
             )
             .clip(CircleShape)
             .background(Color.White)
             .border(0.5.dp, borderColor, CircleShape)
-            .padding(horizontal = 16.dp),
+            .addPressEffect { onClick() }
+            .padding(horizontal = 14.dp)
+    } else {
+        modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .softShadow(
+                shadowColor = HeadingBlackColor.copy(0.02f),
+                offsetY = (0).dp,
+                blurValue = 6.dp,
+                borderRadius = 999.dp
+            )
+            .clip(CircleShape)
+            .background(Color.White)
+            .border(0.5.dp, borderColor, CircleShape)
+            .padding(horizontal = 14.dp)
+    }
+
+    Row(
+        modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        BasicTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier = Modifier
+        if (readOnly) {
+            Text(
+                text = if (query.isEmpty()) placeholderText else query,
+                color = if (query.isEmpty()) GreyColor.copy(alpha = 0.6f) else HeadingBlackColor,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                fontFamily = NunitoFontFamily,
+                modifier = Modifier.weight(1f)
+            )
+        } else {
+            val textModifier = Modifier
                 .weight(1f)
-                .onFocusChanged { isFocused = it.isFocused },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { onDone() })
-        ) { innerTextField ->
-            if (query.isEmpty()) {
-                Text(
-                    "Search",
-                    color = GreyColor.copy(alpha = 0.6f),
-                    fontSize = 14.sp,
-                    lineHeight = 18.sp,
-                    fontFamily = NunitoFontFamily
-                )
+                .onFocusChanged { isFocused = it.isFocused }
+                .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = textModifier,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onDone() })
+            ) { innerTextField ->
+                if (query.isEmpty()) {
+                    Text(
+                        placeholderText,
+                        color = GreyColor.copy(alpha = 0.6f),
+                        fontSize = 14.sp,
+                        lineHeight = 18.sp,
+                        fontFamily = NunitoFontFamily
+                    )
+                }
+                innerTextField()
             }
-            innerTextField()
         }
 
-        if (query.isNotEmpty()) {
+        if (!readOnly && query.isNotEmpty()) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_close),
                 contentDescription = "Clear text",

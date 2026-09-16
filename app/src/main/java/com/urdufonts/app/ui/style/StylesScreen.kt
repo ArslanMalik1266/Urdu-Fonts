@@ -49,6 +49,7 @@ import org.koin.androidx.compose.koinViewModel
 fun StylesScreen(
     onCartClick: () -> Unit = {},
     onStyleClick: (StyleItem) -> Unit = {},
+    onSearchClick: () -> Unit = {},
     onSubscriptionClick: () -> Unit = {},
     viewModel: StylesViewModel = koinViewModel()
 ) {
@@ -56,10 +57,6 @@ fun StylesScreen(
     val focusManager = LocalFocusManager.current
     val seenItems = remember { mutableStateSetOf<Int>() }
     com.urdufonts.app.ui.util.LogScreenEntry("StylesScreen")
-
-    val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
-    val activePlanType by entitlementRepository.activePlanTypeFlow.collectAsStateWithLifecycle(initialValue = null)
-    val showSubIcon = activePlanType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -73,7 +70,7 @@ fun StylesScreen(
                     title = "Urdu Font Styles",
                     onCartClick = onCartClick,
                     onSubscriptionClick = onSubscriptionClick,
-                    showSubscriptionIcon = showSubIcon
+                    showSubscriptionIcon = true
                 )
             }
         ) { innerPadding ->
@@ -82,14 +79,12 @@ fun StylesScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)) {
                     CustomSearchBar(
-                        query = uiState.searchQuery,
-                        onQueryChange = viewModel::onSearchQueryChange,
-                        modifier = Modifier.padding(horizontal = 0.dp),
-                        onDone = {
-                            focusManager.clearFocus()
-                        }
+                        readOnly = true,
+                        placeholderText = "Search fonts, categories, styles...",
+                        onClick = onSearchClick,
+                        modifier = Modifier.padding(horizontal = 0.dp)
                     )
                 }
 
@@ -138,7 +133,7 @@ fun StylesScreen(
                                 contentPadding = PaddingValues(
                                     start = 18.dp,
                                     end = 18.dp,
-                                    top = 16.dp,
+                                    top = 8.dp,
                                     bottom = 80.dp
                                 ),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)

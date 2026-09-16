@@ -55,7 +55,7 @@ val dataModule = module {
     single<BannerRepository>     { BannerRepositoryImpl() }
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }
     single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get(), categoryDao = get()) }
-    single<AuthRepository>       { AuthRepositoryImpl(apiService = get(), userPreferences = get()) }
+    single<AuthRepository>       { AuthRepositoryImpl(apiService = get(), userPreferences = get(), entitlementLocalDataSource = get()) }
     single<BillingRepository>    { BillingRepositoryImpl(context = androidContext(), userPreferences = get(), entitlementRepository = get()) }
     single<MoreAppsRepository>   { MoreAppsRepositoryImpl(apiService = get()) }
     single<ProductsRepository>   { ProductsRepositoryImpl(apiService = get()) }

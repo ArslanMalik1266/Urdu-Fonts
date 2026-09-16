@@ -29,6 +29,7 @@ import com.urdufonts.app.ui.home.HomeViewModel
 import com.urdufonts.app.ui.onboarding.OnboardingScreen
 import com.urdufonts.app.ui.onboarding.OnboardingViewModel
 import com.urdufonts.app.ui.profile.ProfileScreen
+import com.urdufonts.app.ui.search.SearchScreen
 import com.urdufonts.app.ui.settings.SettingsScreen
 import com.urdufonts.app.ui.splash.SplashScreen
 import com.urdufonts.app.ui.style.StylesScreen
@@ -112,6 +113,7 @@ fun AppNavigation() {
                         val viewModel: HomeViewModel = koinViewModel()
                         HomeScreen(
                             onMenuClick = { navController.navigate(Screen.Settings.route) },
+                            onSearchClick = { navController.navigate(Screen.Search.createRoute("fonts")) },
                             onFontClick = { fontId ->
                                 navController.navigate(Screen.fontDetail.createRoute(fontId))
                                 viewModel.clearSearch()
@@ -123,6 +125,7 @@ fun AppNavigation() {
                         val viewModel: StylesViewModel = koinViewModel()
                         StylesScreen(
                             onCartClick = { },
+                            onSearchClick = { navController.navigate(Screen.Search.createRoute("styles")) },
                             onStyleClick = { styleItem ->
                                 navController.navigate(
                                     Screen.fontListScreen.createRoute(
@@ -140,6 +143,7 @@ fun AppNavigation() {
                         val viewModel: CategoriesViewModel = koinViewModel()
                         CategoriesScreen(
                             onCartClick = { },
+                            onSearchClick = { navController.navigate(Screen.Search.createRoute("categories")) },
                             onCategoryClick = { categoryItem ->
                                 navController.navigate(
                                     Screen.fontListScreen.createRoute(
@@ -151,6 +155,44 @@ fun AppNavigation() {
                                 viewModel.clearSearch()
                             },
                             onSubscriptionClick = { showSubscriptionBottomSheet = true }
+                        )
+                    }
+                    composable(
+                        route = Screen.Search.route,
+                        arguments = listOf(
+                            navArgument("initialTab") {
+                                type = NavType.StringType
+                                defaultValue = "fonts"
+                                nullable = true
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val initialTab = backStackEntry.arguments?.getString("initialTab") ?: "fonts"
+                        SearchScreen(
+                            onBackClick = { navController.popBackStack() },
+                            initialTab = initialTab,
+                            onSubscriptionClick = { showSubscriptionBottomSheet = true },
+                            onFontClick = { fontId ->
+                                navController.navigate(Screen.fontDetail.createRoute(fontId))
+                            },
+                            onCategoryClick = { categoryItem ->
+                                navController.navigate(
+                                    Screen.fontListScreen.createRoute(
+                                        filterType = "category",
+                                        filterValue = categoryItem.slug,
+                                        title = "${categoryItem.title} Fonts"
+                                    )
+                                )
+                            },
+                            onStyleClick = { styleItem ->
+                                navController.navigate(
+                                    Screen.fontListScreen.createRoute(
+                                        filterType = "style",
+                                        filterValue = styleItem.slug,
+                                        title = "${styleItem.title} Fonts"
+                                    )
+                                )
+                            }
                         )
                     }
                     composable(

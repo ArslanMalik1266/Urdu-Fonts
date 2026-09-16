@@ -16,4 +16,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object Subscription : Screen("subscription")
     object Settings : Screen("settings")
+    object Search : Screen("search?initialTab={initialTab}") {
+        fun createRoute(initialTab: String = "fonts") = "search?initialTab=$initialTab"
+    }
 }
