@@ -253,6 +253,12 @@ fun SplashScreen(
     var isBrandingVisible by remember { mutableStateOf(false) }
     var isBadgesVisible by remember { mutableStateOf(false) }
 
+    // Whatever path leaves the splash (ad dismissed, no ad, onboarding, back), it is no longer a
+    // loading screen, so the app-open marker must be cleared
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { com.webscare.ads.WebsCareAds.setAppOpenLoadingScreenVisible(false) }
+    }
+
     LaunchedEffect(Unit) {
         // Preload App Open Ad ONLY if user has completed onboarding and is going directly to Home Screen
         if (isOnboardingCompleted && activity != null) {
@@ -273,7 +279,9 @@ fun SplashScreen(
 
         if (isOnboardingCompleted && activity != null) {
             android.util.Log.d("WebsCareAdsLog", "SplashScreen -> 3.0s branding completed. Showing App Open Ad before Home Screen...")
-            adManager.showAppOpenAd(activity) {
+            // The splash is still on screen here, so it is a genuine loading surface for the app-open ad;
+            // no ad ready → continues to Home immediately
+            adManager.showSplashAppOpen(activity) {
                 onNavigateNext()
             }
         } else {

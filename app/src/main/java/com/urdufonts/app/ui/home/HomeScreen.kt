@@ -65,7 +65,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
     val filterSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val seenItems = remember { mutableStateSetOf<Int>() }
+    val seenItems = viewModel.seenItems
     val listState = rememberLazyListState()
 
 
@@ -122,6 +122,10 @@ fun HomeScreen(
                     }
                 }
 
+                // Remember the last error so the fading-out error screen still has text after retry clears it
+                var lastErrorMessage by remember { mutableStateOf("") }
+                uiState.errorMessage?.let { lastErrorMessage = it }
+
                 Crossfade(
                     targetState = when {
                         uiState.errorMessage != null -> "error"
@@ -137,7 +141,7 @@ fun HomeScreen(
                         }
                         "error" -> {
                             OfflineErrorState(
-                                message = uiState.errorMessage!!,
+                                message = uiState.errorMessage ?: lastErrorMessage,
                                 onRetry = viewModel::retry
                             )
                         }
@@ -165,6 +169,7 @@ fun HomeScreen(
                             com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
                                 listState = listState,
                                 imageUrls = remember(uiState.fonts) { uiState.fonts.mapNotNull { it.featureImageUrl } },
+                                requestFor = com.urdufonts.app.ui.util.CardImageRequests::font,
                                 bufferAheadCount = 18
                             )
                             Box(modifier = Modifier.clipToBounds()) {
@@ -200,9 +205,12 @@ fun HomeScreen(
                                             }
                                         }
 
-                                        if (index > 0 && (index + 1) % 8 == 0) {
+                                        // Small native after the 2nd font, then after every 7 more
+                                        if (com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 2, every = 7)) {
                                             com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
-                                                adUnitId = com.urdufonts.app.ads.AdConfig.HOME_NATIVE_AD_UNIT_ID,
+                                                placement = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_HOME_NATIVE,
+                                                slot = index,
+                                                nativeSize = com.webscare.ads.NativeSize.SMALL,
                                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp)
                                             )
                                         }

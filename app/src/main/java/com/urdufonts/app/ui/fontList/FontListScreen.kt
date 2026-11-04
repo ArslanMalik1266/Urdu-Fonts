@@ -106,6 +106,7 @@ fun FontListScreen(
                         com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
                             listState = listState,
                             imageUrls = remember(uiState.fonts) { uiState.fonts.mapNotNull { it.featureImageUrl } },
+                            requestFor = com.urdufonts.app.ui.util.CardImageRequests::font,
                             bufferAheadCount = 18
                         )
                         Box(modifier = Modifier.clipToBounds()) {
@@ -141,9 +142,12 @@ fun FontListScreen(
                                         }
                                     }
 
-                                    if (index > 0 && (index + 1) % 8 == 0) {
+                                    // Same rule as Home: small native after the 2nd font, then after every 7 more
+                                    if (com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 2, every = 7)) {
                                         com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
-                                            adUnitId = com.urdufonts.app.ads.AdConfig.FONT_LIST_NATIVE_AD_UNIT_ID,
+                                            placement = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_FONT_LIST_NATIVE,
+                                            slot = index,
+                                            nativeSize = com.webscare.ads.NativeSize.SMALL,
                                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp)
                                         )
                                     }

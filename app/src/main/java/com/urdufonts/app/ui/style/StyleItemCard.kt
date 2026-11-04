@@ -29,7 +29,7 @@ import com.urdufonts.app.ui.theme.GreyColor
 import com.urdufonts.app.ui.theme.HeadingBlackColor
 import com.urdufonts.app.ui.theme.NunitoFontFamily
 import com.urdufonts.app.ui.util.addPressEffect
-import com.urdufonts.app.ui.util.softShadow
+import com.urdufonts.app.ui.util.bakedSoftShadow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.ContentScale
@@ -62,7 +62,7 @@ fun StyleItemCard(
             .addPressEffect {
                 onClick()
             }
-            .softShadow(
+            .bakedSoftShadow(
                 shadowColor = HeadingBlackColor.copy(0.03f),
                 offsetY = (0).dp,
                 blurValue = 8.dp,
@@ -97,14 +97,7 @@ fun StyleItemCard(
             val context = androidx.compose.ui.platform.LocalContext.current
             coil.compose.AsyncImage(
                 model = androidx.compose.runtime.remember(style.thumbnailUrl) {
-                    coil.request.ImageRequest.Builder(context)
-                        .data(style.thumbnailUrl)
-                        .transformations(com.urdufonts.app.ui.util.TrimTransparentPaddingTransformation())
-                        .crossfade(true)
-                        .crossfade(300)
-                        .diskCachePolicy(coil.request.CachePolicy.ENABLED)
-                        .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
-                        .build()
+                    com.urdufonts.app.ui.util.CardImageRequests.style(context, style.thumbnailUrl)
                 },
                 contentDescription = style.title,
                 modifier = Modifier.height(36.dp),

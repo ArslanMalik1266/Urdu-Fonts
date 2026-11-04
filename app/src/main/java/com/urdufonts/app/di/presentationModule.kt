@@ -18,8 +18,8 @@ import org.koin.dsl.module
 val presentationModule = module {
     single { AppInitViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), androidContext()) }
-    viewModel { StylesViewModel(get(), androidContext()) }
-    viewModel { CategoriesViewModel(get(), androidContext()) }
+    viewModel { StylesViewModel(get(), androidContext(), get()) }
+    viewModel { CategoriesViewModel(get(), androidContext(), get()) }
     // Pass get() to resolve SavedStateHandle injection automatically
     viewModel { FontDetailViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { FontListViewModel(get(), get(), androidContext()) } // Only needs GetFontsUseCase and SavedStateHandle

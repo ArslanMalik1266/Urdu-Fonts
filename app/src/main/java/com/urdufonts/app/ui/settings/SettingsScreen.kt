@@ -1,5 +1,10 @@
 package com.urdufonts.app.ui.settings
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -103,21 +108,34 @@ fun SettingsScreen(
     val drawerUiState by viewModel.drawerUiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val appVersion = remember(context) { getAppVersionName(context) }
-    var cacheSizeText by remember { mutableStateOf(calculateCacheSize(context)) }
+    // Cache size walks the whole cache folder, so compute it off the main thread to avoid ANRs
+    var cacheSizeText by remember { mutableStateOf("…") }
     var showClearCacheDialog by remember { mutableStateOf(false) }
+    val cacheScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        cacheSizeText = withContext(Dispatchers.IO) { calculateCacheSize(context) }
+    }
 
     if (showClearCacheDialog) {
         ClearCacheConfirmationDialog(
             onDismiss = { showClearCacheDialog = false },
             onConfirm = {
                 showClearCacheDialog = false
-                clearAppCache(context)
-                cacheSizeText = calculateCacheSize(context)
+                cacheScope.launch {
+                    val cleared = withContext(Dispatchers.IO) { clearAppCache(context) }
+                    Toast.makeText(
+                        context,
+                        if (cleared) "Cache cleared successfully" else "Failed to clear cache",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    cacheSizeText = withContext(Dispatchers.IO) { calculateCacheSize(context) }
+                }
             }
         )
     }
 
     val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
+    val adManager: com.urdufonts.app.ads.AdManager = org.koin.compose.koinInject()
     val userEntitlements by entitlementRepository.entitlementsFlow.collectAsStateWithLifecycle(initialValue = com.urdufonts.app.domain.models.UserEntitlements())
     val showSubIcon = userEntitlements.activeSubscriptionType != com.urdufonts.app.domain.models.SubscriptionType.LIFETIME
 
@@ -208,6 +226,15 @@ fun SettingsScreen(
                         showDivider = true,
                         onClick = { onOpenWebPage("https://urdufonts.com/privacy-policy") }
                     )
+                    // Google (UMP) requires a way to change ad consent for some users, e.g. in the EEA
+                    if (adManager.isPrivacyOptionsRequired()) {
+                        SettingsRow(
+                            iconRes = R.drawable.ic_drawer_privacy,
+                            label = "Ad privacy options",
+                            showDivider = true,
+                            onClick = { (context as? android.app.Activity)?.let { adManager.showPrivacyOptions(it) } }
+                        )
+                    }
                     SettingsRow(
                         iconRes = R.drawable.ic_email,
                         label = "Contact Us",
@@ -223,9 +250,14 @@ fun SettingsScreen(
                 }
 
                 // ── 5. MORE APPS Section (Dynamic from API) ──────────────────
-                val appsList = drawerUiState.moreApps.ifEmpty { defaultAppsList }
+                // Defaults only when the API gave nothing; before it answers, show no rows (no 5 -> 4 jump)
+                val appsList = when {
+                    drawerUiState.moreApps.isNotEmpty() -> drawerUiState.moreApps
+                    drawerUiState.moreAppsLoaded -> defaultAppsList
+                    else -> emptyList()
+                }
 
-                SettingsSection(title = "MORE APPS") {
+                if (appsList.isNotEmpty()) SettingsSection(title = "MORE APPS") {
                     appsList.forEachIndexed { index, app ->
                         MoreAppApiRow(
                             app = app,
@@ -652,13 +684,13 @@ private fun getFolderSize(folder: File): Long {
     return length
 }
 
-private fun clearAppCache(context: Context) {
-    try {
+private fun clearAppCache(context: Context): Boolean {
+    return try {
         context.cacheDir?.deleteRecursively()
         context.externalCacheDir?.deleteRecursively()
-        Toast.makeText(context, "Cache cleared successfully", Toast.LENGTH_SHORT).show()
-    } catch (e: Exception) {
-        Toast.makeText(context, "Failed to clear cache", Toast.LENGTH_SHORT).show()
+        true
+    } catch (_: Exception) {
+        false
     }
 }
 

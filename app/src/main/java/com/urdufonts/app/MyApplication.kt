@@ -16,7 +16,6 @@ import java.io.File
 class MyApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
-        com.urdufonts.app.ads.AdConfig.init(this)
         startKoin {
             androidLogger(Level.DEBUG)
             androidContext(this@MyApplication)
@@ -26,7 +25,6 @@ class MyApplication : Application(), ImageLoaderFactory {
         getKoin().get<AppInitViewModel>()
         val adManager = getKoin().get<com.urdufonts.app.ads.AdManager>()
         adManager.initSdk(this)
-        adManager.initAppOpenAd(this)
     }
 
     override fun newImageLoader(): ImageLoader {

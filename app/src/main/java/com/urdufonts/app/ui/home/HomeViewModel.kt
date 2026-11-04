@@ -31,6 +31,9 @@ class HomeViewModel(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    // Survives tab switches (the screen's remember{} doesn't), so revisited items skip the fade-in
+    val seenItems: MutableSet<Int> = mutableSetOf()
+
     private val _drawerUiState = MutableStateFlow(DrawerUiState())
     val drawerUiState: StateFlow<DrawerUiState> = _drawerUiState.asStateFlow()
 
@@ -61,10 +64,10 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 val appsList = getMoreAppsUseCase()
-                if (appsList.isNotEmpty()) {
-                    _drawerUiState.update { it.copy(moreApps = appsList) }
-                }
-            } catch (_: Exception) {}
+                _drawerUiState.update { it.copy(moreApps = appsList, moreAppsLoaded = true) }
+            } catch (_: Exception) {
+                _drawerUiState.update { it.copy(moreAppsLoaded = true) }
+            }
         }
     }
 
@@ -90,7 +93,7 @@ class HomeViewModel(
                 // Full Atomic Wait: Preload initial visible SVG images while Shimmer is active
                 val initialImageUrls = allFonts.take(6).mapNotNull { it.featureImageUrl }
                 if (initialImageUrls.isNotEmpty()) {
-                    preloadImageUrls(context, initialImageUrls)
+                    preloadImageUrls(context, initialImageUrls, com.urdufonts.app.ui.util.CardImageRequests::font)
                 }
 
                 _uiState.update {
@@ -105,7 +108,7 @@ class HomeViewModel(
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update {
-                    it.copy(isLoading = false, errorMessage = e.message ?: "Something went wrong")
+                    it.copy(isLoading = false, errorMessage = com.urdufonts.app.ui.util.UserMessages.forError(e))
                 }
             }
         }

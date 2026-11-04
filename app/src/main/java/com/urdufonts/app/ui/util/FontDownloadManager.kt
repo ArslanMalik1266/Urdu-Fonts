@@ -76,19 +76,18 @@ class FontDownloadManager(
                             downloadJob.cancel()
                             _downloadStates.update { it + (font.id to DownloadState.IDLE) }
                             _downloadProgresses.update { it + (font.id to 0f) }
-                            val rawError = result.exceptionOrNull()?.localizedMessage ?: "Unknown error"
+                            val error = result.exceptionOrNull()
+                            val rawError = error?.localizedMessage ?: "Unknown error"
+                            android.util.Log.e("FontDownload", "Download failed for ${font.id}: $rawError", error)
                             val cleanError = when {
                                 rawError.contains("Failed to build unique file", ignoreCase = true) ||
                                 rawError.contains("bucket_display_name", ignoreCase = true) ->
                                     "Unable to save font to Downloads. Please check storage permissions."
-                                rawError.contains("No internet", ignoreCase = true) ||
-                                rawError.contains("UnknownHostException", ignoreCase = true) ->
-                                    "No internet connection."
-                                rawError.contains("timeout", ignoreCase = true) ->
-                                    "Connection timed out. Please try again."
-                                else -> rawError.take(100)
+                                font.fontFileUrl.isNullOrBlank() -> UserMessages.DOWNLOAD_LINK_UNAVAILABLE
+                                // Never show the raw exception text to users
+                                else -> UserMessages.forError(error, fallback = UserMessages.FONT_FILE_FAILED)
                             }
-                            _events.emit(DownloadEvent.Failure(font.id, "Download failed: $cleanError"))
+                            _events.emit(DownloadEvent.Failure(font.id, cleanError))
                             break
                         } else if (reportedProgress >= 1.0f) {
                             // If succeeded and visual progress reached 100%, finalize state

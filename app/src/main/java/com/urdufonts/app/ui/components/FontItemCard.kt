@@ -68,14 +68,23 @@ private fun FontItemHeader(fontItem: FontItem) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = fontItem.name,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = HeadingBlackColor,
+        Row(
             modifier = Modifier.weight(1f),
-            fontFamily = NunitoFontFamily
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = fontItem.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = HeadingBlackColor,
+                modifier = Modifier.weight(1f, fill = false),
+                fontFamily = NunitoFontFamily,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+            if (fontItem.isPremium) PremiumBadge()
+        }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -136,13 +145,7 @@ private fun FontItemPreview(
         )
         AsyncImage(
             model = remember(fontItem.featureImageUrl) {
-                ImageRequest.Builder(context)
-                    .data(fontItem.featureImageUrl)
-                    .crossfade(true)
-                    .crossfade(300)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .memoryCachePolicy(CachePolicy.ENABLED)
-                    .build()
+                com.urdufonts.app.ui.util.CardImageRequests.font(context, fontItem.featureImageUrl)
             },
             contentDescription = fontItem.name,
             modifier = Modifier

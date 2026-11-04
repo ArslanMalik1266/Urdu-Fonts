@@ -17,7 +17,9 @@ val networkModule = module {
     single { Gson() }
     single {
         HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            // BODY logs headers too (X-API-Key, Authorization) plus emails and purchase tokens: debug builds only
+            level = if (com.urdufonts.app.BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                    else HttpLoggingInterceptor.Level.NONE
         }
     }
 

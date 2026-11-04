@@ -15,7 +15,7 @@ import com.urdufonts.app.domain.usecases.GetFontDetailUseCase
 import com.urdufonts.app.domain.usecases.GetFontPreviewUseCase
 import com.urdufonts.app.domain.usecases.GetFontWeightsUseCase
 import com.urdufonts.app.ui.util.FontDownloadManager
-import kotlinx.coroutines.TimeoutCancellationException
+import com.urdufonts.app.ui.util.UserMessages
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,8 +25,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import java.io.File
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 
 class FontDetailViewModel(
     private val getFontDetailUseCase: GetFontDetailUseCase,
@@ -135,28 +133,23 @@ class FontDetailViewModel(
                 withTimeout(10_000L) {
                     getFontDetailUseCase(fontId)
                         .onSuccess { detail ->
-                            _uiState.update { it.copy(isLoading = false, fontDetail = detail) }
+                            // No font_file (premium, or a missing link): show the page with the preview image
+                            // instead of trying to download a null URL
+                            val fileUnavailable = detail.fontFileUrl.isNullOrBlank()
+                            _uiState.update {
+                                it.copy(isLoading = false, fontDetail = detail, fontFileUnavailable = fileUnavailable)
+                            }
                             checkIfAlreadyDownloaded(detail)
-                            loadPreview(detail)
-                            loadWeights(detail)
+                            if (!fileUnavailable) {
+                                loadPreview(detail)
+                                loadWeights(detail)
+                            }
                         }
                         .onFailure { e ->
                             _uiState.update {
                                 it.copy(isLoading = false, errorMessage = friendlyError(e))
                             }
                         }
-                }
-            } catch (e: TimeoutCancellationException) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "Request timed out. Check your connection.")
-                }
-            } catch (e: UnknownHostException) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "No internet connection.")
-                }
-            } catch (e: SocketTimeoutException) {
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "Connection timed out. Try again.")
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -166,24 +159,26 @@ class FontDetailViewModel(
         }
     }
 
-    private fun friendlyError(e: Throwable): String = when (e) {
-        is UnknownHostException -> "No internet connection."
-        is SocketTimeoutException -> "Connection timed out. Try again."
-        is TimeoutCancellationException -> "Request timed out. Check your connection."
-        else -> e.message?.takeIf { it.isNotBlank() } ?: "Something went wrong."
+    // Raw exception text is logged only; users get UserMessages
+    private fun friendlyError(e: Throwable, fallback: String = UserMessages.GENERIC): String {
+        Log.e("FontDebug", "FontDetail error: ${e.message}", e)
+        return UserMessages.forError(e, fallback)
     }
 
     private fun loadPreview(fontItem: FontItem) {
         viewModelScope.launch {
             getFontPreviewUseCase(fontItem).onSuccess { file ->
-                val typeface = Typeface.createFromFile(file)
+                // A corrupt or truncated font file throws from native parsing; skip the preview instead of crashing
+                val typeface = runCatching { Typeface.createFromFile(file) }
+                    .onFailure { Log.e("FontDebug", "loadPreview bad font file: ${file.name}", it) }
+                    .getOrNull() ?: return@onSuccess
                 regularTypeface = typeface
                 _fontFamilyState.value = FontFamily(typeface)
             }.onFailure { e ->
                 Log.e("FontDebug", "loadPreview FAILED: ${e.message}", e)
                 _fontFamilyState.value = null
                 _uiState.update {
-                    it.copy(errorMessage = friendlyError(e))
+                    it.copy(errorMessage = friendlyError(e, UserMessages.FONT_FILE_FAILED))
                 }
             }
         }
@@ -192,7 +187,7 @@ class FontDetailViewModel(
     private fun loadWeights(fontItem: FontItem) {
         viewModelScope.launch {
             getFontWeightsUseCase(fontItem).onSuccess { weightFiles ->
-                val weightFamilies = weightFiles.map { (originalName, file) ->
+                val weightFamilies = weightFiles.mapNotNull { (originalName, file) ->
                     val knownWeights = listOf(
                         "Bold Regular", "Bold Italic", "BoldItalic",
                         "Light Italic", "LightItalic",
@@ -236,7 +231,10 @@ class FontDetailViewModel(
                         else                                -> 400
                     }
 
-                    val typeface = Typeface.createFromFile(file)
+                    // Skip weight files that fail to parse rather than crashing the whole screen
+                    val typeface = runCatching { Typeface.createFromFile(file) }
+                        .onFailure { Log.e("FontDebug", "loadWeights bad font file: ${file.name}", it) }
+                        .getOrNull() ?: return@mapNotNull null
                     Pair(
                         "${weightName.replaceFirstChar { it.uppercase() }}  $weightNumber",
                         typeface
@@ -256,9 +254,13 @@ class FontDetailViewModel(
                     if (_initialFontFamily.value == null) {
                         _initialFontFamily.value = FontFamily(weightFamilies[0].second)
                     }
+                } else {
+                    // Every weight file failed to parse: show the error state instead of loading forever
+                    _uiState.update { it.copy(errorMessage = UserMessages.FONT_FILE_FAILED) }
                 }
             }.onFailure { e ->
-                Log.e("FontDebug", "loadWeights FAILED: ${e.message}", e)
+                // Without weights the screen would stay on its skeleton forever
+                _uiState.update { it.copy(errorMessage = friendlyError(e, UserMessages.FONT_FILE_FAILED)) }
             }
         }
     }
@@ -324,6 +326,11 @@ class FontDetailViewModel(
         val font = _uiState.value.fontDetail ?: return
         val state = _uiState.value
         viewModelScope.launch {
+            // Never hand a null URL to the download manager
+            if (font.fontFileUrl.isNullOrBlank()) {
+                _eventFlow.emit(UiEvent.DownloadFailure(UserMessages.DOWNLOAD_LINK_UNAVAILABLE))
+                return@launch
+            }
             val isAlreadyDownloadedToday = userPreferences.isFontDownloadedToday(fontId)
             if (!state.isProUser && state.downloadCount >= 5 && !isAlreadyDownloadedToday) {
                 _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }

@@ -28,14 +28,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.UrduFonts">
 
-        <!-- Google AdMob App ID -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="${ADMOB_APP_ID}" />
+        <!-- AdMob/UMP application ID is generated into the merged manifest by the
+             com.webscare.ads.placements plugin from this package's Firebase policy. -->
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:label="@string/app_name"
             android:theme="@style/Theme.UrduFonts">
             <intent-filter>

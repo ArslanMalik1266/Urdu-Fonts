@@ -45,47 +45,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private var isAppInBackground = false
-    private var isShowingAppOpenAd = false
+    // No app-open ad on return to the app: there is no loading screen at that point, and
+    // WebsCareAds 4.2 / AdMob forbid app-open ads over content the user can already use.
 
-    override fun onStart() {
-        super.onStart()
-        android.util.Log.d("WebsCareAdsLog", "MainActivity onStart -> App in foreground")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        android.util.Log.d("WebsCareAdsLog", "MainActivity onResume -> Activity resumed (isAppInBackground: $isAppInBackground)")
-        if (isAppInBackground && !isShowingAppOpenAd) {
-            isAppInBackground = false
-            kotlinx.coroutines.MainScope().launch {
-                val isCompleted = userPreferences.isOnboardingCompleted.firstOrNull() ?: false
-                if (isCompleted) {
-                    isShowingAppOpenAd = true
-                    android.util.Log.d("WebsCareAdsLog", "App resumed from background -> Triggering App Open Ad")
-                    adManager.showAppOpenAd(this@MainActivity) {
-                        isShowingAppOpenAd = false
-                        android.util.Log.d("WebsCareAdsLog", "App Open Ad shown & dismissed on Resume")
-                    }
-                } else {
-                    android.util.Log.d("WebsCareAdsLog", "App resumed from background -> Onboarding not completed yet, skipping App Open Ad.")
-                }
-            }
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        android.util.Log.d("WebsCareAdsLog", "MainActivity onPause -> Activity paused")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        android.util.Log.d("WebsCareAdsLog", "MainActivity onStop -> App moving to background")
-        if (!isShowingAppOpenAd) {
-            isAppInBackground = true
-        }
-    }
 
     private fun hideSystemBars() {
         val controller = WindowInsetsControllerCompat(window, window.decorView)

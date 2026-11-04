@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.domain.models
+package com.urdufonts.app.domain.models
 
 data class FontItem(
     val id: Int,
@@ -15,7 +15,9 @@ data class FontItem(
     val previewFileUrl: String?,
     val weightCount: String,
     val categories: List<FontClassifier>?,
-    val styles: List<FontClassifier>?
+    val styles: List<FontClassifier>?,
+    // API "status" == "premium": the backend sends no font_file for these until the user unlocks them
+    val isPremium: Boolean = false
 ) {
     // Convenience for existing UI code that wants a single label (e.g. FontItemCard header)
     val primaryCategoryName: String

@@ -10,5 +10,7 @@ data class DrawerUiState(
     val selectedItem: DrawerMenuItem? = null,
     val menuItems: List<DrawerMenuItem> = DrawerMenuItem.all,
     val appVersion: String = "1.0.0",
-    val moreApps: List<MoreAppItem> = emptyList()
+    val moreApps: List<MoreAppItem> = emptyList(),
+    // False until the more-apps request finishes, so the defaults don't flash before the API list
+    val moreAppsLoaded: Boolean = false
 )

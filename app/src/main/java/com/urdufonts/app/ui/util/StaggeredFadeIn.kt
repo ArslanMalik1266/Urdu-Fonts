@@ -24,14 +24,14 @@ fun StaggeredFadeIn(
 
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(index) {
-        delay((index * 40L).coerceAtMost(300L).milliseconds)
+        delay((index * 25L).coerceAtMost(150L).milliseconds)
         visible = true
         seenItems.add(index)
     }
 
     val alpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(durationMillis = 300, easing = EaseOut),
+        animationSpec = tween(durationMillis = 200, easing = EaseOut),
         label = "staggered_fade_in_alpha"
     )
 

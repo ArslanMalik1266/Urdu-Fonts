@@ -55,7 +55,7 @@ fun StylesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
-    val seenItems = remember { mutableStateSetOf<Int>() }
+    val seenItems = viewModel.seenItems
     com.urdufonts.app.ui.util.LogScreenEntry("StylesScreen")
 
     Box(modifier = Modifier
@@ -100,17 +100,7 @@ fun StylesScreen(
                     }
                     else -> {
                         val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-                        var renderLimit by remember { mutableStateOf(4) }
-                        androidx.compose.runtime.LaunchedEffect(uiState.styles) {
-                            if (uiState.styles.isNotEmpty()) {
-                                renderLimit = 4
-                                kotlinx.coroutines.delay(30)
-                                renderLimit = uiState.styles.size
-                            }
-                        }
-                        val visibleStyles = remember(uiState.styles, renderLimit) {
-                            uiState.styles.take(renderLimit)
-                        }
+                        val visibleStyles = uiState.styles
 
                         androidx.compose.runtime.LaunchedEffect(Unit) {
                             com.urdufonts.app.ui.util.PerfDiagnostics.logScreenTransition("StylesScreen", "Content Rendered (${uiState.styles.size} items)")
@@ -124,6 +114,7 @@ fun StylesScreen(
                         com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
                             listState = listState,
                             imageUrls = remember(uiState.styles) { uiState.styles.mapNotNull { it.thumbnailUrl } },
+                            requestFor = com.urdufonts.app.ui.util.CardImageRequests::style,
                             bufferAheadCount = 4
                         )
                         Box(modifier = Modifier.clipToBounds()) {
@@ -153,9 +144,12 @@ fun StylesScreen(
                                         )
                                     }
 
-                                    if (index > 0 && (index + 1) % 6 == 0) {
+                                    // Small native after the 2nd style, then after every 12 more
+                                    if (com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 2, every = 12)) {
                                         com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
-                                            adUnitId = com.urdufonts.app.ads.AdConfig.STYLES_NATIVE_AD_UNIT_ID,
+                                            placement = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_STYLES_NATIVE,
+                                            slot = index,
+                                            nativeSize = com.webscare.ads.NativeSize.SMALL,
                                             modifier = Modifier.padding(vertical = 0.dp)
                                         )
                                     }

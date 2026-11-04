@@ -66,6 +66,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.alpha
 import kotlinx.coroutines.delay
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.withStarted
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -95,6 +97,8 @@ import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.FontClassifier
 import com.urdufonts.app.domain.models.FontItem
 import com.urdufonts.app.ui.components.AnimatedDownloadButton
+import com.urdufonts.app.ui.components.PremiumBadge
+import com.urdufonts.app.ui.components.UnlockPremiumButton
 import com.urdufonts.app.ui.components.UrduCanvasPromoCard
 import com.urdufonts.app.ui.navigation.ExternalNavigator
 import com.urdufonts.app.ui.theme.AppColor
@@ -156,10 +160,7 @@ fun FontDetailScreen(
 
     val scope = rememberCoroutineScope()
 
-    // Preload Interstitial on screen launch
-    LaunchedEffect(Unit) {
-        adManager.preloadInterstitial(context)
-    }
+    // No manual preload: WebsCareAds 4.2 preloads every fullscreen placement listed in Firebase
 
     var showUrduCanvasPromoDialog by remember { mutableStateOf(false) }
     var pendingDownloadSuccessEvent by remember { mutableStateOf<FontDetailViewModel.UiEvent.DownloadSuccess?>(null) }
@@ -193,20 +194,30 @@ fun FontDetailScreen(
         UrduCanvasPromoDialog(
             onDismiss = handleDownloadSuccessDismiss,
             onOpenApp = {
-                externalNavigator.openOrInstallApp()
+                // Close the dialog before leaving the app so its window isn't left attached to a stopped screen
+                showUrduCanvasPromoDialog = false
+                pendingDownloadSuccessEvent = null
+                try {
+                    externalNavigator.openOrInstallApp()
+                } catch (_: Exception) {
+                }
             }
         )
     }
 
     // 🟢 Listen to ViewModel events (Show Promo Dialog on download success, or Snackbar on error)
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is FontDetailViewModel.UiEvent.DownloadSuccess -> {
                     // Smoothly wait for button animation to reach 100% and show "Downloaded" state
                     delay(400)
-                    pendingDownloadSuccessEvent = event
-                    showUrduCanvasPromoDialog = true
+                    // Only open the dialog while the screen is visible; suspends until it is
+                    lifecycleOwner.lifecycle.withStarted {
+                        pendingDownloadSuccessEvent = event
+                        showUrduCanvasPromoDialog = true
+                    }
                 }
                 is FontDetailViewModel.UiEvent.DownloadFailure -> {
                     scope.launch {
@@ -228,9 +239,9 @@ fun FontDetailScreen(
     val initialFontFamily by viewModel.initialFontFamily.collectAsStateWithLifecycle()
 
     // ── Consolidate loading logic: Ready only when API details + Weights + Font Files are loaded ──
+    // (no font file → nothing more to load, the page shows the preview image)
     val isContentReady = uiState.fontDetail != null &&
-            initialFontFamily != null &&
-            fontWeights.isNotEmpty()
+            (uiState.fontFileUnavailable || (initialFontFamily != null && fontWeights.isNotEmpty()))
 
     LaunchedEffect(scrollState.value) {
         val currentScroll = scrollState.value
@@ -329,12 +340,17 @@ fun FontDetailScreen(
 
         // Show download FAB only when content is ready
             if (uiState.errorMessage == null && isContentReady) {
-                AnimatedDownloadButton(
-                    downloadState = uiState.downloadState, // 🟢 Passed download state
-                    progress = uiState.downloadProgress,   // 🟢 Passed progress value
-                    isExpanded = isExpanded,
-                    onClick = { viewModel.downloadFont() } // 🟢 Updated click action
-                )
+                if (uiState.fontDetail?.isPremium == true && !uiState.isProUser) {
+                    // Premium font, not unlocked: never try to download (the API sends no file); sell it instead
+                    UnlockPremiumButton(isExpanded = isExpanded, onClick = onNavigateToSubscription)
+                } else {
+                    AnimatedDownloadButton(
+                        downloadState = uiState.downloadState, // 🟢 Passed download state
+                        progress = uiState.downloadProgress,   // 🟢 Passed progress value
+                        isExpanded = isExpanded,
+                        onClick = { viewModel.downloadFont() } // 🟢 Updated click action
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.Center
@@ -505,6 +521,7 @@ private fun FontDetailContent(
                 Spacer(modifier = Modifier.height(16.dp))
                 FontPreviewCard(
                     fontFamily = initialFontFamily,
+                    fallbackImageUrl = if (uiState.fontFileUnavailable) detail.featureImageUrl else null,
                     previewText = previewText,
                     fontSizePx = uiState.previewFontSizePx,
                     isBoldEnabled = uiState.isBoldEnabled,
@@ -513,7 +530,8 @@ private fun FontDetailContent(
                 Spacer(modifier = Modifier.height(16.dp))
                 MetadataRow(
                     fontWeight = detail.weightCount.toString(),
-                    categories = detail.categories ?: emptyList()
+                    categories = detail.categories ?: emptyList(),
+                    isPremium = detail.isPremium
                 )
             }
 
@@ -526,6 +544,8 @@ private fun FontDetailContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // No font file (premium / missing link): there's nothing to type-preview or pick weights from
+            if (!uiState.fontFileUnavailable) {
             // ── PREVIEW section ──────────────────────────────────────
             Column(
                 modifier = Modifier
@@ -616,6 +636,7 @@ private fun FontDetailContent(
                 }
             }
 
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             // ── ABOUT section ────────────────────────────────────────
@@ -703,6 +724,7 @@ private fun FontPreviewCard(
     isBoldEnabled: Boolean,
     isUnderlineEnabled: Boolean,
     modifier: Modifier = Modifier,
+    fallbackImageUrl: String? = null,
 ) {
     val cardScrollState = rememberScrollState()
     Box(
@@ -716,7 +738,19 @@ private fun FontPreviewCard(
             .padding(horizontal = 8.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
-        if (fontFamily == null) {
+        if (fontFamily == null && fallbackImageUrl != null) {
+            // Font file isn't available: show the font's preview image instead of a shimmer forever
+            val context = androidx.compose.ui.platform.LocalContext.current
+            coil.compose.AsyncImage(
+                model = remember(fallbackImageUrl) {
+                    com.urdufonts.app.ui.util.CardImageRequests.font(context, fallbackImageUrl)
+                },
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            )
+        } else if (fontFamily == null) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -753,13 +787,15 @@ private fun FontPreviewCard(
 private fun MetadataRow(
     fontWeight: String,
     categories: List<FontClassifier>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isPremium: Boolean = false
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        if (isPremium) PremiumBadge()
         Text(
             text = "Weight: $fontWeight",
             fontSize = 12.sp,

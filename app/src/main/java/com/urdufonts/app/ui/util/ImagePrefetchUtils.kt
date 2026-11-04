@@ -9,49 +9,45 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import coil.Coil
-import coil.request.CachePolicy
 import coil.request.ImageRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.withContext
+
+typealias ImageRequestFactory = (Context, String?) -> ImageRequest
 
 /**
- * Preloads a list of image URLs into Coil's disk & memory cache synchronously for atomic readiness.
+ * Preloads the first visible images into Coil's memory cache so the list appears with images already drawn.
+ * [requestFor] must be the same factory the card uses (see [CardImageRequests]) or the cache key won't match.
+ * Waits at most [maxWaitMs]; on a slow network the list shows anyway and the rest load inside the cards.
  */
-suspend fun preloadImageUrls(context: Context, urls: List<String>) = withContext(Dispatchers.IO) {
+suspend fun preloadImageUrls(
+    context: Context,
+    urls: List<String>,
+    requestFor: ImageRequestFactory,
+    maxWaitMs: Long = 500L
+) {
     val imageLoader = Coil.imageLoader(context)
     val validUrls = urls.filter { it.isNotBlank() }
-    if (validUrls.isEmpty()) return@withContext
+    if (validUrls.isEmpty()) return
 
-    validUrls.map { url ->
-        async {
-            val request = ImageRequest.Builder(context)
-                .data(url)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .build()
-            try {
-                imageLoader.enqueue(request).job.await()
-            } catch (_: Exception) {}
-        }
-    }.awaitAll()
+    // enqueue (not execute) so the downloads keep going in the background after the timeout
+    val jobs = validUrls.map { url -> imageLoader.enqueue(requestFor(context, url)).job }
+    withTimeoutOrNull(maxWaitMs) {
+        try {
+            jobs.awaitAll()
+        } catch (_: Exception) {}
+    }
 }
 
 /**
  * Enqueues image requests asynchronously in background for continuous viewport prefetching.
  */
-fun prefetchImageUrlsAsync(context: Context, urls: List<String>) {
+fun prefetchImageUrlsAsync(context: Context, urls: List<String>, requestFor: ImageRequestFactory) {
     val imageLoader = Coil.imageLoader(context)
     urls.filter { it.isNotBlank() }.forEach { url ->
-        val request = ImageRequest.Builder(context)
-            .data(url)
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .memoryCachePolicy(CachePolicy.ENABLED)
-            .build()
-        imageLoader.enqueue(request)
+        imageLoader.enqueue(requestFor(context, url))
     }
 }
 
@@ -62,6 +58,7 @@ fun prefetchImageUrlsAsync(context: Context, urls: List<String>) {
 fun LazyColumnImagePrefetcher(
     listState: LazyListState,
     imageUrls: List<String>,
+    requestFor: ImageRequestFactory,
     bufferAheadCount: Int = 4
 ) {
     val context = LocalContext.current
@@ -79,7 +76,7 @@ fun LazyColumnImagePrefetcher(
                         url.isNotBlank() && prefetchedSet.add(url)
                     }
                     if (newUrlsToFetch.isNotEmpty()) {
-                        prefetchImageUrlsAsync(context, newUrlsToFetch)
+                        prefetchImageUrlsAsync(context, newUrlsToFetch, requestFor)
                     }
                 }
             }
@@ -93,6 +90,7 @@ fun LazyColumnImagePrefetcher(
 fun LazyGridImagePrefetcher(
     gridState: LazyGridState,
     imageUrls: List<String>,
+    requestFor: ImageRequestFactory,
     bufferAheadCount: Int = 4
 ) {
     val context = LocalContext.current
@@ -110,7 +108,7 @@ fun LazyGridImagePrefetcher(
                         url.isNotBlank() && prefetchedSet.add(url)
                     }
                     if (newUrlsToFetch.isNotEmpty()) {
-                        prefetchImageUrlsAsync(context, newUrlsToFetch)
+                        prefetchImageUrlsAsync(context, newUrlsToFetch, requestFor)
                     }
                 }
             }

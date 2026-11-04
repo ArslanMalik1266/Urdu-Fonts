@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    // Generates WebsCarePlacements constants and the AdMob/UMP app ID in the merged manifest from Firebase
+    alias(libs.plugins.webscare.placements)
 
 }
 
@@ -13,17 +15,18 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 val bearerToken = localProperties.getProperty("BEARER_TOKEN") ?: ""
+val apiKey = localProperties.getProperty("API_KEY")
+    ?: error("API_KEY missing from local.properties (the urdufonts.com API key; ask the backend team)")
 
-val appVersionCode = 6
-val appVersionName = "1.0.6"
+val appVersionCode = 7
+val appVersionName = "1.0.7"
 
 base.archivesName.set("UrduFonts - V$appVersionCode($appVersionName)")
 android {
     namespace = "com.urdufonts.app"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        // WebsCareAds 4.2 requires compiling against API 37
+        version = release(37)
     }
 
     defaultConfig {
@@ -34,6 +37,7 @@ android {
         versionName = appVersionName
 
         buildConfigField("String", "BEARER_TOKEN", "\"$bearerToken\"")
+        buildConfigField("String", "API_KEY", "\"$apiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,11 +51,7 @@ android {
     }
 
     buildTypes {
-        debug {
-            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
-        }
         release {
-            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-4379805490947109~9389133336"
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
@@ -106,7 +106,10 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    // WebsCareAds 4.2: core + Next-Gen AdMob (Meta bids inside AdMob). Never add play-services-ads next to it.
     implementation(libs.webscare.ads)
+    implementation(libs.webscare.ads.admob)
+    implementation(libs.webscare.ads.admob.meta)
     implementation(libs.play.billing.ktx)
 
 }

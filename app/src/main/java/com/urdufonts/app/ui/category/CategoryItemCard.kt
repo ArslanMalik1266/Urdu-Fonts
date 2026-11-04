@@ -41,6 +41,7 @@ import com.urdufonts.app.ui.util.softShadow
 import androidx.compose.ui.layout.ContentScale
 import com.urdufonts.app.ui.util.figmaDropShadow
 import com.urdufonts.app.ui.util.figmaInnerShadow
+import com.urdufonts.app.ui.util.bakedFigmaCardBackground
 
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,38 +65,8 @@ fun CategoryItemCard(
             .addPressEffect {
                 onClick()
             }
-            .figmaDropShadow(
-                color = Color.Black.copy(alpha = 0.04f),
-                offsetX = 4.dp,
-                offsetY = 4.dp,
-                blur = 14.dp,
-                shape = CardCornerShape
-            )
-            .clip(CardCornerShape)
-            // B. Card background base
-            .background(Color.White)
-            // C. Figma Inner Shadow 1: X=6, Y=6, Blur=19, Color=Black (4% Opacity)
-            .figmaInnerShadow(
-                color = Color.Black.copy(alpha = 0.04f),
-                offsetX = 6.dp,
-                offsetY = 6.dp,
-                blur = 19.dp,
-                shape = CardCornerShape
-            )
-            // D. Figma Inner Shadow 2: X=6, Y=6, Blur=46, Color=#D5FFCE (32% Opacity)
-            .figmaInnerShadow(
-                color = Color(0xFFD5FFCE).copy(alpha = 0.32f),
-                offsetX = 6.dp,
-                offsetY = 6.dp,
-                blur = 46.dp,
-                shape = CardCornerShape
-            )
-            // E. Target Border Color
-            .border(
-                width = 1.dp,
-                color = Color.White,
-                shape = CardCornerShape
-            )
+            // Figma drop shadow + 2 inner shadows + white border, pre-rendered once and shared by all cards
+            .bakedFigmaCardBackground(CardCornerShape)
             .padding(horizontal = 12.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
@@ -114,14 +85,7 @@ fun CategoryItemCard(
 
         val context = LocalContext.current
         val imageRequest = remember(category.thumbnailUrl) {
-            ImageRequest.Builder(context)
-                .data(category.thumbnailUrl)
-                .transformations(com.urdufonts.app.ui.util.TrimTransparentPaddingTransformation())
-                .crossfade(true)
-                .crossfade(300)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .build()
+            com.urdufonts.app.ui.util.CardImageRequests.category(context, category.thumbnailUrl)
         }
 
         Box(

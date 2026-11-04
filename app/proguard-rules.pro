@@ -1,4 +1,4 @@
-﻿# Add project specific ProGuard rules here.
+# Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
 #
@@ -50,3 +50,15 @@
 
 # ─── Facebook Shimmer ──────────────────────────────────────────────────────────
 -keep class com.facebook.shimmer.** { *; }
+# Strip debug/info/verbose logs from release builds. Billing and entitlement code logs purchase tokens,
+# user IDs and server responses; those must never reach users' logcat. Warnings and errors are kept.
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+    public static int i(...);
+}
+
+# WebsCareAds 4.2: network adapters are found by class name at runtime, keep the library intact
+-keep class com.webscare.ads.** { *; }
+-keepclassmembers class com.webscare.ads.** { *; }
+-dontwarn com.webscare.ads.**

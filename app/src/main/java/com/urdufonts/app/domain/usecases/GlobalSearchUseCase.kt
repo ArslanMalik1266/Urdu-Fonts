@@ -19,11 +19,12 @@ class GlobalSearchUseCase(
         }
 
         try {
-            val fontsDeferred = async { fontRepository.getFonts() }
+            // runCatching inside async: a failed child would otherwise cancel coroutineScope and escape this try
+            val fontsDeferred = async { runCatching { fontRepository.getFonts() } }
             val categoriesDeferred = async { categoriesRepository.getCategories() }
             val stylesDeferred = async { stylesRepository.getStyles() }
 
-            val allFonts = fontsDeferred.await()
+            val allFonts = fontsDeferred.await().getOrThrow()
             val categoriesResult = categoriesDeferred.await()
             val stylesResult = stylesDeferred.await()
 

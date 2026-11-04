@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.data.mapper
+package com.urdufonts.app.data.mapper
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -13,7 +13,9 @@ private val gson = Gson()
 
 private fun String?.toFullImageUrl(): String? {
     if (this.isNullOrBlank()) return null
-    return NetworkConstants.IMAGE_BASE_URL + this
+    // The API sends "/storage/..." paths today; use absolute URLs as they are instead of double-prefixing
+    if (startsWith("http://", ignoreCase = true) || startsWith("https://", ignoreCase = true)) return this
+    return NetworkConstants.IMAGE_BASE_URL + (if (startsWith("/")) this else "/$this")
 }
 
 // ── Network DTO → Domain ──────────────────────────────────────────────────────
@@ -44,7 +46,8 @@ fun FontDto.toDomain(): FontItem {
         previewFileUrl = previewFile.toFullImageUrl(),
         weightCount = fontWeight ?: "1",
         categories = categories?.map { it.toDomain() },
-        styles = styles?.map { it.toDomain() }
+        styles = styles?.map { it.toDomain() },
+        isPremium = status.equals("premium", ignoreCase = true)
     )
 }
 
@@ -65,7 +68,8 @@ fun FontItem.toEntity(): FontEntity = FontEntity(
     previewFileUrl = previewFileUrl,
     weightCount    = weightCount,
     categoriesJson = gson.toJson(categories ?: emptyList<FontClassifier>()),
-    stylesJson     = gson.toJson(styles ?: emptyList<FontClassifier>())
+    stylesJson     = gson.toJson(styles ?: emptyList<FontClassifier>()),
+    isPremium      = isPremium
 )
 
 // ── Room Entity → Domain ──────────────────────────────────────────────────────
@@ -87,6 +91,7 @@ fun FontEntity.toDomain(): FontItem {
         previewFileUrl = previewFileUrl,
         weightCount    = weightCount,
         categories     = gson.fromJson(categoriesJson, classifierType),
-        styles         = gson.fromJson(stylesJson, classifierType)
+        styles         = gson.fromJson(stylesJson, classifierType),
+        isPremium      = isPremium
     )
 }

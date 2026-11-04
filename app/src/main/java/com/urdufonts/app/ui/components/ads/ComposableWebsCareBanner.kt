@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.urdufonts.app.ads.AdConfig
 import com.urdufonts.app.data.local.UserPreferences
 import com.webscare.ads.WebsCareAds
 import org.koin.compose.koinInject
@@ -132,7 +131,7 @@ fun BannerShimmerEffect(modifier: Modifier = Modifier) {
 @Composable
 fun ComposableWebsCareBanner(
     modifier: Modifier = Modifier,
-    adUnitId: String = AdConfig.BANNER_AD_UNIT_ID,
+    placement: String = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_FONT_DETAILS_BANNER,
     userPreferences: UserPreferences = koinInject()
 ) {
     val isProUser by userPreferences.isProUser.collectAsStateWithLifecycle(initialValue = false)
@@ -142,7 +141,7 @@ fun ComposableWebsCareBanner(
     val activity = context as? Activity
 
     if (activity != null) {
-        Log.d(TAG, "ComposableWebsCareBanner composed for Ad Unit: $adUnitId")
+        Log.d(TAG, "ComposableWebsCareBanner composed for Ad Unit: $placement")
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -168,7 +167,7 @@ fun ComposableWebsCareBanner(
                         postDelayed({
                             try {
                                 Log.d(TAG, "Calling WebsCareAds.loadBanner (post-layout offloaded) with activity: ${activity.localClassName}")
-                                WebsCareAds.loadBanner(activity, this, adUnitId)
+                                WebsCareAds.loadBanner(activity, this, placement)
                             } catch (e: Exception) {
                                 Log.e(TAG, "Error loading banner ad in container", e)
                             }

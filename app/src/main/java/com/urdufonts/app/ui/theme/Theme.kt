@@ -1,5 +1,9 @@
-﻿package com.urdufonts.app.ui.theme
+package com.urdufonts.app.ui.theme
 
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.foundation.LocalOverscrollFactory
+import androidx.compose.runtime.CompositionLocalProvider
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -50,9 +54,19 @@ fun UrduFontsTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    // The phone's font-size setting must not change the app's text (layouts are designed at 1x)
+    val density = LocalDensity.current
+    val fixedDensity = Density(density = density.density, fontScale = 1f)
+
+    // No platform stretch / glow: scroll containers carry Modifier.springOverscroll() instead
+    CompositionLocalProvider(
+        LocalDensity provides fixedDensity,
+        LocalOverscrollFactory provides null
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

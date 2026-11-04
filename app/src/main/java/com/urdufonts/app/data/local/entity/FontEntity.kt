@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.data.local.entity
+package com.urdufonts.app.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -19,5 +19,6 @@ data class FontEntity(
     val previewFileUrl: String?,
     val weightCount: String,
     val categoriesJson: String,     // stored as JSON string
-    val stylesJson: String          // stored as JSON string
+    val stylesJson: String,         // stored as JSON string
+    val isPremium: Boolean = false
 )

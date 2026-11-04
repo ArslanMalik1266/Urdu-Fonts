@@ -14,7 +14,8 @@ import com.urdufonts.app.ui.util.preloadImageUrls
 
 class CategoriesViewModel(
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val context: Context
+    private val context: Context,
+    private val getFontsUseCase: com.urdufonts.app.domain.usecases.GetFontsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CategoriesUiState())
@@ -28,11 +29,13 @@ class CategoriesViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             getCategoriesUseCase()
-                .onSuccess { categories ->
-                    // Preload top 4 initial visible category thumbnail SVGs atomically
-                    val initialUrls = categories.take(4).mapNotNull { it.thumbnailUrl }
+                .onSuccess { allCategories ->
+                    // Only tiles that lead to at least one free font (premium-only ones would open empty)
+                    val categories = keepWithFreeFonts(allCategories) { it.slug }
+                    // Preload the first screenful (8) of visible category thumbnail SVGs atomically
+                    val initialUrls = categories.take(8).mapNotNull { it.thumbnailUrl }
                     if (initialUrls.isNotEmpty()) {
-                        preloadImageUrls(context, initialUrls)
+                        preloadImageUrls(context, initialUrls, com.urdufonts.app.ui.util.CardImageRequests::category)
                     }
                     _uiState.update {
                         it.copy(
@@ -46,7 +49,7 @@ class CategoriesViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = e.message ?: "Failed to load categories"
+                            errorMessage = com.urdufonts.app.ui.util.UserMessages.forError(e)
                         )
                     }
                 }
@@ -69,5 +72,11 @@ class CategoriesViewModel(
     }
     fun clearSearch() {
         _uiState.update { it.copy(searchQuery = "", categories = it.allCategories) }
+    }
+
+    private suspend fun <T> keepWithFreeFonts(all: List<T>, slugOf: (T) -> String): List<T> {
+        val fonts = runCatching { getFontsUseCase() }.getOrNull() ?: return all // can't tell: show everything
+        val usedSlugs = fonts.flatMap { it.categories.orEmpty() }.mapTo(HashSet()) { it.slug }
+        return all.filter { slugOf(it) in usedSlugs }
     }
 }

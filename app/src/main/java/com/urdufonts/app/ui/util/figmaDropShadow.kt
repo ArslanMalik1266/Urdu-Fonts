@@ -1,6 +1,10 @@
 package com.urdufonts.app.ui.util
 
+import android.graphics.Bitmap
 import android.graphics.BlurMaskFilter
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -125,4 +129,94 @@ fun Modifier.figmaInnerShadow(
             canvas.restore()
         }
     }
+}
+
+// 3. Baked card background: drop shadow + white fill + inner shadows + border, rendered ONCE into a
+//    bitmap and shared by every card of the same size. The live versions above re-run their blur filters
+//    on every frame for every card, which made scrolling the categories grid drop to ~20 fps.
+private data class BakedCardKey(val width: Int, val height: Int, val cornerPx: Float, val density: Float)
+
+private val bakedCardCache = object : LinkedHashMap<BakedCardKey, ImageBitmap>(8, 0.75f, true) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<BakedCardKey, ImageBitmap>?) = size > 8
+}
+
+fun Modifier.bakedFigmaCardBackground(shape: RoundedCornerShape): Modifier = this.drawWithCache {
+    val width = size.width.toInt()
+    val height = size.height.toInt()
+    val cornerPx = shape.topStart.toPx(size, this)
+    // Room for the outer drop shadow (max blur 24dp + 4dp offset) around the card
+    val margin = (28.dp.toPx()).toInt() + 2
+    val bitmap = if (width <= 0 || height <= 0) null else synchronized(bakedCardCache) {
+        bakedCardCache.getOrPut(BakedCardKey(width, height, cornerPx, density)) {
+            renderFigmaCard(width, height, cornerPx, margin, this)
+        }
+    }
+    onDrawBehind {
+        if (bitmap != null) drawImage(bitmap, topLeft = Offset(-margin.toFloat(), -margin.toFloat()))
+    }
+}
+
+private fun renderFigmaCard(
+    width: Int,
+    height: Int,
+    cornerPx: Float,
+    margin: Int,
+    density: androidx.compose.ui.unit.Density
+): ImageBitmap = with(density) {
+    val maxBlur = 24.dp.toPx()
+    val bitmap = Bitmap.createBitmap(width + margin * 2, height + margin * 2, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    canvas.translate(margin.toFloat(), margin.toFloat())
+    val w = width.toFloat()
+    val h = height.toFloat()
+
+    fun blurPaint(color: Color, blur: Dp) = android.graphics.Paint().apply {
+        isAntiAlias = true
+        this.color = color.toArgb()
+        val blurPx = blur.toPx().coerceAtMost(maxBlur)
+        if (blurPx > 0f) maskFilter = BlurMaskFilter(blurPx, BlurMaskFilter.Blur.NORMAL)
+    }
+
+    // A. Drop shadow: X=4, Y=4, Blur=14, Black 4%
+    canvas.save()
+    canvas.translate(4.dp.toPx(), 4.dp.toPx())
+    canvas.drawRoundRect(0f, 0f, w, h, cornerPx, cornerPx, blurPaint(Color.Black.copy(alpha = 0.04f), 14.dp))
+    canvas.restore()
+
+    // B. White card base
+    val fill = android.graphics.Paint().apply { isAntiAlias = true; color = android.graphics.Color.WHITE }
+    canvas.drawRoundRect(0f, 0f, w, h, cornerPx, cornerPx, fill)
+
+    // C + D. Inner shadows, clipped to the card: Black 4% (blur 19) and #D5FFCE 32% (blur 46)
+    val cardPath = android.graphics.Path().apply {
+        addRoundRect(0f, 0f, w, h, cornerPx, cornerPx, android.graphics.Path.Direction.CW)
+    }
+    fun innerShadow(color: Color, blur: Dp) {
+        val off = 6.dp.toPx()
+        val stroke = blur.toPx().coerceAtMost(maxBlur) * 2 + off
+        val mask = android.graphics.Path().apply {
+            addRect(-stroke, -stroke, w + stroke, h + stroke, android.graphics.Path.Direction.CW)
+            op(cardPath, android.graphics.Path.Op.DIFFERENCE)
+        }
+        canvas.save()
+        canvas.clipPath(cardPath)
+        canvas.translate(off, off)
+        canvas.drawPath(mask, blurPaint(color, blur))
+        canvas.restore()
+    }
+    innerShadow(Color.Black.copy(alpha = 0.04f), 19.dp)
+    innerShadow(Color(0xFFD5FFCE).copy(alpha = 0.32f), 46.dp)
+
+    // E. 1dp white border, drawn inside the card edge
+    val strokePx = 1.dp.toPx()
+    val border = android.graphics.Paint().apply {
+        isAntiAlias = true
+        style = android.graphics.Paint.Style.STROKE
+        strokeWidth = strokePx
+        color = android.graphics.Color.WHITE
+    }
+    val half = strokePx / 2f
+    canvas.drawRoundRect(half, half, w - half, h - half, cornerPx - half, cornerPx - half, border)
+
+    bitmap.asImageBitmap()
 }

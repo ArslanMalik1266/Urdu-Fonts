@@ -11,12 +11,17 @@ class MoreAppsRepositoryImpl(
     private val apiService: FontApiService
 ) : MoreAppsRepository {
 
-    override suspend fun getMoreApps(): List<MoreAppItem> =
-        withContext(Dispatchers.IO) {
+    // Kept for the app session so every screen gets the same list instantly after the first fetch
+    @Volatile private var cachedApps: List<MoreAppItem>? = null
+
+    override suspend fun getMoreApps(): List<MoreAppItem> {
+        cachedApps?.let { return it }
+        return withContext(Dispatchers.IO) {
             try {
                 val response = apiService.getMoreApps()
                 if (response.status && !response.data.isNullOrEmpty()) {
                     response.data.flatMap { it.apps ?: emptyList() }.map { it.toDomain() }
+                        .also { if (it.isNotEmpty()) cachedApps = it }
                 } else {
                     emptyList()
                 }
@@ -24,4 +29,5 @@ class MoreAppsRepositoryImpl(
                 emptyList()
             }
         }
+    }
 }

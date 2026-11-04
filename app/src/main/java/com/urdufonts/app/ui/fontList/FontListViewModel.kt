@@ -55,7 +55,7 @@ class FontListViewModel(
                 // Preload top 6 initial visible font preview SVGs atomically
                 val initialUrls = filtered.take(6).mapNotNull { it.featureImageUrl }
                 if (initialUrls.isNotEmpty()) {
-                    preloadImageUrls(context, initialUrls)
+                    preloadImageUrls(context, initialUrls, com.urdufonts.app.ui.util.CardImageRequests::font)
                 }
 
                 _uiState.update {
@@ -69,7 +69,7 @@ class FontListViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = e.message ?: "Failed to load fonts list"
+                        errorMessage = com.urdufonts.app.ui.util.UserMessages.forError(e)
                     )
                 }
             }

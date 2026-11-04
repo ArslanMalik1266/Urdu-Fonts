@@ -33,7 +33,7 @@ val dataModule = module {
             androidContext(),
             AppDatabase::class.java,
             "urdufonts.db"
-        ).build()
+        ).addMigrations(AppDatabase.MIGRATION_1_2).build()
     }
 
     // ── DAOs ───────────────────────────────────────────────────────────────

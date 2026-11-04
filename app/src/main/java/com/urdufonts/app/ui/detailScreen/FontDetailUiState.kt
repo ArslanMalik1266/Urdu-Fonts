@@ -27,5 +27,7 @@ data class FontDetailUiState(
     val downloadProgress: Float = 0f,
     val showDownloadLimitBottomSheet: Boolean = false,
     val downloadCount: Int = 0,
-    val isProUser: Boolean = false
+    val isProUser: Boolean = false,
+    // The API sent no font_file (premium fonts, or a missing link): no live preview or weights to load
+    val fontFileUnavailable: Boolean = false
 )

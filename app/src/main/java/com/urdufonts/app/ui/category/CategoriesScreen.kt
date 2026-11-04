@@ -34,7 +34,6 @@ import com.urdufonts.app.domain.models.CategoryItem
 import com.urdufonts.app.ui.components.CustomSearchBar
 import com.urdufonts.app.ui.components.OfflineErrorState
 import com.urdufonts.app.ui.components.SimpleTopAppBar
-import com.urdufonts.app.ui.util.StaggeredFadeIn
 import com.urdufonts.app.ui.util.springOverscroll
 import com.urdufonts.app.ui.util.BlurOverlay
 import org.koin.androidx.compose.koinViewModel
@@ -50,7 +49,6 @@ fun CategoriesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
-    val seenItems = remember { mutableStateSetOf<Int>() }
     com.urdufonts.app.ui.util.LogScreenEntry("CategoriesScreen")
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -94,17 +92,7 @@ fun CategoriesScreen(
                     }
                     else -> {
                         val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
-                        var renderLimit by remember { mutableStateOf(4) }
-                        androidx.compose.runtime.LaunchedEffect(uiState.categories) {
-                            if (uiState.categories.isNotEmpty()) {
-                                renderLimit = 4
-                                kotlinx.coroutines.delay(30)
-                                renderLimit = uiState.categories.size
-                            }
-                        }
-                        val visibleCategories = remember(uiState.categories, renderLimit) {
-                            uiState.categories.take(renderLimit)
-                        }
+                        val visibleCategories = uiState.categories
 
                         androidx.compose.runtime.LaunchedEffect(Unit) {
                             com.urdufonts.app.ui.util.PerfDiagnostics.logScreenTransition("CategoriesScreen", "Content Rendered (${uiState.categories.size} items)")
@@ -118,6 +106,7 @@ fun CategoriesScreen(
                         com.urdufonts.app.ui.util.LazyGridImagePrefetcher(
                             gridState = gridState,
                             imageUrls = remember(uiState.categories) { uiState.categories.mapNotNull { it.thumbnailUrl } },
+                            requestFor = com.urdufonts.app.ui.util.CardImageRequests::category,
                             bufferAheadCount = 4
                         )
                         Box(modifier = Modifier.clipToBounds()) {
@@ -139,23 +128,22 @@ fun CategoriesScreen(
                                          key = category.id,
                                          contentType = "category_card"
                                      ) {
-                                         StaggeredFadeIn(
-                                             index = index,
-                                             seenItems = seenItems
-                                         ) {
-                                             CategoryItemCard(
-                                                 category = category,
-                                                 onClick = { onCategoryClick(category) }
-                                             )
-                                         }
+                                         // No per-card fade: images are preloaded, so the first screen appears at once.
+                                         // A staggered alpha fade made the green previews look grey for ~200ms.
+                                         CategoryItemCard(
+                                             category = category,
+                                             onClick = { onCategoryClick(category) }
+                                         )
                                      }
-                                     if (index > 0 && (index + 1) % 8 == 0) {
+                                     // Medium native after 2 rows (4 tiles, 2 per row), then after every 7 rows (14 tiles)
+                                     if (com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 4, every = 14)) {
                                          item(
                                              span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) },
                                              contentType = "native_ad"
                                          ) {
                                              com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
-                                                 adUnitId = com.urdufonts.app.ads.AdConfig.CATEGORIES_NATIVE_AD_UNIT_ID,
+                                                 placement = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_CATEGORIES_NATIVE,
+                                                 slot = index,
                                                  modifier = Modifier.padding(vertical = 0.dp)
                                              )
                                          }

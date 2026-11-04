@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.util
+package com.urdufonts.app.ui.util
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -18,7 +18,7 @@ fun BlurOverlay(modifier: Modifier) {
             modifier = Modifier
                 .size(350.dp)
                 .offset(x = (-120).dp, y = (-200).dp)
-                .softBlur(color = Color(0xFFDEF7E9).copy(0.5f), radius = 120f)
+                .softGlow(color = Color(0xFFDEF7E9).copy(0.5f), radius = 120f)
         )
 
         // Right circle — yellow, half off screen top-right
@@ -26,7 +26,7 @@ fun BlurOverlay(modifier: Modifier) {
             modifier = Modifier
                 .size(350.dp)
                 .offset(x = (170).dp, y = (-200).dp)
-                .softBlur(color = Color(0xFFFFF6DE).copy(0.5f), radius = 120f)
+                .softGlow(color = Color(0xFFFFF6DE).copy(0.5f), radius = 120f)
         )
     }
 }
