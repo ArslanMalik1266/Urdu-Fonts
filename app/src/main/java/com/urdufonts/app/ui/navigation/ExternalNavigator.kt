@@ -8,6 +8,7 @@ import android.widget.Toast
 class ExternalNavigator(private val context: Context) {
 
     fun openEmailSupport(email: String = "hello@webscare.com") {
+        com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
         try {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = Uri.parse("mailto:$email")
@@ -20,6 +21,7 @@ class ExternalNavigator(private val context: Context) {
     }
 
     fun openWebPage(url: String) {
+        com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
         if (url.isBlank()) {
             Toast.makeText(context, "Link not configured yet", Toast.LENGTH_SHORT).show()
             return
@@ -35,6 +37,7 @@ class ExternalNavigator(private val context: Context) {
     }
 
     fun openPlayStoreForRating() {
+        com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
         val packageName = context.packageName
         val marketUri = Uri.parse("market://details?id=$packageName")
         val marketIntent = Intent(Intent.ACTION_VIEW, marketUri).apply {
@@ -53,6 +56,7 @@ class ExternalNavigator(private val context: Context) {
     }
 
     fun openOrInstallApp(packageName: String = "com.webscare.urducanvas") {
+        com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
         try {
             val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
             if (launchIntent != null) {
@@ -67,6 +71,7 @@ class ExternalNavigator(private val context: Context) {
     }
 
     fun openPlayStoreForPackage(packageName: String) {
+        com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
         val marketUri = Uri.parse("market://details?id=$packageName")
         val marketIntent = Intent(Intent.ACTION_VIEW, marketUri).apply {
             addFlags(

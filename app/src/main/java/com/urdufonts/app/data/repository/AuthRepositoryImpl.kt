@@ -61,6 +61,7 @@ class AuthRepositoryImpl(
                 .addCredentialOption(googleIdOption)
                 .build()
 
+            com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
             val result = credentialManager.getCredential(
                 context = context,
                 request = request

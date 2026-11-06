@@ -45,8 +45,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // No app-open ad on return to the app: there is no loading screen at that point, and
-    // WebsCareAds 4.2 / AdMob forbid app-open ads over content the user can already use.
+    // Return-to-app app-open ads are handled by WebsCareAds.enableAutoAppOpen (see WebsCareAdManagerImpl).
 
 
     private fun hideSystemBars() {

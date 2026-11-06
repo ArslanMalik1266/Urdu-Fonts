@@ -260,6 +260,8 @@ fun SplashScreen(
     }
 
     LaunchedEffect(Unit) {
+        val splashStart = android.os.SystemClock.uptimeMillis()
+        if (com.urdufonts.app.BuildConfig.DEBUG) android.util.Log.d("WebsCareAds", "Splash on screen")
         // Preload App Open Ad ONLY if user has completed onboarding and is going directly to Home Screen
         if (isOnboardingCompleted && activity != null) {
             android.util.Log.d("WebsCareAdsLog", "SplashScreen -> Returning user detected (Onboarding completed). Preloading App Open Ad...")
@@ -274,8 +276,11 @@ fun SplashScreen(
         delay(500L)
         isBadgesVisible = true
 
-        // Step 3 (t = 3000ms): Allow full 3.0s branding & motion enjoyment (60 + 500 + 2440 = 3000ms)
-        delay(1600L)
+        // Step 3: splash stays exactly 3000 ms from first composition, whatever loads meanwhile
+        delay((3_000L - (android.os.SystemClock.uptimeMillis() - splashStart)).coerceAtLeast(0L))
+        if (com.urdufonts.app.BuildConfig.DEBUG) {
+            android.util.Log.d("WebsCareAds", "Splash 3s over after ${android.os.SystemClock.uptimeMillis() - splashStart} ms, show requested")
+        }
 
         if (isOnboardingCompleted && activity != null) {
             android.util.Log.d("WebsCareAdsLog", "SplashScreen -> 3.0s branding completed. Showing App Open Ad before Home Screen...")

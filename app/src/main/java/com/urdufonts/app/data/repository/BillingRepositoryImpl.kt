@@ -298,6 +298,7 @@ class BillingRepositoryImpl(
             flowBuilder.build()
         }
 
+        com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
         val result = billingClient.launchBillingFlow(activity, billingFlowParams)
         return if (result.responseCode == BillingClient.BillingResponseCode.OK) {
             Result.success(Unit)

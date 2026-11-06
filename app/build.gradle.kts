@@ -18,8 +18,8 @@ val bearerToken = localProperties.getProperty("BEARER_TOKEN") ?: ""
 val apiKey = localProperties.getProperty("API_KEY")
     ?: error("API_KEY missing from local.properties (the urdufonts.com API key; ask the backend team)")
 
-val appVersionCode = 7
-val appVersionName = "1.0.7"
+val appVersionCode = 8
+val appVersionName = "1.0.8"
 
 base.archivesName.set("UrduFonts - V$appVersionCode($appVersionName)")
 android {

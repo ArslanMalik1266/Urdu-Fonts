@@ -7,6 +7,8 @@ import android.util.Log
 import com.urdufonts.app.BuildConfig
 import com.urdufonts.app.data.local.UserPreferences
 import com.webscare.ads.WebsCareAds
+import com.webscare.ads.admob.AdMobAdapter
+import com.webscare.ads.placements.WebsCarePlacements
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,6 +26,7 @@ class WebsCareAdManagerImpl(
 
     companion object {
         private const val TAG = "WebsCareAdsLog"
+        private const val LIB_TAG = "WebsCareAds"
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -32,9 +35,13 @@ class WebsCareAdManagerImpl(
     private var isProUser: Boolean = false
 
     override fun initSdk(application: Application) {
-        WebsCareAds.init(application, isDebug = BuildConfig.DEBUG) {
+        WebsCareAds.init(application, adapters = listOf(AdMobAdapter()), isDebug = BuildConfig.DEBUG) {
             // Pro users never see ads, including ads that were already loaded
             premiumCheck = { isProUser }
+            if (BuildConfig.DEBUG) {
+                onAdEvent = { event -> Log.d(LIB_TAG, "onAdEvent: $event") }
+                onAdError = { adType, placement, error -> Log.d(LIB_TAG, "onAdError: $adType '$placement' -> $error") }
+            }
         }
         userPreferences?.let { prefs ->
             scope.launch {
@@ -44,8 +51,10 @@ class WebsCareAdManagerImpl(
                 }
             }
         }
-        // Return-to-app app-open ads are intentionally NOT enabled: the app has no loading screen on
-        // return, and 4.2 forbids app-open ads over already-usable content.
+        // Return-to-app app-open ad (4.2.1+: any resumed screen unless restricted). Flows that leave
+        // the app on purpose (billing, Google sign-in, browser/Play Store/email) call
+        // suppressNextReturnAppOpen() first.
+        WebsCareAds.enableAutoAppOpen(WebsCarePlacements.URDUFONTS_APP_OPEN, minBackgroundSeconds = 30)
     }
 
     override fun requestConsent(activity: Activity, onConsentResult: (Boolean) -> Unit) {
@@ -67,16 +76,14 @@ class WebsCareAdManagerImpl(
     }
 
     override fun showSplashAppOpen(activity: Activity, placement: String, onContinue: () -> Unit) {
-        // The splash is a real loading surface; the marker must be cleared on every path
-        WebsCareAds.setAppOpenLoadingScreenVisible(true)
-        WebsCareAds.showAppOpen(
+        // Shows a cached ad at once or waits at most 4 s; onDismissed runs exactly once on every path
+        // (shown+dismissed, no fill, timeout, premium, consent) — navigation happens only there.
+        WebsCareAds.loadAndShowAppOpen(
             activity,
             placement,
-            onFailed = { error -> Log.d(TAG, "App open not shown: $error") },
-            onDismissed = {
-                WebsCareAds.setAppOpenLoadingScreenVisible(false)
-                onContinue()
-            }
+            timeoutMs = 4_000L,
+            onFailed = { error -> Log.d(LIB_TAG, "Splash app-open not shown: $error") },
+            onDismissed = onContinue
         )
     }
 
