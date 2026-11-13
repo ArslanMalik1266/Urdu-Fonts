@@ -47,4 +47,24 @@ val networkModule = module {
     single { get<Retrofit>().create(AuthApiService::class.java) }
     single { get<Retrofit>().create(com.urdufonts.app.data.remote.api.EntitlementApiService::class.java) }
 
+    // ── IAP backend (iap.webscare.app): sign-in, support tickets, push ──────
+    // Its own client: the urdufonts.com X-API-Key must never be sent there. Long read timeout for uploads.
+    single(org.koin.core.qualifier.named("iap")) {
+        OkHttpClient.Builder()
+            .addInterceptor(get<HttpLoggingInterceptor>())
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+    single {
+        Retrofit.Builder()
+            .baseUrl(com.urdufonts.app.data.iap.IapConfig.BASE_URL)
+            .client(get(org.koin.core.qualifier.named("iap")))
+            .addConverterFactory(GsonConverterFactory.create(get()))
+            .build()
+            .create(com.urdufonts.app.data.iap.IapApi::class.java)
+    }
+    single { com.urdufonts.app.data.iap.IapCaller(get()) }
+
 }

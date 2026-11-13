@@ -16,6 +16,11 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile")
     object Subscription : Screen("subscription")
     object Settings : Screen("settings")
+    object Tickets : Screen("support/tickets")
+    object NewTicket : Screen("support/new")
+    object TicketChat : Screen("support/ticket/{ticketId}") {
+        fun createRoute(ticketId: Int) = "support/ticket/$ticketId"
+    }
     object Search : Screen("search?initialTab={initialTab}") {
         fun createRoute(initialTab: String = "fonts") = "search?initialTab=$initialTab"
     }

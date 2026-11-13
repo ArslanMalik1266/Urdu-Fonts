@@ -22,6 +22,8 @@ class MyApplication : Application(), ImageLoaderFactory {
             modules(appModule)
         }
         File(cacheDir, "font_previews").deleteRecursively()
+        // The two channels the IAP backend sends its pushes to
+        com.urdufonts.app.data.iap.push.PushSetup.createChannels(this)
         getKoin().get<AppInitViewModel>()
         val adManager = getKoin().get<com.urdufonts.app.ads.AdManager>()
         adManager.initSdk(this)

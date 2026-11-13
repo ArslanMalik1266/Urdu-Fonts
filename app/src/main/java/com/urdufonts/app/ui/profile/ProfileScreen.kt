@@ -120,9 +120,27 @@ fun ProfileScreen(
         onCancelOtp = { viewModel.cancelOtp() },
         onToggleMode = { viewModel.toggleAuthMode() },
         onLogout = { viewModel.onLogoutClick() },
-        onGoogleSignIn = { viewModel.onGoogleSignInClick(context) }
+        onGoogleSignIn = { viewModel.onGoogleSignInClick(context) },
+        reset = ResetActions(
+            onForgotPassword = viewModel::onForgotPasswordClick,
+            onSendCode = viewModel::onSendResetCode,
+            onVerifyCode = viewModel::onVerifyResetCode,
+            onSavePassword = viewModel::onSaveNewPassword,
+            onCancel = viewModel::cancelReset,
+            onResendCode = viewModel::onResendCode
+        )
     )
 }
+
+/** What the forgot-password flow and the "Resend" link do. */
+internal class ResetActions(
+    val onForgotPassword: () -> Unit = {},
+    val onSendCode: (email: String) -> Unit = {},
+    val onVerifyCode: (code: String) -> Unit = {},
+    val onSavePassword: (password: String, confirm: String) -> Unit = { _, _ -> },
+    val onCancel: () -> Unit = {},
+    val onResendCode: () -> Unit = {}
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +154,8 @@ internal fun ProfileScreenInternal(
     onCancelOtp: () -> Unit,
     onToggleMode: () -> Unit,
     onLogout: () -> Unit,
-    onGoogleSignIn: () -> Unit
+    onGoogleSignIn: () -> Unit,
+    reset: ResetActions = ResetActions()
 ) {
     Scaffold(
         containerColor = Color.White,
@@ -181,7 +200,8 @@ internal fun ProfileScreenInternal(
                         onVerifyOtp = onVerifyOtp,
                         onCancelOtp = onCancelOtp,
                         onToggleMode = onToggleMode,
-                        onGoogleSignIn = onGoogleSignIn
+                        onGoogleSignIn = onGoogleSignIn,
+                        reset = reset
                     )
                 }
             }
@@ -346,7 +366,8 @@ private fun LoggedOutContent(
     onVerifyOtp: (otp: String) -> Unit,
     onCancelOtp: () -> Unit,
     onToggleMode: () -> Unit,
-    onGoogleSignIn: () -> Unit
+    onGoogleSignIn: () -> Unit,
+    reset: ResetActions
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -360,17 +381,38 @@ private fun LoggedOutContent(
         confirmPassword = ""
     }
 
+    // Which page of the logged-out flow shows: the form, a code screen, or a forgot-password step
+    val page = when {
+        uiState.isOtpMode -> "verify"
+        uiState.resetStep != null -> uiState.resetStep.name
+        else -> "form"
+    }
     AnimatedContent(
-        targetState = uiState.isOtpMode,
+        targetState = page,
         transitionSpec = { fadeIn() togetherWith fadeOut() },
         label = "otp_mode_transition"
-    ) { isOtpMode ->
-        if (isOtpMode) {
+    ) { shown ->
+        if (shown == "verify") {
             OtpVerificationContent(
                 uiState = uiState,
+                email = uiState.registrationEmail,
                 onVerifyOtp = onVerifyOtp,
-                onCancelOtp = onCancelOtp
+                onCancelOtp = onCancelOtp,
+                onResend = reset.onResendCode
             )
+        } else if (shown == ResetStep.CODE.name) {
+            OtpVerificationContent(
+                uiState = uiState,
+                email = uiState.resetEmail,
+                title = "Reset Password",
+                buttonText = "Verify Code",
+                backText = "Back to Login",
+                onVerifyOtp = reset.onVerifyCode,
+                onCancelOtp = reset.onCancel,
+                onResend = reset.onResendCode
+            )
+        } else if (shown == ResetStep.EMAIL.name || shown == ResetStep.NEW_PASSWORD.name) {
+            ResetPasswordContent(uiState = uiState, initialEmail = email, reset = reset)
         } else {
             Column(
                 modifier = Modifier
@@ -456,6 +498,22 @@ private fun LoggedOutContent(
                     isPassword = true,
                     imeAction = if (uiState.isSignUpMode) ImeAction.Next else ImeAction.Done
                 )
+
+                // Forgot password (login only)
+                if (!uiState.isSignUpMode) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                        Text(
+                            text = "Forgot password?",
+                            fontSize = 12.5.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColor,
+                            modifier = Modifier
+                                .addPressEffect { reset.onForgotPassword() }
+                                .padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 4.dp)
+                        )
+                    }
+                }
 
                 // 4. Confirm Password input (Only in Sign Up Mode)
                 AnimatedVisibility(
@@ -623,8 +681,13 @@ private fun LoggedOutContent(
 @Composable
 private fun OtpVerificationContent(
     uiState: ProfileUiState,
+    email: String,
     onVerifyOtp: (String) -> Unit,
-    onCancelOtp: () -> Unit
+    onCancelOtp: () -> Unit,
+    onResend: () -> Unit,
+    title: String = "Verify Email",
+    buttonText: String = "Verify & Register",
+    backText: String = "Back to Sign Up"
 ) {
     var otpValue by remember { mutableStateOf(TextFieldValue("")) }
     var otpCode by remember { mutableStateOf("") }
@@ -668,7 +731,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Verify Email",
+            text = title,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = NunitoFontFamily,
@@ -678,7 +741,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = "We sent a 6-digit verification code to \n${uiState.registrationEmail}",
+            text = "We sent a 6-digit verification code to \n$email",
             fontSize = 12.sp,
             color = GreyColor,
             fontFamily = NunitoFontFamily,
@@ -846,7 +909,7 @@ private fun OtpVerificationContent(
                 )
             } else {
                 Text(
-                    text = "Verify & Register",
+                    text = buttonText,
                     color = Color.White,
                     fontSize = 15.sp,
                     fontFamily = NunitoFontFamily,
@@ -855,10 +918,31 @@ private fun OtpVerificationContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Didn't get the code? ",
+                fontSize = 13.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor
+            )
+            Text(
+                text = "Resend",
+                fontSize = 13.sp,
+                fontFamily = NunitoFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = AppColor,
+                modifier = Modifier
+                    .addPressEffect { if (!uiState.isLoading) onResend() }
+                    .padding(4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Back to Sign Up",
+            text = backText,
             fontSize = 13.sp,
             fontFamily = NunitoFontFamily,
             fontWeight = FontWeight.Bold,
@@ -870,6 +954,150 @@ private fun OtpVerificationContent(
     }
 }
 
+
+/** Forgot password: the email to send the code to, or (after the code) the new password twice. */
+@Composable
+private fun ResetPasswordContent(
+    uiState: ProfileUiState,
+    initialEmail: String,
+    reset: ResetActions
+) {
+    val askingEmail = uiState.resetStep == ResetStep.EMAIL
+    var email by remember { mutableStateOf(initialEmail.ifBlank { uiState.resetEmail }) }
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFF0F0F0)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_pass),
+                contentDescription = null,
+                tint = AppColor,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = if (askingEmail) "Forgot Password" else "New Password",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = NunitoFontFamily,
+            color = HeadingBlackColor
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = if (askingEmail) "Enter your account email and we'll send you a 6-digit code"
+            else "Choose a new password for\n${uiState.resetEmail}",
+            fontSize = 12.sp,
+            color = GreyColor,
+            fontFamily = NunitoFontFamily,
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (askingEmail) {
+            ProfileInputField(
+                label = "Email",
+                value = email,
+                onValueChange = { email = it },
+                leadingIcon = R.drawable.ic_email,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Done
+            )
+        } else {
+            ProfileInputField(
+                label = "New Password",
+                value = password,
+                onValueChange = { password = it },
+                leadingIcon = R.drawable.ic_pass,
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
+                imeAction = ImeAction.Next
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileInputField(
+                label = "Confirm Password",
+                value = confirm,
+                onValueChange = { confirm = it },
+                leadingIcon = R.drawable.ic_pass,
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
+                imeAction = ImeAction.Done
+            )
+        }
+
+        if (uiState.errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = uiState.errorMessage,
+                color = Color.Red,
+                fontFamily = NunitoFontFamily,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .addPressEffect {
+                    if (!uiState.isLoading) {
+                        if (askingEmail) reset.onSendCode(email) else reset.onSavePassword(password, confirm)
+                    }
+                }
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
+                .padding(vertical = 14.dp)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = if (askingEmail) "Send Code" else "Save Password",
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Back to Login",
+            fontSize = 13.sp,
+            fontFamily = NunitoFontFamily,
+            fontWeight = FontWeight.Bold,
+            color = AppColor,
+            modifier = Modifier
+                .addPressEffect { reset.onCancel() }
+                .padding(4.dp)
+        )
+    }
+}
 
 // ─── Reusable field components ────────────────────────────────────────────────
 

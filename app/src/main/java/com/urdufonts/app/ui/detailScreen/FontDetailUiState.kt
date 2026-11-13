@@ -28,6 +28,10 @@ data class FontDetailUiState(
     val showDownloadLimitBottomSheet: Boolean = false,
     val downloadCount: Int = 0,
     val isProUser: Boolean = false,
+    /** Fonts the user's plan allows a day; null means no limit. */
+    val dailyFontLimit: Int? = com.urdufonts.app.domain.models.SubscriptionType.FREE_DAILY_FONTS,
+    /** The user's plan, null on the free plan. */
+    val planType: com.urdufonts.app.domain.models.SubscriptionType? = null,
     // The API sent no font_file (premium fonts, or a missing link): no live preview or weights to load
     val fontFileUnavailable: Boolean = false
 )

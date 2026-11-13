@@ -44,8 +44,9 @@ data class PendingChangeDto(
 )
 
 data class PurchaseConfirmRequestDto(
+    // Left out for a signed-in member: the backend takes the member from the token
     @SerializedName("external_user_id")
-    val externalUserId: String,
+    val externalUserId: String?,
     @SerializedName("sku")
     val sku: String,
     @SerializedName("purchase_token")

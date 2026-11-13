@@ -27,7 +27,8 @@ class SubscriptionViewModel(
     private val checkSubscriptionStatusUseCase: CheckSubscriptionStatusUseCase,
     private val getUserSessionUseCase: GetUserSessionUseCase,
     private val entitlementRepository: EntitlementRepository,
-    private val getProductsUseCase: GetProductsUseCase
+    private val getProductsUseCase: GetProductsUseCase,
+    private val billingRepository: com.urdufonts.app.domain.repo.BillingRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SubscriptionUiState())
@@ -39,6 +40,9 @@ class SubscriptionViewModel(
     private var userSelectedOptionId: String? = null
 
     init {
+        viewModelScope.launch {
+            billingRepository.purchaseProblems.collect { message -> _uiState.update { it.copy(userMessage = message) } }
+        }
         loadData()
         observeSubscriptionStatus()
         observeEntitlements()
@@ -70,21 +74,12 @@ class SubscriptionViewModel(
         }
 
         // 2. Default to the currently subscribed plan
-        if (activePlanType != null) {
-            val activeOptionId = when (activePlanType) {
-                SubscriptionType.MONTHLY    -> "monthly-plan"
-                SubscriptionType.SIX_MONTHS -> "6-month-plan"
-                SubscriptionType.LIFETIME   -> options.find { it.id == "urdu_fonts_lifetime" || it.id == "lifetime-purchase" }?.id ?: "urdu_fonts_lifetime"
-            }
-            if (options.any { it.id == activeOptionId }) {
-                return activeOptionId
-            }
-        }
+        activePlanType?.sku?.let { sku -> if (options.any { it.id == sku }) return sku }
 
         // 3. Fall back to most popular, then first, then hardcoded default
         return options.find { it.isMostPopular }?.id
             ?: options.firstOrNull()?.id
-            ?: "6-month-plan"
+            ?: ""
     }
 
     // Convenience wrapper — applies the resolver to an existing state snapshot
@@ -105,20 +100,15 @@ class SubscriptionViewModel(
             val backendProductsResult = getProductsUseCase("urdufonts")
             val backendProducts = backendProductsResult.getOrDefault(emptyList())
 
+            // Each card shows the plan's name and entitlements from the IAP dashboard
             val options = rawOptions.map { option ->
-                val matchingProduct = backendProducts.find { product ->
-                    product.sku.equals(option.id, ignoreCase = true) ||
-                    (option.id == "monthly-plan" && (product.sku.contains("monthly", ignoreCase = true) || product.sku.contains("pro", ignoreCase = true))) ||
-                    (option.id == "6-month-plan" && product.sku.contains("6", ignoreCase = true)) ||
-                    ((option.id == "lifetime-purchase" || option.id == "urdu_fonts_lifetime") && product.sku.contains("lifetime", ignoreCase = true))
-                }
-                val backendTitle = matchingProduct?.name?.takeIf { it.isNotBlank() }
-
-                if (backendTitle != null) {
-                    option.copy(title = backendTitle)
-                } else {
-                    option
-                }
+                val product = backendProducts.find { it.sku.equals(option.id, ignoreCase = true) }
+                    ?: return@map option
+                option.copy(
+                    title = product.name.takeIf { it.isNotBlank() } ?: option.title,
+                    features = product.features,
+                    tierRank = product.tierRank.takeIf { it > 0 } ?: option.tierRank
+                )
             }
 
             val currentEntitlements = entitlementRepository.entitlementsFlow.firstOrNull()

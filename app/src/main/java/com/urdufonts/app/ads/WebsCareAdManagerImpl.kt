@@ -25,6 +25,7 @@ class WebsCareAdManagerImpl(
 ) : AdManager {
 
     companion object {
+        private const val APP_RESUME_PLACEMENT = "urdufonts_app_resume"
         private const val TAG = "WebsCareAdsLog"
         private const val LIB_TAG = "WebsCareAds"
     }
@@ -51,10 +52,10 @@ class WebsCareAdManagerImpl(
                 }
             }
         }
-        // Return-to-app app-open ad (4.2.1+: any resumed screen unless restricted). Flows that leave
+        // Return-to-app (resume) ad uses its own placement, separate from the splash app-open (4.2.1+: any resumed screen unless restricted). Flows that leave
         // the app on purpose (billing, Google sign-in, browser/Play Store/email) call
         // suppressNextReturnAppOpen() first.
-        WebsCareAds.enableAutoAppOpen(WebsCarePlacements.URDUFONTS_APP_OPEN, minBackgroundSeconds = 30)
+        WebsCareAds.enableAutoAppOpen(appResumePlacement())
     }
 
     override fun requestConsent(activity: Activity, onConsentResult: (Boolean) -> Unit) {
@@ -76,15 +77,17 @@ class WebsCareAdManagerImpl(
     }
 
     override fun showSplashAppOpen(activity: Activity, placement: String, onContinue: () -> Unit) {
-        // Shows a cached ad at once or waits at most 4 s; onDismissed runs exactly once on every path
-        // (shown+dismissed, no fill, timeout, premium, consent) — navigation happens only there.
-        WebsCareAds.loadAndShowAppOpen(
-            activity,
-            placement,
-            timeoutMs = 4_000L,
-            onFailed = { error -> Log.d(LIB_TAG, "Splash app-open not shown: $error") },
-            onDismissed = onContinue
-        )
+        // 4.2.5: inside checkConsent, default timeout (counted from the ad request), no own delay.
+        // onDismissed runs exactly once on every path (shown+dismissed, no fill, timeout, premium,
+        // consent) — navigation happens only there.
+        WebsCareAds.checkConsent(activity) {
+            WebsCareAds.loadAndShowAppOpen(
+                activity,
+                placement,
+                onFailed = { error -> Log.d(LIB_TAG, "Splash app-open not shown: $error") },
+                onDismissed = onContinue
+            )
+        }
     }
 
     override fun preloadInterstitial(context: Context, placement: String) {
@@ -135,4 +138,12 @@ class WebsCareAdManagerImpl(
             onDismissed()
         }
     }
+
+    /**
+     * Separate placement for the return-to-app ad. Uses "urdufonts_app_resume" once it exists in
+     * Firebase (it then appears in WebsCarePlacements.ALL); until then falls back to app-open.
+     */
+    private fun appResumePlacement(): String =
+        if (APP_RESUME_PLACEMENT in WebsCarePlacements.ALL) APP_RESUME_PLACEMENT
+        else WebsCarePlacements.URDUFONTS_APP_OPEN
 }

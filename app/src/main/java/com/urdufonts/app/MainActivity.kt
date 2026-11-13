@@ -18,6 +18,8 @@ import com.urdufonts.app.ui.navigation.AppNavigation
 import com.urdufonts.app.ui.theme.UrduFontsTheme
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
+import com.urdufonts.app.data.iap.push.takeNotificationTap
 
 class MainActivity : ComponentActivity() {
     private val adManager: com.urdufonts.app.ads.AdManager by lazy {
@@ -40,9 +42,31 @@ class MainActivity : ComponentActivity() {
 
         window.decorView.setBackgroundColor(android.graphics.Color.WHITE)
 
+        takeNotificationTap(intent)
+
         setContent {
             AppNavigation()
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        takeNotificationTap(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // A push registration that did not get through earlier is sent again
+        val retry: com.urdufonts.app.domain.usecases.RetryPushRegistrationUseCase =
+            org.koin.java.KoinJavaComponent.getKoin().get()
+        lifecycleScope.launch { runCatching { retry() } }
+    }
+
+    /** A tapped notification is held until the app is ready to open where it leads (see AppNavigation). */
+    private fun takeNotificationTap(intent: android.content.Intent?) {
+        val tap = intent?.takeNotificationTap() ?: return
+        org.koin.java.KoinJavaComponent.getKoin().get<com.urdufonts.app.domain.models.NotificationTapInbox>().post(tap)
     }
 
     // Return-to-app app-open ads are handled by WebsCareAds.enableAutoAppOpen (see WebsCareAdManagerImpl).

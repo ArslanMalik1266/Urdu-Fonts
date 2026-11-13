@@ -1,4 +1,4 @@
-﻿package com.urdufonts.app.ui.profile
+package com.urdufonts.app.ui.profile
 
 data class ProfileUiState(
     val isLoggedIn: Boolean = false,
@@ -12,5 +12,12 @@ data class ProfileUiState(
     val isGoogleLoading: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
-    val navigateToHome: Boolean = false
+    val navigateToHome: Boolean = false,
+    /** Where the forgot-password flow is; null when it is not open. */
+    val resetStep: ResetStep? = null,
+    val resetEmail: String = "",
+    /** Proof from the emailed reset code, sent with the new password. */
+    val resetToken: String = ""
 )
+
+enum class ResetStep { EMAIL, CODE, NEW_PASSWORD }

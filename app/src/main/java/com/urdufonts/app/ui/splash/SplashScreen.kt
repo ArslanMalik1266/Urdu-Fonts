@@ -54,6 +54,7 @@ import com.urdufonts.app.ui.theme.NunitoFontFamily
 import com.urdufonts.app.ui.util.figmaDropShadow
 import com.urdufonts.app.ui.util.softShadow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 private fun CloudDownloadIcon(
@@ -268,24 +269,25 @@ fun SplashScreen(
             adManager.preloadAppOpen(activity)
         }
 
-        // Step 1 (t = 60ms): Trigger 3D Logo Elastic Spring Pop & Brand Title Fade
-        delay(60L)
-        isBrandingVisible = true
+        // Branding animation runs on its own; it never holds up leaving the splash
+        launch {
+            // Step 1 (t = 60ms): Trigger 3D Logo Elastic Spring Pop & Brand Title Fade
+            delay(60L)
+            isBrandingVisible = true
 
-        // Step 2 (t = 560ms): Trigger Feature Badges Row after 500ms delay
-        delay(500L)
-        isBadgesVisible = true
-
-        // Step 3: splash stays exactly 3000 ms from first composition, whatever loads meanwhile
-        delay((3_000L - (android.os.SystemClock.uptimeMillis() - splashStart)).coerceAtLeast(0L))
-        if (com.urdufonts.app.BuildConfig.DEBUG) {
-            android.util.Log.d("WebsCareAds", "Splash 3s over after ${android.os.SystemClock.uptimeMillis() - splashStart} ms, show requested")
+            // Step 2 (t = 560ms): Trigger Feature Badges Row after 500ms delay
+            delay(500L)
+            isBadgesVisible = true
         }
 
+        // WebsCareAds 4.2.5: no fixed splash hold. The launch flow starts at once; the library does the
+        // waiting for the ad (inside checkConsent, default timeout from the ad request).
         if (isOnboardingCompleted && activity != null) {
-            android.util.Log.d("WebsCareAdsLog", "SplashScreen -> 3.0s branding completed. Showing App Open Ad before Home Screen...")
+            if (com.urdufonts.app.BuildConfig.DEBUG) {
+                android.util.Log.d("WebsCareAds", "Splash launch ad requested after ${android.os.SystemClock.uptimeMillis() - splashStart} ms")
+            }
             // The splash is still on screen here, so it is a genuine loading surface for the app-open ad;
-            // no ad ready → continues to Home immediately
+            // no ad → continues to Home once the library gives up
             adManager.showSplashAppOpen(activity) {
                 onNavigateNext()
             }

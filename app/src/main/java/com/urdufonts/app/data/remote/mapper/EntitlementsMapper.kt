@@ -23,16 +23,10 @@ object EntitlementsMapper {
             if (item.pendingChange != null) {
                 pendingChangeDetails = toDomain(item.pendingChange)
             }
-            // Prioritize primary subscription entitlement keys or items with actual subscription/plan metadata
-            if (key == "urdu_fonts_pro" || key == "pro" || key == "pro_features" || item.subscriptionId != null || !item.planName.isNullOrBlank()) {
-                if (!item.productSku.isNullOrBlank()) {
-                    activeSku = item.productSku
-                }
-                if (!item.planName.isNullOrBlank()) {
-                    activePlanName = item.planName
-                }
-            } else if (activeSku == null && !item.productSku.isNullOrBlank()) {
+            // Every entitlement a plan gives carries that plan's sku and name
+            if (item.unlocked && !item.productSku.isNullOrBlank() && activeSku == null) {
                 activeSku = item.productSku
+                activePlanName = item.planName
             }
 
             entitlementList.add(
@@ -49,7 +43,8 @@ object EntitlementsMapper {
             SubscriptionDetails(
                 sku = activeSku,
                 productId = activeSku,
-                basePlanId = activePlanName ?: activeSku
+                basePlanId = activeSku,
+                planName = activePlanName
             )
         } else null
 

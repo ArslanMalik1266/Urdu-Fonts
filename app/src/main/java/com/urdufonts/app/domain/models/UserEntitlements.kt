@@ -14,24 +14,30 @@ data class UserEntitlements(
     val hasUnlimitedDownloads: Boolean
         get() = unlocked || entitlements.any { it.key == "unlimited_downloads" && it.granted }
 
+    /** Fonts this user may download a day; null means no limit (old paid plans and lifetime). */
+    val dailyFontLimit: Int?
+        get() = when (activeSubscriptionType) {
+            null -> SubscriptionType.FREE_DAILY_FONTS
+            SubscriptionType.BASIC -> 50
+            SubscriptionType.PRO -> 100
+            SubscriptionType.BUSINESS -> 200
+            SubscriptionType.LEGACY, SubscriptionType.LIFETIME -> null
+        }
+
+    /** The plan the user is on now. Null on the free plan. */
     val activeSubscriptionType: SubscriptionType?
         get() {
-            if (unlocked && (subscription == null || (subscription.sku == null && subscription.basePlanId == null))) {
-                return SubscriptionType.LIFETIME
-            }
-            val basePlan = subscription?.basePlanId.orEmpty().lowercase()
+            if (!unlocked) return null
             val sku = subscription?.sku.orEmpty().lowercase()
-            val prodId = subscription?.productId.orEmpty().lowercase()
-
+            SubscriptionType.fromSku(sku)?.let { return it }
+            fun has(key: String) = entitlements.any { it.key == key && it.granted }
             return when {
-                prodId == "lifetime-purchase" || prodId == "urdu_fonts_lifetime" || sku.contains("lifetime") || basePlan.contains("lifetime") -> SubscriptionType.LIFETIME
-                basePlan.contains("6-month") || basePlan.contains("6_month") || basePlan.contains("6_months") ||
-                        basePlan.contains("6 months") || sku.contains("6_month") || sku.contains("6_months") ||
-                        sku.contains("6-month") || basePlan.contains("annual") || basePlan.contains("yearly") ||
-                        sku.contains("annual") || sku.contains("yearly") -> SubscriptionType.SIX_MONTHS
-                basePlan.contains("monthly") || basePlan.contains("month") || sku.contains("monthly") -> SubscriptionType.MONTHLY
-                unlocked -> SubscriptionType.LIFETIME
-                else -> null
+                has("font_downloads_200") -> SubscriptionType.BUSINESS
+                has("font_downloads_100") -> SubscriptionType.PRO
+                has("font_downloads_50") -> SubscriptionType.BASIC
+                sku.contains("lifetime") -> SubscriptionType.LIFETIME
+                // Bought before the three plans existed (old monthly / 6-month plan)
+                else -> SubscriptionType.LEGACY
             }
         }
 }
@@ -47,6 +53,7 @@ data class SubscriptionDetails(
     val sku: String? = null,
     val productId: String? = null,
     val basePlanId: String? = null,
+    val planName: String? = null,
     val status: String? = null,
     val expiry: String? = null,
     val autoRenewing: Boolean = false
@@ -59,8 +66,16 @@ data class PendingChangeDetails(
     val updateType: String? = null
 )
 
-enum class SubscriptionType {
-    MONTHLY,
-    SIX_MONTHS,
-    LIFETIME
+enum class SubscriptionType(val sku: String?, val rank: Int, val displayName: String) {
+    BASIC("monthly", 1, "Basic"),
+    PRO("monthly-pro", 2, "Pro"),
+    BUSINESS("monthly-business", 3, "Business"),
+    LEGACY(null, 0, "Premium"),
+    LIFETIME("urdu_fonts_lifetime", 4, "Lifetime");
+
+    companion object {
+        const val FREE_DAILY_FONTS = 10
+
+        fun fromSku(sku: String?): SubscriptionType? = entries.firstOrNull { it.sku != null && it.sku.equals(sku, ignoreCase = true) }
+    }
 }

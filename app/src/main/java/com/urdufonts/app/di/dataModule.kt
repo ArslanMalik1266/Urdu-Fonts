@@ -42,7 +42,7 @@ val dataModule = module {
     single { get<AppDatabase>().styleDao() }
 
     single { com.urdufonts.app.data.local.EntitlementLocalDataSource(androidContext()) }
-    single { com.urdufonts.app.data.remote.datasource.EntitlementRemoteDataSource(apiService = get()) }
+    single { com.urdufonts.app.data.remote.datasource.EntitlementRemoteDataSource(apiService = get(), identity = get()) }
     single<com.urdufonts.app.domain.repo.EntitlementRepository> {
         com.urdufonts.app.data.repository.EntitlementRepositoryImpl(
             remoteDataSource = get(),
@@ -55,8 +55,21 @@ val dataModule = module {
     single<BannerRepository>     { BannerRepositoryImpl() }
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }
     single<CategoriesRepository> { CategoriesRepositoryImpl(apiService = get(), categoryDao = get()) }
-    single<AuthRepository>       { AuthRepositoryImpl(apiService = get(), userPreferences = get(), entitlementLocalDataSource = get()) }
-    single<BillingRepository>    { BillingRepositoryImpl(context = androidContext(), userPreferences = get(), entitlementRepository = get()) }
+    single<AuthRepository>       { AuthRepositoryImpl(api = get(), caller = get(), userPreferences = get(), push = get(), entitlementLocalDataSource = get()) }
+
+    // ── IAP: guest identity, support tickets, push ─────────────────────────
+    single { com.urdufonts.app.data.iap.IapPreferences(androidContext()) }
+    single { com.urdufonts.app.data.iap.IapIdentityProvider(api = get(), caller = get(), userPreferences = get(), preferences = get()) }
+    single<com.urdufonts.app.domain.repo.DeviceDetailsSource> { com.urdufonts.app.data.iap.AndroidDeviceDetailsSource() }
+    single<com.urdufonts.app.domain.repo.PushTokenSource> { com.urdufonts.app.data.iap.push.FirebasePushTokenSource() }
+    single<com.urdufonts.app.domain.repo.SupportRepository> {
+        com.urdufonts.app.data.iap.SupportRepositoryImpl(context = androidContext(), api = get(), caller = get(), identity = get(), deviceDetails = get())
+    }
+    single<com.urdufonts.app.domain.repo.PushRepository> {
+        com.urdufonts.app.data.iap.PushRepositoryImpl(api = get(), caller = get(), identity = get(), tokens = get(), preferences = get(), deviceDetails = get())
+    }
+    single { com.urdufonts.app.domain.models.NotificationTapInbox() }
+    single<BillingRepository>    { BillingRepositoryImpl(context = androidContext(), userPreferences = get(), entitlementRepository = get(), iapApi = get(), identity = get()) }
     single<MoreAppsRepository>   { MoreAppsRepositoryImpl(apiService = get()) }
     single<ProductsRepository>   { ProductsRepositoryImpl(apiService = get()) }
 

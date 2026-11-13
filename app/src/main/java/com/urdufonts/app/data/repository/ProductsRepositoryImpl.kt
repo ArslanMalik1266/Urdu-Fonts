@@ -1,7 +1,6 @@
 package com.urdufonts.app.data.repository
 
 import android.util.Log
-import com.urdufonts.app.BuildConfig
 import com.urdufonts.app.data.remote.api.EntitlementApiService
 import com.urdufonts.app.data.remote.mapper.ProductsMapper
 import com.urdufonts.app.domain.models.ProductItem
@@ -24,12 +23,12 @@ class ProductsRepositoryImpl(
             return Result.success(memoryCache)
         }
 
-        val url = "$BASE_URL/api/v1/apps/$appSlug/products"
+        val url = "$BASE_URL/api/v1/apps/$appSlug/products?platform=android"
         Log.d(TAG, "Fetching products from GET $url")
         return try {
             val response = apiService.getProducts(
                 url = url,
-                authHeader = "Bearer ${BuildConfig.BEARER_TOKEN}"
+                authHeader = com.urdufonts.app.data.iap.IapConfig.appBearer
             )
             val domainProducts = ProductsMapper.toDomain(response)
             if (domainProducts.isNotEmpty()) {

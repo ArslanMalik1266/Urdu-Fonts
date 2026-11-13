@@ -41,7 +41,7 @@ val domainModule = module {
     factory { LoginWithGoogleUseCase(get()) }
     factory { GetUserSessionUseCase(get()) }
     factory { LogoutUseCase(get()) }
-    factory { CheckUserStatusUseCase(get()) }
+    factory { CheckUserStatusUseCase(get(), get()) }
     factory { VerifyOtpUseCase(get()) }
     factory { LoginUseCase(get()) }
     factory { GetSubscriptionOptionsUseCase(get()) }
@@ -53,5 +53,25 @@ val domainModule = module {
     factory { com.urdufonts.app.domain.usecases.CheckProStatusUseCase(get()) }
     factory { com.urdufonts.app.domain.usecases.GetActivePlanTypeUseCase(get()) }
     factory { com.urdufonts.app.domain.usecases.GlobalSearchUseCase(get(), get(), get()) }
+
+    // ── Help & Support ─────────────────────────────────────────────────────
+    factory { com.urdufonts.app.domain.usecases.ObserveTicketsUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.RefreshTicketsUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.GetTicketUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.ValidateNewTicketUseCase() }
+    factory { com.urdufonts.app.domain.usecases.ValidateAttachmentUseCase() }
+    factory { com.urdufonts.app.domain.usecases.CreateTicketUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.ReplyToTicketUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.AnswerResolutionUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.RateTicketUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.GetAttachmentFileUseCase(get()) }
+
+    // ── Push notifications ─────────────────────────────────────────────────
+    factory { com.urdufonts.app.domain.usecases.RegisterPushTokenUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.RetryPushRegistrationUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.ObserveNotificationsEnabledUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.SetNotificationsEnabledUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.ObserveNotificationTapUseCase(get()) }
+    factory { com.urdufonts.app.domain.usecases.CompleteNotificationTapUseCase(get(), get()) }
 }
 

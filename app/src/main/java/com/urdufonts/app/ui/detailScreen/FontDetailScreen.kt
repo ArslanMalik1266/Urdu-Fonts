@@ -154,7 +154,9 @@ fun FontDetailScreen(
     if (uiState.showDownloadLimitBottomSheet) {
         DownloadLimitBottomSheet(
             onDismiss = { viewModel.dismissDownloadLimitBottomSheet() },
-            onUpgradeToPremium = onNavigateToSubscription
+            onUpgradeToPremium = onNavigateToSubscription,
+            dailyLimit = uiState.dailyFontLimit ?: com.urdufonts.app.domain.models.SubscriptionType.FREE_DAILY_FONTS,
+            planName = uiState.planType?.displayName
         )
     }
 

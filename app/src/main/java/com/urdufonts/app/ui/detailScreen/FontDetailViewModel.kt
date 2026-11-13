@@ -32,6 +32,7 @@ class FontDetailViewModel(
     private val getFontWeightsUseCase: GetFontWeightsUseCase,
     private val fontDownloadManager: FontDownloadManager,
     private val userPreferences: UserPreferences,
+    private val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -79,6 +80,12 @@ class FontDetailViewModel(
             }
         }
         viewModelScope.launch {
+            // The daily font limit follows the plan: Free 10, Basic 50, Pro 100, Business 200
+            entitlementRepository.entitlementsFlow.collect { entitlements ->
+                _uiState.update { it.copy(dailyFontLimit = entitlements.dailyFontLimit, planType = entitlements.activeSubscriptionType) }
+            }
+        }
+        viewModelScope.launch {
             userPreferences.downloadCount.collect { count ->
                 _uiState.update { it.copy(downloadCount = count) }
             }
@@ -111,7 +118,8 @@ class FontDetailViewModel(
                             val isFirstDownloadInSession = sessionDownloadedFontIds.add(currentIdStr)
                             val shouldShowAd = isFirstDownloadInSession && !_uiState.value.isProUser
                             _eventFlow.emit(UiEvent.DownloadSuccess(message = event.message, shouldShowAd = shouldShowAd))
-                            if (!_uiState.value.isProUser) {
+                            // Counted on every plan with a daily limit
+                            if (_uiState.value.dailyFontLimit != null) {
                                 userPreferences.recordFontDownloaded(currentIdStr)
                             }
                         }
@@ -332,7 +340,8 @@ class FontDetailViewModel(
                 return@launch
             }
             val isAlreadyDownloadedToday = userPreferences.isFontDownloadedToday(fontId)
-            if (!state.isProUser && state.downloadCount >= 5 && !isAlreadyDownloadedToday) {
+            val limit = state.dailyFontLimit
+            if (limit != null && state.downloadCount >= limit && !isAlreadyDownloadedToday) {
                 _uiState.update { it.copy(showDownloadLimitBottomSheet = true) }
                 return@launch
             }

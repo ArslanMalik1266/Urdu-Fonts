@@ -47,6 +47,8 @@ import kotlinx.coroutines.launch
 fun DownloadLimitBottomSheet(
     onDismiss: () -> Unit,
     onUpgradeToPremium: () -> Unit,
+    dailyLimit: Int = com.urdufonts.app.domain.models.SubscriptionType.FREE_DAILY_FONTS,
+    planName: String? = null,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     val scope = rememberCoroutineScope()
@@ -117,7 +119,11 @@ fun DownloadLimitBottomSheet(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "You have reached your limit of 5 free font downloads for today. Go to Pro to download unlimited fonts!",
+                text = if (planName == null) {
+                    "You have reached your limit of $dailyLimit free font downloads for today. Upgrade your plan to download more fonts!"
+                } else {
+                    "You have reached your $planName plan's limit of $dailyLimit font downloads for today. Upgrade your plan to download more, or come back tomorrow."
+                },
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = NunitoFontFamily,

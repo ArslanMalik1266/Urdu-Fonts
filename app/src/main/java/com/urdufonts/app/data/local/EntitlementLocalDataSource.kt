@@ -39,12 +39,7 @@ class EntitlementLocalDataSource(private val context: Context) {
 
     val purchasedPlanTypeFlow: Flow<SubscriptionType?> = context.entitlementDataStore.data
         .map { preferences ->
-            when (preferences[KEY_PURCHASED_PLAN_TYPE]) {
-                "MONTHLY" -> SubscriptionType.MONTHLY
-                "SIX_MONTHS" -> SubscriptionType.SIX_MONTHS
-                "LIFETIME" -> SubscriptionType.LIFETIME
-                else -> null
-            }
+            preferences[KEY_PURCHASED_PLAN_TYPE]?.let { name -> SubscriptionType.entries.firstOrNull { it.name == name } }
         }
 
     suspend fun saveExternalUserId(userId: String) {

@@ -68,6 +68,10 @@ import com.urdufonts.app.ui.util.figmaDropShadow
 import com.urdufonts.app.ui.util.figmaInnerShadow
 import com.urdufonts.app.ui.util.springOverscroll
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
 import java.io.File
 
 private val BackgroundColor = Color.White
@@ -103,7 +107,9 @@ fun SettingsScreen(
     onOpenWebPage: (String) -> Unit,
     onOpenEmailSupport: () -> Unit,
     onRateUsClick: () -> Unit,
-    viewModel: HomeViewModel = koinViewModel()
+    onOpenHelpSupport: () -> Unit = {},
+    viewModel: HomeViewModel = koinViewModel(),
+    notificationsViewModel: NotificationsViewModel = koinViewModel()
 ) {
     val drawerUiState by viewModel.drawerUiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -132,6 +138,16 @@ fun SettingsScreen(
                 }
             }
         )
+    }
+
+    // Notifications: the app's own choice, shown on only while the phone allows them too
+    val notificationsChoice by notificationsViewModel.enabled.collectAsStateWithLifecycle()
+    val notificationPermission = rememberNotificationPermission()
+    val notificationsOn = notificationsChoice && notificationPermission.granted
+    LaunchedEffect(notificationsViewModel) {
+        notificationsViewModel.offFailed.collect {
+            Toast.makeText(context, context.getString(R.string.settings_notifications_failed), Toast.LENGTH_SHORT).show()
+        }
     }
 
     val entitlementRepository: com.urdufonts.app.domain.repo.EntitlementRepository = org.koin.compose.koinInject()
@@ -201,6 +217,21 @@ fun SettingsScreen(
                         showDivider = true,
                         onClick = onNavigateToProfile
                     )
+                    SettingsSwitchRow(
+                        iconRes = R.drawable.ic_sp_bell,
+                        label = stringResource(R.string.settings_notifications),
+                        checked = notificationsOn,
+                        showDivider = true,
+                        onCheckedChange = {
+                            if (notificationsOn) {
+                                notificationsViewModel.onNotifications(false)
+                            } else {
+                                // The phone must allow them too: it asks, or opens the app's notification settings
+                                if (!notificationPermission.granted) notificationPermission.turnOn()
+                                notificationsViewModel.onNotifications(true)
+                            }
+                        }
+                    )
                     SettingsRow(
                         iconRes = R.drawable.ic_cloud_download,
                         label = "Clear Cache",
@@ -216,9 +247,13 @@ fun SettingsScreen(
                 SettingsSection(title = "SUPPORT & INFO") {
                     SettingsRow(
                         iconRes = R.drawable.ic_drawer_support,
-                        label = "Support",
+                        label = stringResource(R.string.support_title),
                         showDivider = true,
-                        onClick = onOpenEmailSupport
+                        onClick = {
+                            // Asked here so a support reply can reach the phone
+                            if (!notificationPermission.granted) notificationPermission.ask()
+                            onOpenHelpSupport()
+                        }
                     )
                     SettingsRow(
                         iconRes = R.drawable.ic_drawer_privacy,
@@ -373,9 +408,11 @@ private fun SettingsUserCard(
                 }
 
                 val planSubtitleText = when (activePlanType) {
-                    com.urdufonts.app.domain.models.SubscriptionType.MONTHLY -> "Monthly Plan Active"
-                    com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS -> "6-Months Plan Active"
                     com.urdufonts.app.domain.models.SubscriptionType.LIFETIME -> "Lifetime Access Active"
+                    com.urdufonts.app.domain.models.SubscriptionType.LEGACY -> "Premium Plan Active"
+                    com.urdufonts.app.domain.models.SubscriptionType.BASIC,
+                    com.urdufonts.app.domain.models.SubscriptionType.PRO,
+                    com.urdufonts.app.domain.models.SubscriptionType.BUSINESS -> "${activePlanType.displayName} Plan Active"
                     null -> if (isLoggedIn) {
                         if (userSubtitle.isNotBlank() && userSubtitle != "Access premium Urdu fonts") userSubtitle else "Free Plan"
                     } else {
@@ -558,6 +595,72 @@ private fun SettingsRow(
                 modifier = Modifier
                     .size(13.dp)
                     .graphicsLayer(rotationZ = 180f)
+            )
+        }
+
+        if (showDivider) {
+            HorizontalDivider(
+                color = DividerColor,
+                thickness = 1.dp,
+                modifier = Modifier.padding(start = 58.dp)
+            )
+        }
+    }
+}
+
+/** A settings row ending in a switch. The row itself does not press: only its switch is tapped. */
+@Composable
+private fun SettingsSwitchRow(
+    iconRes: Int,
+    label: String,
+    checked: Boolean,
+    showDivider: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 14.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(SoftGreenIconBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(iconRes),
+                    contentDescription = label,
+                    colorFilter = ColorFilter.tint(IconTintGreen),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = HeadingBlackColor,
+                fontFamily = NunitoFontFamily,
+                modifier = Modifier.weight(1f)
+            )
+
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                modifier = Modifier.scale(0.8f),
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = GreenAccent,
+                    checkedBorderColor = GreenAccent,
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = DividerColor,
+                    uncheckedBorderColor = CardBorderColor
+                )
             )
         }
 

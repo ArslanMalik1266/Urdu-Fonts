@@ -34,14 +34,20 @@ import kotlinx.coroutines.sync.withLock
 class BillingRepositoryImpl(
     private val context: Context,
     private val userPreferences: UserPreferences,
-    private val entitlementRepository: EntitlementRepository? = null
+    private val entitlementRepository: EntitlementRepository? = null,
+    private val iapApi: com.urdufonts.app.data.iap.IapApi? = null,
+    private val identity: com.urdufonts.app.data.iap.IapIdentityProvider? = null
 ) : BillingRepository, PurchasesUpdatedListener {
 
     companion object {
         private const val TAG = "UrduFontsBilling"
         private const val PRODUCT_ID_SUBS = "urdu_fonts_pro"
-        private const val BASE_PLAN_MONTHLY = "monthly-plan"
-        private const val BASE_PLAN_SIX_MONTHS = "6-month-plan"
+        // The three plans on sale: base plans of urdu_fonts_pro (also their IAP skus)
+        private val PLANS = listOf(
+            com.urdufonts.app.domain.models.SubscriptionType.BASIC,
+            com.urdufonts.app.domain.models.SubscriptionType.PRO,
+            com.urdufonts.app.domain.models.SubscriptionType.BUSINESS
+        )
         private const val PRODUCT_ID_LIFETIME = "urdu_fonts_lifetime"
     }
 
@@ -52,6 +58,22 @@ class BillingRepositoryImpl(
     private val inFlightPurchaseTokens = mutableSetOf<String>()
 
     override val isProUser: Flow<Boolean> = userPreferences.isProUser
+
+    private val _purchaseProblems = kotlinx.coroutines.flow.MutableSharedFlow<String>(extraBufferCapacity = 4)
+    override val purchaseProblems: Flow<String> = _purchaseProblems
+
+    // The builder of the purchase being started, so the member's account id can be added to it
+    private var lastFlowBuilder: BillingFlowParams.Builder? = null
+
+    /** The member's account id from IAP, so Google Play ties the purchase to this account. */
+    private suspend fun obfuscatedAccountId(): String? = try {
+        val token = identity?.memberToken()
+        if (token == null) null
+        else iapApi?.purchaseIdentity("Bearer $token")?.obfuscatedAccountId?.takeIf { it.isNotBlank() }
+    } catch (e: Exception) {
+        Log.w(TAG, "purchase-identity failed: ${e.message}")
+        null
+    }
 
     private val billingClient: BillingClient by lazy {
         BillingClient.newBuilder(context)
@@ -92,59 +114,26 @@ class BillingRepositoryImpl(
     }
 
     override suspend fun getSubscriptionOptions(): List<SubscriptionOption> {
-        val baseTemplates = listOf(
+        val offers = querySubProductDetails()?.subscriptionOfferDetails.orEmpty()
+        return PLANS.map { plan ->
+            // Play's localized price; the base plan's own offer (no trial or intro offers)
+            val price = offers.firstOrNull { it.basePlanId == plan.sku && it.offerId == null }
+                ?.pricingPhases?.pricingPhaseList?.lastOrNull()?.formattedPrice
             SubscriptionOption(
-                id = BASE_PLAN_MONTHLY,
-                title = "Monthly",
+                id = plan.sku!!,
+                title = plan.displayName,
                 billingPeriodText = "Billed monthly",
-                priceText = "$4.99",
-                pricePeriodSubtitle = "per month",
-                iconRes = R.drawable.ic_calender
-            ),
-            SubscriptionOption(
-                id = BASE_PLAN_SIX_MONTHS,
-                title = "6-Months",
-                billingPeriodText = "Billed every 6 months",
-                priceText = "$19.99",
-                discountTag = "15% OFF",
-                iconRes = R.drawable.ic_six_months,
-                isMostPopular = true
-            ),
-            SubscriptionOption(
-                id = PRODUCT_ID_LIFETIME,
-                title = "Lifetime Access",
-                billingPeriodText = "One-time purchase",
-                priceText = "$49.99",
-                iconRes = R.drawable.ic_infinity
+                priceText = price ?: "",
+                pricePeriodSubtitle = "/ month",
+                iconRes = when (plan) {
+                    com.urdufonts.app.domain.models.SubscriptionType.BASIC -> R.drawable.ic_calender
+                    com.urdufonts.app.domain.models.SubscriptionType.PRO -> R.drawable.ic_premium
+                    else -> R.drawable.ic_infinity
+                },
+                isMostPopular = plan == com.urdufonts.app.domain.models.SubscriptionType.PRO,
+                tierRank = plan.rank
             )
-        )
-
-        val subProductDetails = querySubProductDetails()
-        val lifetimeProductDetails = queryLifetimeProductDetails()
-
-        val offerDetailsList = subProductDetails?.subscriptionOfferDetails.orEmpty()
-        val lifetimePrice = lifetimeProductDetails?.oneTimePurchaseOfferDetails?.formattedPrice
-
-        return baseTemplates.map { template ->
-            when (template.id) {
-                PRODUCT_ID_LIFETIME -> {
-                    if (lifetimePrice != null) {
-                        template.copy(priceText = lifetimePrice)
-                    } else {
-                        template
-                    }
-                }
-                else -> {
-                    val matchedOffer = offerDetailsList.find { it.basePlanId == template.id }
-                    val formattedPrice = matchedOffer?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
-                    if (formattedPrice != null) {
-                        template.copy(priceText = formattedPrice)
-                    } else {
-                        template
-                    }
-                }
-            }
-        }
+        }.filter { it.priceText.isNotBlank() }
     }
 
     private suspend fun querySubProductDetails(): ProductDetails? {
@@ -228,6 +217,7 @@ class BillingRepositoryImpl(
 
             BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(listOf(productDetailsParams))
+                .also { lastFlowBuilder = it }
                 .build()
         } else {
             val subDetails = querySubProductDetails()
@@ -255,17 +245,10 @@ class BillingRepositoryImpl(
 
             if (!activeSubPurchaseToken.isNullOrBlank()) {
                 lastSentOldPurchaseToken = activeSubPurchaseToken
-                val currentEntitlements = entitlementRepository?.entitlementsFlow?.firstOrNull()
-                val currentPlanType = currentEntitlements?.activeSubscriptionType
-                val tierRank = mapOf(
-                    com.urdufonts.app.domain.models.SubscriptionType.MONTHLY to 1,
-                    com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS to 2,
-                    com.urdufonts.app.domain.models.SubscriptionType.LIFETIME to 3
-                )
-                val targetType = if (option.id == BASE_PLAN_MONTHLY) com.urdufonts.app.domain.models.SubscriptionType.MONTHLY else com.urdufonts.app.domain.models.SubscriptionType.SIX_MONTHS
-                val currentRank = currentPlanType?.let { tierRank[it] }
-                val targetRank = tierRank[targetType]
-                val isDowngrade = currentRank != null && targetRank != null && targetRank < currentRank
+                val currentPlanType = entitlementRepository?.entitlementsFlow?.firstOrNull()?.activeSubscriptionType
+                val targetRank = com.urdufonts.app.domain.models.SubscriptionType.fromSku(option.id)?.rank ?: option.tierRank
+                val isDowngrade = currentPlanType != null && targetRank < currentPlanType.rank
+                // Same parent product: bigger plan charges the full new price now, smaller one from next renewal
                 val replacementMode = if (isDowngrade) {
                     BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.WITHOUT_PRORATION
                 } else {
@@ -295,11 +278,16 @@ class BillingRepositoryImpl(
                 Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             }
 
+            lastFlowBuilder = flowBuilder
             flowBuilder.build()
         }
 
+        val accountId = obfuscatedAccountId()
+        Log.d(TAG, "Obfuscated account id for this purchase: ${accountId ?: "NONE"}")
+        val finalParams = if (accountId != null) lastFlowBuilder?.setObfuscatedAccountId(accountId)?.build() ?: billingFlowParams else billingFlowParams
+
         com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
-        val result = billingClient.launchBillingFlow(activity, billingFlowParams)
+        val result = billingClient.launchBillingFlow(activity, finalParams)
         return if (result.responseCode == BillingClient.BillingResponseCode.OK) {
             Result.success(Unit)
         } else {
@@ -407,12 +395,9 @@ class BillingRepositoryImpl(
             val productType = if (productId == PRODUCT_ID_LIFETIME) "non_consumable" else "subscription"
             val backendSku = when {
                 productId == PRODUCT_ID_LIFETIME -> PRODUCT_ID_LIFETIME
-                lastSelectedOptionId == BASE_PLAN_SIX_MONTHS -> BASE_PLAN_SIX_MONTHS
-                lastSelectedOptionId == BASE_PLAN_MONTHLY -> BASE_PLAN_MONTHLY
-                else -> {
-                    val savedPlan = userPreferences.subscriptionPlan.firstOrNull()
-                    if (savedPlan == BASE_PLAN_SIX_MONTHS) BASE_PLAN_SIX_MONTHS else BASE_PLAN_MONTHLY
-                }
+                // IAP knows each plan by its base plan id
+                PLANS.any { it.sku == lastSelectedOptionId } -> lastSelectedOptionId!!
+                else -> userPreferences.subscriptionPlan.firstOrNull()?.takeIf { it.isNotBlank() } ?: "monthly"
             }
 
             val oldToken = lastSentOldPurchaseToken ?: userPreferences.subscriptionPurchaseToken.firstOrNull()
@@ -433,14 +418,13 @@ class BillingRepositoryImpl(
             Log.d(TAG, "  Sending to Backend    : sku=$backendSku, type=$productType, user=$externalUserId")
             Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-            if (entitlementRepository != null) {
-                entitlementRepository.confirmPurchase(
-                    externalUserId = externalUserId,
-                    sku = backendSku,
-                    purchaseToken = token,
-                    productType = productType
-                )
-            }
+            lastSelectedOptionId = null
+            val confirmed = entitlementRepository?.confirmPurchase(
+                externalUserId = externalUserId,
+                sku = backendSku,
+                purchaseToken = token,
+                productType = productType
+            )
 
             if (!purchase.isAcknowledged) {
                 val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
@@ -454,11 +438,20 @@ class BillingRepositoryImpl(
                 }
             }
 
-            userPreferences.saveSubscriptionStatus(
-                isPro = true,
-                planId = backendSku,
-                purchaseToken = token
-            )
+            // Premium only when the backend accepted the purchase (confirmPurchase saved its entitlements)
+            if (confirmed?.isSuccess == true) {
+                Log.d(TAG, "BACKEND ACCEPTED purchase: sku=$backendSku")
+                userPreferences.saveSubscriptionStatus(isPro = true, planId = backendSku, purchaseToken = token)
+            } else {
+                val error = confirmed?.exceptionOrNull()
+                Log.e(TAG, "BACKEND DID NOT ACCEPT purchase: sku=$backendSku, ${error?.message}")
+                entitlementRepository?.refreshEntitlements(externalUserId, force = true)
+                val ownedElsewhere = (error as? retrofit2.HttpException)?.code() == 409
+                _purchaseProblems.tryEmit(
+                    if (ownedElsewhere) "This Google Play purchase is linked to a different account. Please contact support."
+                    else "We could not confirm your purchase yet. It will be retried when you reopen the app."
+                )
+            }
         } finally {
             inFlightMutex.withLock {
                 inFlightPurchaseTokens.remove(token)

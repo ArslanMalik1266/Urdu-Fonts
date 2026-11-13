@@ -25,64 +25,43 @@ data class SubscriptionUiState(
     val isProUser: Boolean = false,
     val userMessage: String? = null
 ) {
+    private val selectedOption: SubscriptionOption?
+        get() = options.firstOrNull { it.id == selectedOptionId }
+
     val selectedSubscriptionType: SubscriptionType?
-        get() = when (selectedOptionId) {
-            "monthly-plan" -> SubscriptionType.MONTHLY
-            "6-month-plan" -> SubscriptionType.SIX_MONTHS
-            "urdu_fonts_lifetime", "lifetime-purchase" -> SubscriptionType.LIFETIME
-            else -> null
-        }
+        get() = SubscriptionType.fromSku(selectedOptionId)
+
+    /** True when the selected plan is the one a scheduled change moves to. */
+    fun isPendingTarget(optionId: String): Boolean =
+        pendingChange?.productSku?.equals(optionId, ignoreCase = true) == true
 
     val actionType: SubscriptionActionType
         get() {
-            val selectedType = selectedSubscriptionType
-
-            if (activePlanType == SubscriptionType.LIFETIME) {
-                return SubscriptionActionType.LIFETIME_ACTIVE
+            if (activePlanType == SubscriptionType.LIFETIME) return SubscriptionActionType.LIFETIME_ACTIVE
+            val selected = selectedSubscriptionType
+            if (activePlanType != null && activePlanType == selected) return SubscriptionActionType.MANAGE_EXTERNAL
+            if (isPendingTarget(selectedOptionId)) return SubscriptionActionType.MANAGE_EXTERNAL
+            val active = activePlanType ?: return SubscriptionActionType.SUBSCRIBE
+            val targetRank = selected?.rank ?: selectedOption?.tierRank ?: 0
+            return when {
+                active == SubscriptionType.LEGACY -> SubscriptionActionType.UPGRADE
+                targetRank > active.rank -> SubscriptionActionType.UPGRADE
+                else -> SubscriptionActionType.DOWNGRADE
             }
-
-            if (activePlanType != null && activePlanType == selectedType) {
-                return SubscriptionActionType.MANAGE_EXTERNAL
-            }
-
-            // If a downgrade/plan change is already scheduled to the selected plan, route to Google Play Manage
-            if (pendingChange != null) {
-                val pName = pendingChange.planName.orEmpty().lowercase()
-                val pSku = pendingChange.productSku.orEmpty().lowercase()
-                val isPendingTarget = (selectedType == SubscriptionType.MONTHLY && (pName.contains("monthly") || pSku.contains("monthly") || pSku.contains("pro"))) ||
-                        (selectedType == SubscriptionType.SIX_MONTHS && (pName.contains("6") || pSku.contains("6")))
-                if (isPendingTarget) {
-                    return SubscriptionActionType.MANAGE_EXTERNAL
-                }
-            }
-
-            if (activePlanType == SubscriptionType.MONTHLY && selectedType == SubscriptionType.SIX_MONTHS) {
-                return SubscriptionActionType.UPGRADE
-            }
-
-            if (activePlanType == SubscriptionType.SIX_MONTHS && selectedType == SubscriptionType.MONTHLY) {
-                return SubscriptionActionType.DOWNGRADE
-            }
-
-            return SubscriptionActionType.SUBSCRIBE
         }
 
     val actionButtonText: String
-        get() = when (actionType) {
-            SubscriptionActionType.MANAGE_EXTERNAL -> "Manage Subscription"
-            SubscriptionActionType.LIFETIME_ACTIVE -> "Lifetime Access Active"
-            SubscriptionActionType.UPGRADE -> "Upgrade to 6-Months"
-            SubscriptionActionType.DOWNGRADE -> "Downgrade to Monthly"
-            SubscriptionActionType.SUBSCRIBE -> {
-                if (selectedSubscriptionType == SubscriptionType.LIFETIME) {
-                    "Get Lifetime Access"
-                } else {
-                    "Subscribe"
-                }
+        get() {
+            val name = selectedOption?.title ?: selectedSubscriptionType?.displayName ?: ""
+            return when (actionType) {
+                SubscriptionActionType.MANAGE_EXTERNAL -> "Manage Subscription"
+                SubscriptionActionType.LIFETIME_ACTIVE -> "Lifetime Access Active"
+                SubscriptionActionType.UPGRADE -> "Upgrade to $name"
+                SubscriptionActionType.DOWNGRADE -> "Switch to $name"
+                else -> "Get $name"
             }
-            else -> "Subscribe"
         }
 
     val isActionEnabled: Boolean
-        get() = actionType != SubscriptionActionType.LIFETIME_ACTIVE && !isPurchasing
+        get() = actionType != SubscriptionActionType.LIFETIME_ACTIVE && !isPurchasing && selectedOption != null
 }

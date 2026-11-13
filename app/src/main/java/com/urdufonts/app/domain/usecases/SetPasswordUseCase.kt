@@ -22,8 +22,8 @@ class SetPasswordUseCase(
         if (password.isBlank()) {
             return Result.failure(IllegalArgumentException("Password cannot be empty."))
         }
-        if (password.length < 6) {
-            return Result.failure(IllegalArgumentException("Password must be at least 6 characters long."))
+        if (password.length < 8) {
+            return Result.failure(IllegalArgumentException("Password must be at least 8 characters long."))
         }
         if (confirmPassword != null && password != confirmPassword) {
             return Result.failure(IllegalArgumentException("Passwords do not match."))

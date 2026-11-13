@@ -15,14 +15,16 @@ interface EntitlementApiService {
     @GET
     suspend fun getEntitlements(
         @Url url: String,
-        @Query("external_user_id") externalUserId: String,
-        @Header("Authorization") authHeader: String
+        @Query("external_user_id") externalUserId: String?,
+        @Header("Authorization") authHeader: String,
+        @Header("X-Device-Secret") deviceSecret: String?
     ): EntitlementsResponseDto
 
     @POST
     suspend fun confirmPurchase(
         @Url url: String,
         @Header("Authorization") authHeader: String,
+        @Header("X-Device-Secret") deviceSecret: String?,
         @Body request: PurchaseConfirmRequestDto
     ): PurchaseConfirmResponseDto
 

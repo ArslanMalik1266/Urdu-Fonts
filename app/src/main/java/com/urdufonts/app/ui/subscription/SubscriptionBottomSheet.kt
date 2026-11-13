@@ -46,7 +46,6 @@ import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.SubscriptionType
 import com.urdufonts.app.ui.subscription.components.EmptySubscriptionView
 import com.urdufonts.app.ui.subscription.components.PendingChangeBanner
-import com.urdufonts.app.ui.subscription.components.SubscriptionFeaturesSection
 import com.urdufonts.app.ui.subscription.components.SubscriptionFooter
 import com.urdufonts.app.ui.subscription.components.SubscriptionOptionCard
 import com.urdufonts.app.ui.theme.Dimens
@@ -156,7 +155,7 @@ fun SubscriptionBottomSheet(
                     ) {
                         uiState.pendingChange?.let { pending ->
                             PendingChangeBanner(
-                                pendingPlanName = pending.planName ?: pending.productSku ?: "Monthly",
+                                pendingPlanName = pending.planName ?: pending.productSku ?: "",
                                 effectiveAt = pending.effectiveAt
                             )
                         }
@@ -169,21 +168,8 @@ fun SubscriptionBottomSheet(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         uiState.options.forEach { option ->
-                            val isCurrentPlan = when (uiState.activePlanType) {
-                                SubscriptionType.MONTHLY -> option.id == "monthly-plan"
-                                SubscriptionType.SIX_MONTHS -> option.id == "6-month-plan"
-                                SubscriptionType.LIFETIME -> option.id == "urdu_fonts_lifetime" || option.id == "lifetime-purchase"
-                                null -> false
-                            }
-                            val isPendingTarget = uiState.pendingChange?.let { pending ->
-                                val pName = pending.planName.orEmpty().lowercase()
-                                val pSku = pending.productSku.orEmpty().lowercase()
-                                when (option.id) {
-                                    "monthly-plan" -> pName.contains("monthly") || pSku.contains("monthly") || pSku.contains("pro")
-                                    "6-month-plan" -> pName.contains("6") || pSku.contains("6")
-                                    else -> false
-                                }
-                            } ?: false
+                            val isCurrentPlan = uiState.activePlanType?.sku == option.id
+                            val isPendingTarget = uiState.isPendingTarget(option.id)
 
                             SubscriptionOptionCard(
                                 option = option,
@@ -195,9 +181,31 @@ fun SubscriptionBottomSheet(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(Dimens.space24))
-
-                    SubscriptionFeaturesSection(features = uiState.features)
+                    // What the selected plan gives: its entitlement names from the IAP dashboard
+                    uiState.options.firstOrNull { it.id == uiState.selectedOptionId }?.let { selected ->
+                        if (selected.features.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(Dimens.space24))
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(Dimens.cornerLarge))
+                                    .background(Color.White)
+                                    .padding(Dimens.space16),
+                                verticalArrangement = Arrangement.spacedBy(Dimens.space8)
+                            ) {
+                                Text(
+                                    text = "What you get with ${selected.title}",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = NunitoFontFamily,
+                                    color = HeadingBlackColor
+                                )
+                                selected.features.forEach { feature ->
+                                    com.urdufonts.app.ui.subscription.components.PlanFeatureRow(feature)
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(Dimens.space24))
 
@@ -209,10 +217,9 @@ fun SubscriptionBottomSheet(
                             when (uiState.actionType) {
                                 SubscriptionActionType.MANAGE_EXTERNAL -> {
                                     val activeSku = when (uiState.activePlanType) {
-                                        SubscriptionType.MONTHLY,
-                                        SubscriptionType.SIX_MONTHS -> "urdu_fonts_pro"
-                                        SubscriptionType.LIFETIME -> "lifetime-purchase"
+                                        SubscriptionType.LIFETIME -> "urdu_fonts_lifetime"
                                         null -> null
+                                        else -> "urdu_fonts_pro"
                                     }
                                     val url = if (activeSku != null) {
                                         "https://play.google.com/store/account/subscriptions?sku=$activeSku&package=${context.packageName}"

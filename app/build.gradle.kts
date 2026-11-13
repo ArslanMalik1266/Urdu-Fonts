@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.ksp)
     // Generates WebsCarePlacements constants and the AdMob/UMP app ID in the merged manifest from Firebase
     alias(libs.plugins.webscare.placements)
+    // Firebase Cloud Messaging (push from the IAP backend), configured by app/google-services.json
+    alias(libs.plugins.google.services)
 
 }
 
@@ -15,6 +17,8 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 val bearerToken = localProperties.getProperty("BEARER_TOKEN") ?: ""
+// IAP backend (iap.webscare.app) client API token: sign-in, support tickets and push
+val iapAppToken = localProperties.getProperty("IAP_APP_TOKEN") ?: ""
 val apiKey = localProperties.getProperty("API_KEY")
     ?: error("API_KEY missing from local.properties (the urdufonts.com API key; ask the backend team)")
 
@@ -38,6 +42,7 @@ android {
 
         buildConfigField("String", "BEARER_TOKEN", "\"$bearerToken\"")
         buildConfigField("String", "API_KEY", "\"$apiKey\"")
+        buildConfigField("String", "IAP_APP_TOKEN", "\"$iapAppToken\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -111,5 +116,8 @@ dependencies {
     implementation(libs.webscare.ads.admob)
     implementation(libs.webscare.ads.admob.meta)
     implementation(libs.play.billing.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.datetime)
 
 }

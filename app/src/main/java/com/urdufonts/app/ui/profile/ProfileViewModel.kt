@@ -32,6 +32,7 @@ class ProfileViewModel(
     private val loginUseCase: LoginUseCase,
     private val setPasswordUseCase: SetPasswordUseCase,
     private val entitlementRepository: EntitlementRepository,
+    private val authRepository: com.urdufonts.app.domain.repo.AuthRepository,
     private val context: Context
 ) : ViewModel() {
 
@@ -181,6 +182,88 @@ class ProfileViewModel(
                 .onFailure { error ->
                     onError(error.localizedMessage ?: "Verification failed")
                 }
+        }
+    }
+
+    // ── Forgot password: email -> emailed code -> new password ────────────
+
+    fun onForgotPasswordClick() {
+        _uiState.update { it.copy(resetStep = ResetStep.EMAIL, resetToken = "", isLoading = false, errorMessage = null) }
+    }
+
+    fun cancelReset() {
+        _uiState.update { it.copy(resetStep = null, resetToken = "", isLoading = false, errorMessage = null) }
+    }
+
+    fun onSendResetCode(email: String) {
+        val clean = email.trim()
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(clean).matches()) {
+            onError("Enter a valid email address")
+            return
+        }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            authRepository.requestPasswordReset(clean)
+                .onSuccess {
+                    // The backend never says whether the address has an account: always move on
+                    _uiState.update { it.copy(resetStep = ResetStep.CODE, resetEmail = clean, isLoading = false, errorMessage = null) }
+                }
+                .onFailure { error -> onError(error.localizedMessage ?: "Could not send the code") }
+        }
+    }
+
+    fun onVerifyResetCode(code: String) {
+        if (code.length < 6) {
+            onError("Enter the 6-digit code from the email")
+            return
+        }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            authRepository.verifyPasswordResetCode(_uiState.value.resetEmail, code)
+                .onSuccess { token ->
+                    _uiState.update { it.copy(resetStep = ResetStep.NEW_PASSWORD, resetToken = token, isLoading = false, errorMessage = null) }
+                }
+                .onFailure { error -> onError(error.localizedMessage ?: "That code is not valid") }
+        }
+    }
+
+    fun onSaveNewPassword(password: String, confirm: String) {
+        when {
+            password.length < 8 -> return onError("Password must be at least 8 characters long.")
+            password != confirm -> return onError("Passwords do not match.")
+        }
+        val state = _uiState.value
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            authRepository.resetPassword(state.resetEmail, state.resetToken, password)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            resetStep = null,
+                            resetToken = "",
+                            isSignUpMode = false,
+                            isLoading = false,
+                            errorMessage = null,
+                            successMessage = "Password changed. Log in with your new password."
+                        )
+                    }
+                }
+                .onFailure { error -> onError(error.localizedMessage ?: "Could not change the password") }
+        }
+    }
+
+    /** Emails a new code for whichever code screen is open. */
+    fun onResendCode() {
+        val state = _uiState.value
+        viewModelScope.launch {
+            val result = if (state.resetStep == ResetStep.CODE) {
+                authRepository.requestPasswordReset(state.resetEmail)
+            } else {
+                authRepository.resendVerificationCode(state.registrationEmail)
+            }
+            result
+                .onSuccess { _uiState.update { it.copy(errorMessage = null, successMessage = "A new code is on its way.") } }
+                .onFailure { error -> onError(error.localizedMessage ?: "Could not send a new code") }
         }
     }
 

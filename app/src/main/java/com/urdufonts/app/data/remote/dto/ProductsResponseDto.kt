@@ -15,7 +15,9 @@ data class ProductDto(
     @SerializedName("plan_name") val planName: String? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("platform") val platform: String? = null,
-    @SerializedName("product_type") val productType: String? = null
+    @SerializedName("product_type") val productType: String? = null,
+    @SerializedName("tier_rank") val tierRank: Int? = null,
+    @SerializedName("entitlements") val entitlements: List<ProductEntitlementDto>? = null
 ) {
     val effectiveSku: String
         get() = productSku ?: sku ?: ""
@@ -23,3 +25,8 @@ data class ProductDto(
     val effectiveName: String
         get() = name ?: productName ?: planName ?: effectiveSku
 }
+
+data class ProductEntitlementDto(
+    @SerializedName("key") val key: String? = null,
+    @SerializedName("name") val name: String? = null
+)

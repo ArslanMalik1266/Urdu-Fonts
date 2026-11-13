@@ -8,7 +8,8 @@ import com.urdufonts.app.data.remote.dto.PurchaseConfirmRequestDto
 import com.urdufonts.app.data.remote.dto.PurchaseConfirmResponseDto
 
 class EntitlementRemoteDataSource(
-    private val apiService: EntitlementApiService
+    private val apiService: EntitlementApiService,
+    private val identity: com.urdufonts.app.data.iap.IapIdentityProvider
 ) {
     companion object {
         private const val TAG = "UrduFontsEntitlements"
@@ -19,10 +20,12 @@ class EntitlementRemoteDataSource(
 
     suspend fun getEntitlements(externalUserId: String): EntitlementsResponseDto {
         val url = "$BASE_URL/api/v1/me/entitlements"
+        val who = identity.current()
         val response = apiService.getEntitlements(
             url = url,
-            externalUserId = externalUserId,
-            authHeader = "Bearer ${BuildConfig.BEARER_TOKEN}"
+            externalUserId = who.externalUserId,
+            authHeader = who.bearer,
+            deviceSecret = who.deviceSecret
         )
 
         val rawPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
@@ -41,11 +44,23 @@ class EntitlementRemoteDataSource(
 
     suspend fun confirmPurchase(request: PurchaseConfirmRequestDto): PurchaseConfirmResponseDto {
         val url = "$BASE_URL/api/v1/purchases/android/confirm"
-        val response = apiService.confirmPurchase(
-            url = url,
-            authHeader = "Bearer ${BuildConfig.BEARER_TOKEN}",
-            request = request
-        )
+        val who = identity.current()
+        val sent = request.copy(externalUserId = who.externalUserId)
+        Log.d(TAG, "POST $url as ${if (who.externalUserId == null) "member" else "guest ${who.externalUserId}"}: sku=${sent.sku}, type=${sent.productType}, token=${sent.purchaseToken.take(16)}…")
+        val response = try {
+            apiService.confirmPurchase(
+                url = url,
+                authHeader = who.bearer,
+                deviceSecret = who.deviceSecret,
+                request = sent
+            )
+        } catch (e: retrofit2.HttpException) {
+            Log.e(TAG, "CONFIRM FAILED: HTTP ${e.code()} ${e.response()?.errorBody()?.string()}")
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "CONFIRM FAILED: ${e.javaClass.simpleName}: ${e.message}")
+            throw e
+        }
 
         val rawConfirmPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
         Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

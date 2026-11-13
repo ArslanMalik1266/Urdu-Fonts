@@ -39,6 +39,13 @@ import com.urdufonts.app.ui.subscription.SubscriptionScreen
 import com.urdufonts.app.ui.util.BlurOverlay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import androidx.compose.runtime.LaunchedEffect
+import com.urdufonts.app.domain.models.NotificationTapInbox
+import com.urdufonts.app.domain.usecases.CompleteNotificationTapUseCase
+import com.urdufonts.app.ui.support.NewTicketScreen
+import com.urdufonts.app.ui.support.SupportTheme
+import com.urdufonts.app.ui.support.TicketChatScreen
+import com.urdufonts.app.ui.support.TicketListScreen
 
 private val bottomBarRoutes = setOf(
     Screen.Home.route,
@@ -59,6 +66,18 @@ fun AppNavigation() {
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute != null && currentRoute in bottomBarRoutes
     var showSubscriptionBottomSheet by remember { mutableStateOf(false) }
+
+    // A tapped notification waits here until the app is past the splash, then opens where it leads
+    val tapInbox: NotificationTapInbox = koinInject()
+    val completeTap: CompleteNotificationTapUseCase = koinInject()
+    val pendingTap by tapInbox.pending.collectAsState()
+    val pastSplash = currentRoute != null && currentRoute != Screen.Splash.route && currentRoute != Screen.Onboarding.route
+    LaunchedEffect(pendingTap, pastSplash) {
+        val tap = pendingTap ?: return@LaunchedEffect
+        if (!pastSplash) return@LaunchedEffect
+        tap.ticketId?.let { id -> navController.navigate(Screen.TicketChat.createRoute(id)) }
+        completeTap(tap)
+    }
 
     if (isOnboardingCompleted == null) {
         return
@@ -247,8 +266,42 @@ fun AppNavigation() {
                             onNavigateToSubscription = { showSubscriptionBottomSheet = true },
                             onOpenWebPage = { url -> externalNavigator.openWebPage(url) },
                             onOpenEmailSupport = { externalNavigator.openEmailSupport() },
-                            onRateUsClick = { externalNavigator.openPlayStoreForRating() }
+                            onRateUsClick = { externalNavigator.openPlayStoreForRating() },
+                            onOpenHelpSupport = { navController.navigate(Screen.Tickets.route) }
                         )
+                    }
+
+                    // ── Help & Support: list -> new conversation -> conversation ──────────
+                    composable(Screen.Tickets.route) {
+                        SupportTheme {
+                            TicketListScreen(
+                                onBack = { navController.popBackStack() },
+                                onNewTicket = { navController.navigate(Screen.NewTicket.route) },
+                                onOpenTicket = { id -> navController.navigate(Screen.TicketChat.createRoute(id)) },
+                            )
+                        }
+                    }
+                    composable(Screen.NewTicket.route) {
+                        SupportTheme {
+                            NewTicketScreen(
+                                onBack = { navController.popBackStack() },
+                                // A conversation just created replaces the form, so Back returns to the list
+                                onCreated = { id ->
+                                    navController.navigate(Screen.TicketChat.createRoute(id)) {
+                                        popUpTo(Screen.Tickets.route)
+                                    }
+                                },
+                            )
+                        }
+                    }
+                    composable(
+                        route = Screen.TicketChat.route,
+                        arguments = listOf(navArgument("ticketId") { type = NavType.IntType })
+                    ) { backStackEntry ->
+                        val ticketId = backStackEntry.arguments?.getInt("ticketId") ?: 0
+                        SupportTheme {
+                            TicketChatScreen(ticketId = ticketId, onBack = { navController.popBackStack() })
+                        }
                     }
                 }
             }

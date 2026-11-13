@@ -69,6 +69,7 @@ fun SubscriptionOptionCard(
                 if (isSelected) Modifier.border(1.5.dp, DarkGreen, cardShape) else Modifier
             )
     ) {
+      Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -172,6 +173,8 @@ fun SubscriptionOptionCard(
             }
         }
 
+      }
+
         if (showTopBadge) {
             OptionTopBadge(
                 isPendingTargetPlan = isPendingTargetPlan,
@@ -227,5 +230,26 @@ private fun BoxScope.OptionTopBadge(
                 color = badgeTextColor
             )
         }
+    }
+}
+
+@Composable
+fun PlanFeatureRow(text: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Text(
+            text = "✓",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = DarkGreen,
+            modifier = Modifier.width(18.dp)
+        )
+        Text(
+            text = text,
+            fontSize = 13.sp,
+            lineHeight = 17.sp,
+            fontWeight = FontWeight.Medium,
+            fontFamily = NunitoFontFamily,
+            color = HeadingBlackColor.copy(alpha = 0.8f)
+        )
     }
 }
