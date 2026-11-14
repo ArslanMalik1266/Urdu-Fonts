@@ -46,6 +46,7 @@ import com.urdufonts.app.R
 import com.urdufonts.app.domain.models.SubscriptionType
 import com.urdufonts.app.ui.subscription.components.EmptySubscriptionView
 import com.urdufonts.app.ui.subscription.components.PendingChangeBanner
+import com.urdufonts.app.ui.subscription.components.PlanComparisonCard
 import com.urdufonts.app.ui.subscription.components.SubscriptionFooter
 import com.urdufonts.app.ui.subscription.components.SubscriptionOptionCard
 import com.urdufonts.app.ui.theme.Dimens
@@ -124,6 +125,9 @@ fun SubscriptionBottomSheet(
                 if (!uiState.isLoading && uiState.options.isEmpty()) {
                     EmptySubscriptionView(onRetry = { viewModel.retryLoadData() })
                 } else {
+                    // Takes the 24dp removed above the plan cards, so the sheet keeps its height
+                    Spacer(modifier = Modifier.height(Dimens.space24))
+
                     Text(
                         text = stringResource(id = R.string.subscription_title),
                         fontSize = 24.sp,
@@ -145,23 +149,16 @@ fun SubscriptionBottomSheet(
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(Dimens.space8))
+                    // Same gap as between the plan cards and the features card
+                    Spacer(modifier = Modifier.height(Dimens.space24))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(Dimens.space32),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        uiState.pendingChange?.let { pending ->
-                            PendingChangeBanner(
-                                pendingPlanName = pending.planName ?: pending.productSku ?: "",
-                                effectiveAt = pending.effectiveAt
-                            )
-                        }
+                    uiState.pendingChange?.let { pending ->
+                        PendingChangeBanner(
+                            pendingPlanName = pending.planName ?: pending.productSku ?: "",
+                            effectiveAt = pending.effectiveAt
+                        )
+                        Spacer(modifier = Modifier.height(Dimens.space12))
                     }
-
-                    Spacer(modifier = Modifier.height(Dimens.space8))
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(Dimens.space12),
@@ -181,29 +178,11 @@ fun SubscriptionBottomSheet(
                         }
                     }
 
-                    // What the selected plan gives: its entitlement names from the IAP dashboard
+                    // The selected plan against all plans; fixed height, so the sheet never resizes
                     uiState.options.firstOrNull { it.id == uiState.selectedOptionId }?.let { selected ->
-                        if (selected.features.isNotEmpty()) {
+                        if (uiState.options.any { it.features.isNotEmpty() }) {
                             Spacer(modifier = Modifier.height(Dimens.space24))
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(Dimens.cornerLarge))
-                                    .background(Color.White)
-                                    .padding(Dimens.space16),
-                                verticalArrangement = Arrangement.spacedBy(Dimens.space8)
-                            ) {
-                                Text(
-                                    text = "What you get with ${selected.title}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = NunitoFontFamily,
-                                    color = HeadingBlackColor
-                                )
-                                selected.features.forEach { feature ->
-                                    com.urdufonts.app.ui.subscription.components.PlanFeatureRow(feature)
-                                }
-                            }
+                            PlanComparisonCard(options = uiState.options, selected = selected)
                         }
                     }
 

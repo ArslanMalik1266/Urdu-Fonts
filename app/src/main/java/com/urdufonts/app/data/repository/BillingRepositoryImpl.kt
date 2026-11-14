@@ -239,7 +239,7 @@ class BillingRepositoryImpl(
             val flowBuilder = BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(listOf(productDetailsParams))
 
-            val existingPurchases = queryPurchasesForType(BillingClient.ProductType.SUBS)
+            val existingPurchases = queryPurchasesForType(BillingClient.ProductType.SUBS).orEmpty()
             val activeSubPurchaseToken = existingPurchases.find { it.purchaseState == Purchase.PurchaseState.PURCHASED }?.purchaseToken
                 ?: userPreferences.subscriptionPurchaseToken.firstOrNull()
 
@@ -297,10 +297,6 @@ class BillingRepositoryImpl(
     }
 
     override suspend fun restorePurchases(): Result<Boolean> {
-        if (!billingClient.isReady) {
-            startConnection()
-        }
-
         val session = userPreferences.userSession.firstOrNull()
         val userEmail = session?.email
         if (userEmail.isNullOrBlank()) {
@@ -308,30 +304,52 @@ class BillingRepositoryImpl(
             return Result.success(false)
         }
 
-        val subsPurchases = queryPurchasesForType(BillingClient.ProductType.SUBS)
-        val inAppPurchases = queryPurchasesForType(BillingClient.ProductType.INAPP)
+        // Without a connection Play can't tell us what is owned; never treat that as "owns nothing"
+        if (!awaitBillingReady()) {
+            return Result.failure(Exception("Google Play is not available right now. Please try again."))
+        }
 
-        val allPurchases = subsPurchases + inAppPurchases
-        val activePurchase = allPurchases.find { purchase ->
+        val subsPurchases = queryPurchasesForType(BillingClient.ProductType.SUBS)
+            ?: return Result.failure(Exception("Could not reach Google Play. Please try again."))
+        val inAppPurchases = queryPurchasesForType(BillingClient.ProductType.INAPP)
+            ?: return Result.failure(Exception("Could not reach Google Play. Please try again."))
+
+        val activePurchases = (subsPurchases + inAppPurchases).filter { purchase ->
             purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
                     (purchase.products.contains(PRODUCT_ID_SUBS) || purchase.products.contains(PRODUCT_ID_LIFETIME))
         }
 
-        return if (activePurchase != null) {
-            scope.launch {
-                handlePurchase(activePurchase)
-            }
+        if (activePurchases.isEmpty()) {
+            // Play answered and nothing is owned: clear the local flag, let the server have the final word
+            userPreferences.saveSubscriptionStatus(isPro = false)
+            entitlementRepository?.refreshEntitlements(userEmail, force = true)
+            return Result.success(false)
+        }
+
+        // Report success only once the backend has accepted at least one purchase
+        var anyConfirmed = false
+        for (purchase in activePurchases) {
+            if (handlePurchase(purchase)) anyConfirmed = true
+        }
+        return if (anyConfirmed) {
             Result.success(true)
         } else {
-            scope.launch {
-                userPreferences.saveSubscriptionStatus(isPro = false)
-                entitlementRepository?.refreshEntitlements(userEmail, force = true)
-            }
-            Result.success(false)
+            Result.failure(Exception("We found your purchase but could not confirm it yet. Please try again."))
         }
     }
 
-    private suspend fun queryPurchasesForType(productType: String): List<Purchase> {
+    /** Starts the connection if needed and waits for it, up to [timeoutMs]. */
+    private suspend fun awaitBillingReady(timeoutMs: Long = 10_000): Boolean {
+        if (billingClient.isReady) return true
+        startConnection()
+        return kotlinx.coroutines.withTimeoutOrNull(timeoutMs) {
+            while (!billingClient.isReady) kotlinx.coroutines.delay(100)
+            true
+        } ?: false
+    }
+
+    /** The purchases of [productType], or null when Google Play did not answer OK. */
+    private suspend fun queryPurchasesForType(productType: String): List<Purchase>? {
         return suspendCancellableCoroutine { continuation ->
             val queryPurchasesParams = QueryPurchasesParams.newBuilder()
                 .setProductType(productType)
@@ -341,7 +359,8 @@ class BillingRepositoryImpl(
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     continuation.resume(purchasesList)
                 } else {
-                    continuation.resume(emptyList())
+                    Log.e(TAG, "queryPurchases($productType) failed: ${billingResult.responseCode} ${billingResult.debugMessage}")
+                    continuation.resume(null)
                 }
             }
         }
@@ -363,16 +382,17 @@ class BillingRepositoryImpl(
         }
     }
 
-    private suspend fun handlePurchase(purchase: Purchase) {
+    /** Sends the purchase to the backend; true when the backend accepted it (or it is already being sent). */
+    private suspend fun handlePurchase(purchase: Purchase): Boolean {
         if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) {
-            return
+            return false
         }
 
         val session = userPreferences.userSession.firstOrNull()
         val externalUserId = session?.email
         if (externalUserId.isNullOrBlank()) {
             Log.w(TAG, "handlePurchase skipped: User is not logged in. Purchases are not linked to anonymous sessions.")
-            return
+            return false
         }
 
         val token = purchase.purchaseToken
@@ -386,10 +406,10 @@ class BillingRepositoryImpl(
         }
 
         if (alreadyInFlight) {
-            return
+            return true
         }
 
-        try {
+        return try {
             val productId = purchase.products.firstOrNull() ?: PRODUCT_ID_SUBS
 
             val productType = if (productId == PRODUCT_ID_LIFETIME) "non_consumable" else "subscription"
@@ -452,6 +472,7 @@ class BillingRepositoryImpl(
                     else "We could not confirm your purchase yet. It will be retried when you reopen the app."
                 )
             }
+            confirmed?.isSuccess == true
         } finally {
             inFlightMutex.withLock {
                 inFlightPurchaseTokens.remove(token)

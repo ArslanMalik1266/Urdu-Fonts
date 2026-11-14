@@ -111,7 +111,7 @@ fun SearchScreen(
                 placeholderText = "Search fonts, categories, styles...",
                 focusRequester = focusRequester,
                 onDone = { focusManager.clearFocus() },
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 6.dp)
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)
             )
 
             SearchTabRow(

@@ -2,6 +2,8 @@ package com.urdufonts.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -61,7 +63,12 @@ fun CustomSearchBar(
             .clip(CircleShape)
             .background(Color.White)
             .border(0.5.dp, borderColor, CircleShape)
-            .addPressEffect { onClick() }
+            // Plain tap, no press/scale effect on the search bar
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
             .padding(horizontal = 14.dp)
     } else {
         modifier

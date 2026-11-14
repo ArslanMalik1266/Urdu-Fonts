@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -233,7 +234,7 @@ fun SettingsScreen(
                         }
                     )
                     SettingsRow(
-                        iconRes = R.drawable.ic_cloud_download,
+                        iconRes = R.drawable.ic_clear_cache,
                         label = "Clear Cache",
                         trailingText = cacheSizeText,
                         showDivider = false,
@@ -825,7 +826,7 @@ private fun ClearCacheConfirmationDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_cloud_download),
+                        painter = painterResource(R.drawable.ic_clear_cache),
                         contentDescription = null,
                         tint = AppColor,
                         modifier = Modifier.size(24.dp)
@@ -848,7 +849,9 @@ private fun ClearCacheConfirmationDialog(
 
                 // Subtitle
                 Text(
-                    text = "Are you sure you want to clear temporary app cache files? This will free up storage space.",
+                    text = "Clear temporary app files to free up storage space.",
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                     fontSize = 14.sp,
                     fontFamily = NunitoFontFamily,
                     color = Color(0xFF6B7280),
