@@ -265,7 +265,6 @@ fun AppNavigation() {
                             onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                             onNavigateToSubscription = { showSubscriptionBottomSheet = true },
                             onOpenWebPage = { url -> externalNavigator.openWebPage(url) },
-                            onOpenEmailSupport = { externalNavigator.openEmailSupport() },
                             onRateUsClick = { externalNavigator.openPlayStoreForRating() },
                             onOpenHelpSupport = { navController.navigate(Screen.Tickets.route) }
                         )

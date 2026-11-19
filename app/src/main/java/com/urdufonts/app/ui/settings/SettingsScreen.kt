@@ -106,7 +106,6 @@ fun SettingsScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToSubscription: () -> Unit,
     onOpenWebPage: (String) -> Unit,
-    onOpenEmailSupport: () -> Unit,
     onRateUsClick: () -> Unit,
     onOpenHelpSupport: () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
@@ -206,7 +205,7 @@ fun SettingsScreen(
                         iconRes = R.drawable.ic_downloaded,
                         label = "My Premium Fonts",
                         showDivider = false,
-                        onClick = onNavigateToSubscription
+                        onClick = { onOpenWebPage("https://urdufonts.com") }
                     )
                 }
 
@@ -271,12 +270,6 @@ fun SettingsScreen(
                             onClick = { (context as? android.app.Activity)?.let { adManager.showPrivacyOptions(it) } }
                         )
                     }
-                    SettingsRow(
-                        iconRes = R.drawable.ic_email,
-                        label = "Contact Us",
-                        showDivider = true,
-                        onClick = onOpenEmailSupport
-                    )
                     SettingsRow(
                         iconRes = R.drawable.ic_drawer_rate,
                         label = "Rate Us",

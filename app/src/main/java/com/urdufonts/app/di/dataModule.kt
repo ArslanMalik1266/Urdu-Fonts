@@ -51,6 +51,8 @@ val dataModule = module {
         )
     }
 
+    single { com.urdufonts.app.data.iap.PlanExpiryWatcher(entitlementRepository = get(), userPreferences = get()) }
+
     single<FontRepository>       { FontRepositoryImpl(apiService = get(), fontDao = get(), context = get() ) }
     single<BannerRepository>     { BannerRepositoryImpl() }
     single<StylesRepository>     { StylesRepositoryImpl(apiService = get(), styleDao = get()) }

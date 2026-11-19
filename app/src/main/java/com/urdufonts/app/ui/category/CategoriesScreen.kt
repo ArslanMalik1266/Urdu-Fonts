@@ -110,6 +110,8 @@ fun CategoriesScreen(
                             bufferAheadCount = 4
                         )
                         Box(modifier = Modifier.clipToBounds()) {
+                            // Premium users, and ads that failed to load, get no ad item at all, so no empty gap is left behind
+                            val isProUser by org.koin.compose.koinInject<com.urdufonts.app.data.local.UserPreferences>().isProUser.collectAsStateWithLifecycle(initialValue = false)
                             LazyVerticalGrid(
                                 state = gridState,
                                 columns = GridCells.Fixed(2),
@@ -136,7 +138,8 @@ fun CategoriesScreen(
                                          )
                                      }
                                      // Medium native after 2 rows (4 tiles, 2 per row), then after every 7 rows (14 tiles)
-                                     if (com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 4, every = 14)) {
+                                     if (!isProUser && com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 4, every = 14) &&
+        !com.urdufonts.app.ui.components.ads.isNativeAdFailed(com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_CATEGORIES_NATIVE, index)) {
                                          item(
                                              span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) },
                                              contentType = "native_ad"

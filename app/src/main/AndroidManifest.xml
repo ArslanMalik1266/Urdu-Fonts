@@ -7,6 +7,11 @@
     <!-- Android 13+: support replies and account news from the IAP backend -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Portrait lock (screenOrientation) must not exclude devices without portrait support -->
+    <uses-feature
+        android:name="android.hardware.screen.portrait"
+        android:required="false" />
+
     <queries>
         <package android:name="com.webscare.urducanvas" />
         <intent>

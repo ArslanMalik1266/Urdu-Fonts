@@ -25,6 +25,8 @@ class MyApplication : Application(), ImageLoaderFactory {
         // The two channels the IAP backend sends its pushes to
         com.urdufonts.app.data.iap.push.PushSetup.createChannels(this)
         getKoin().get<AppInitViewModel>()
+        // Re-checks the plan with the server when its time from the entitlement API runs out
+        getKoin().get<com.urdufonts.app.data.iap.PlanExpiryWatcher>().start()
         val adManager = getKoin().get<com.urdufonts.app.ads.AdManager>()
         adManager.initSdk(this)
     }

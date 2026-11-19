@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
         val retry: com.urdufonts.app.domain.usecases.RetryPushRegistrationUseCase =
             org.koin.java.KoinJavaComponent.getKoin().get()
         lifecycleScope.launch { runCatching { retry() } }
+        org.koin.java.KoinJavaComponent.getKoin().get<com.urdufonts.app.data.iap.PlanExpiryWatcher>().onAppResumed()
     }
 
     /** A tapped notification is held until the app is ready to open where it leads (see AppNavigation). */

@@ -26,6 +26,8 @@ fun AppTopBar(
     showSubscriptionIcon: Boolean = true
 ) {
     TopAppBar(
+        // Same side padding as SimpleTopAppBar, so the subscription icon lines up across screens
+        modifier = Modifier.padding(horizontal = 4.dp),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent
         ),

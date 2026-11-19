@@ -118,6 +118,8 @@ fun StylesScreen(
                             bufferAheadCount = 4
                         )
                         Box(modifier = Modifier.clipToBounds()) {
+                            // Premium users, and ads that failed to load, get no ad item at all, so no empty gap is left behind
+                            val isProUser by org.koin.compose.koinInject<com.urdufonts.app.data.local.UserPreferences>().isProUser.collectAsStateWithLifecycle(initialValue = false)
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier.springOverscroll(),
@@ -129,29 +131,31 @@ fun StylesScreen(
                                 ),
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                itemsIndexed(
-                                    items = visibleStyles,
-                                    key = { _, style -> style.id },
-                                    contentType = { _, _ -> "style_card" }
-                                ) { index, style ->
-                                    StaggeredFadeIn(
-                                        index = index,
-                                        seenItems = seenItems
-                                    ) {
-                                        StyleItemCard(
-                                            style = style,
-                                            onClick = { onStyleClick(style) }
-                                        )
+                                visibleStyles.forEachIndexed { index, style ->
+                                    item(key = style.id, contentType = "style_card") {
+                                        StaggeredFadeIn(
+                                            index = index,
+                                            seenItems = seenItems
+                                        ) {
+                                            StyleItemCard(
+                                                style = style,
+                                                onClick = { onStyleClick(style) }
+                                            )
+                                        }
                                     }
 
-                                    // Small native after the 2nd style, then after every 12 more
-                                    if (com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 2, every = 12)) {
-                                        com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
-                                            placement = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_STYLES_NATIVE,
-                                            slot = index,
-                                            nativeSize = com.webscare.ads.NativeSize.SMALL,
-                                            modifier = Modifier.padding(vertical = 0.dp)
-                                        )
+                                    // Small native after the 2nd style, then after every 12 more.
+                                    // Its own item, so the list's 16dp gap separates it from the cards.
+                                    if (!isProUser && com.urdufonts.app.ui.components.ads.isNativeAdSlot(index + 1, first = 2, every = 12) &&
+        !com.urdufonts.app.ui.components.ads.isNativeAdFailed(com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_STYLES_NATIVE, index)) {
+                                        item(key = "native_ad_$index", contentType = "native_ad") {
+                                            com.urdufonts.app.ui.components.ads.ComposableWebsCareNative(
+                                                placement = com.webscare.ads.placements.WebsCarePlacements.URDUFONTS_STYLES_NATIVE,
+                                                slot = index,
+                                                nativeSize = com.webscare.ads.NativeSize.SMALL,
+                                                modifier = Modifier.padding(vertical = 0.dp)
+                                            )
+                                        }
                                     }
                                 }
 

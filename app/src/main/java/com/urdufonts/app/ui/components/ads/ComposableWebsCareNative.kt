@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,12 +87,22 @@ fun ComposableWebsCareNative(
     )
 }
 
+/**
+ * True once the native ad for [placement] + [slot] has failed (no fill / offline). Lists read this to
+ * leave the ad item out entirely, so no empty item (and its list spacing) is left behind.
+ * Uses the same [slot] value that is passed to [ComposableWebsCareNative].
+ */
+fun isNativeAdFailed(placement: String, slot: Any): Boolean =
+    NativeAdViewCache.failedKeys["$placement#$slot"] == true
+
 internal enum class NativeSlotState { LOADING, LOADED, FAILED }
 
-internal class NativeSlot(val container: FrameLayout) {
+internal class NativeSlot(val key: String, val container: FrameLayout) {
     var state: NativeSlotState = NativeSlotState.LOADING
         set(value) {
             field = value
+            if (value == NativeSlotState.FAILED) NativeAdViewCache.failedKeys[key] = true
+            else NativeAdViewCache.failedKeys.remove(key)
             onStateChanged?.invoke(value)
         }
     var onStateChanged: ((NativeSlotState) -> Unit)? = null
@@ -106,23 +117,26 @@ internal object NativeAdViewCache {
     /** Last measured height per placement, used to reserve space for the next slot of that placement. */
     val measuredHeightPx = HashMap<String, Int>()
 
+    /** Slots whose ad failed; Compose state, so lists that read it update when an ad fails. */
+    val failedKeys = mutableStateMapOf<String, Boolean>()
+
     fun getOrCreate(activity: Activity, key: String, placement: String, size: NativeSize): NativeSlot {
         if (owner !== activity) {
             clear()
             owner = activity
             registerCleanup(activity.application)
         }
-        return slots.getOrPut(key) { createSlot(activity, placement, size) }
+        return slots.getOrPut(key) { createSlot(activity, key, placement, size) }
     }
 
-    private fun createSlot(activity: Activity, placement: String, size: NativeSize): NativeSlot {
+    private fun createSlot(activity: Activity, key: String, placement: String, size: NativeSize): NativeSlot {
         val container = FrameLayout(activity).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
             )
         }
-        val slot = NativeSlot(container)
+        val slot = NativeSlot(key, container)
         container.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
             override fun onChildViewAdded(parent: View?, child: View?) {
                 slot.state = NativeSlotState.LOADED
@@ -166,6 +180,7 @@ internal object NativeAdViewCache {
             slot.container.removeAllViews()
         }
         slots.clear()
+        failedKeys.clear()
         owner = null
     }
 }

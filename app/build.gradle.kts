@@ -22,8 +22,8 @@ val iapAppToken = localProperties.getProperty("IAP_APP_TOKEN") ?: ""
 val apiKey = localProperties.getProperty("API_KEY")
     ?: error("API_KEY missing from local.properties (the urdufonts.com API key; ask the backend team)")
 
-val appVersionCode = 8
-val appVersionName = "1.0.8"
+val appVersionCode = 10
+val appVersionName = "1.1.0"
 
 base.archivesName.set("UrduFonts - V$appVersionCode($appVersionName)")
 android {
