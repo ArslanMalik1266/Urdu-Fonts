@@ -29,11 +29,8 @@ import org.koin.compose.koinInject
 
 private const val TAG = "WebsCareAdsLog"
 
-/** Space held for a native ad that is still loading, until one of that placement has loaded and been measured. */
-private fun defaultReservedHeight(size: NativeSize) = when (size) {
-    NativeSize.SMALL -> 120.dp
-    else -> 250.dp
-}
+/** How long a native slot may stay empty before it is treated as failed and removed from the list. */
+private const val LOAD_TIMEOUT_MS = 8_000L
 
 /**
  * Where native ads go in a list: after the first [first] items, then after every [every] items.
@@ -63,7 +60,6 @@ fun ComposableWebsCareNative(
     if (isProUser) return
 
     val activity = LocalContext.current as? Activity ?: return
-    val density = LocalDensity.current
     val key = "$placement#$slot"
     val entry = remember(key) { NativeAdViewCache.getOrCreate(activity, key, placement, nativeSize) }
     var state by remember(key) { mutableStateOf(entry.state) }
@@ -71,13 +67,11 @@ fun ComposableWebsCareNative(
 
     if (state == NativeSlotState.FAILED) return
 
-    val reserved = NativeAdViewCache.measuredHeightPx[placement]
-        ?.let { with(density) { it.toDp() } } ?: defaultReservedHeight(nativeSize)
-
+    // No space is held while loading: an ad that never fills must not leave a blank gap in the list.
+    // The slot grows when the ad view arrives.
     AndroidView(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (state == NativeSlotState.LOADING) Modifier.heightIn(min = reserved) else Modifier)
             .wrapContentHeight(),
         factory = {
             // A cached view may still be attached to the previous (disposed) row's container
@@ -155,6 +149,14 @@ internal object NativeAdViewCache {
             Log.e(TAG, "loadNative failed for $placement", e)
             slot.state = NativeSlotState.FAILED
         }
+        // The library adds no view when an ad fails (no fill / offline), so a slot still empty after the
+        // timeout is treated as failed and dropped from the list. If the ad arrives later, onChildViewAdded
+        // flips it back to LOADED and the list shows it again.
+        container.postDelayed({
+            if (slot.state == NativeSlotState.LOADING && container.childCount == 0) {
+                slot.state = NativeSlotState.FAILED
+            }
+        }, LOAD_TIMEOUT_MS)
         return slot
     }
 
