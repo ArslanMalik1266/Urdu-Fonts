@@ -77,6 +77,8 @@ android {
 }
 
 dependencies {
+    // KMP shared module: domain models, repository contracts and use cases (commonMain)
+    implementation(project(":shared"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -98,10 +100,6 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.material)
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.okhttp)
-    implementation(libs.logging.interceptor)
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
     implementation (libs.androidx.room.runtime)

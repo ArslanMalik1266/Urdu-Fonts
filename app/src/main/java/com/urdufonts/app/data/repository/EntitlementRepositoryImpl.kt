@@ -1,7 +1,9 @@
 package com.urdufonts.app.data.repository
 
 import android.util.Log
-import com.google.gson.Gson
+import com.urdufonts.app.data.remote.AppJson
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import com.urdufonts.app.data.local.EntitlementLocalDataSource
 import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.data.remote.datasource.EntitlementRemoteDataSource
@@ -18,8 +20,7 @@ import kotlinx.coroutines.flow.map
 class EntitlementRepositoryImpl(
     private val remoteDataSource: EntitlementRemoteDataSource,
     private val localDataSource: EntitlementLocalDataSource,
-    private val userPreferences: UserPreferences,
-    private val gson: Gson = Gson()
+    private val userPreferences: UserPreferences
 ) : EntitlementRepository {
 
     companion object {
@@ -33,7 +34,7 @@ class EntitlementRepositoryImpl(
                 UserEntitlements()
             } else {
                 try {
-                    val dto = gson.fromJson(rawJson, EntitlementsResponseDto::class.java)
+                    val dto = AppJson.decodeFromString<EntitlementsResponseDto>(rawJson)
                     EntitlementsMapper.toDomain(dto)
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to decode cached entitlements JSON", e)
@@ -60,7 +61,7 @@ class EntitlementRepositoryImpl(
 
         return try {
             val dto = remoteDataSource.getEntitlements(externalUserId)
-            val jsonString = gson.toJson(dto)
+            val jsonString = AppJson.encodeToString(dto)
             val domain = EntitlementsMapper.toDomain(dto)
 
             localDataSource.saveExternalUserId(externalUserId)
@@ -96,9 +97,10 @@ class EntitlementRepositoryImpl(
         return try {
             val response = remoteDataSource.confirmPurchase(request)
             if (response.isConfirmed) {
-                if (response.entitlements != null) {
-                    val jsonString = gson.toJson(response.entitlements)
-                    val domain = EntitlementsMapper.toDomain(response.entitlements)
+                val confirmedEntitlements = response.entitlements
+                if (confirmedEntitlements != null) {
+                    val jsonString = AppJson.encodeToString(confirmedEntitlements)
+                    val domain = EntitlementsMapper.toDomain(confirmedEntitlements)
                     localDataSource.saveExternalUserId(externalUserId)
                     localDataSource.saveEntitlements(jsonString, domain.unlocked)
                     localDataSource.savePlanType(domain.activeSubscriptionType)

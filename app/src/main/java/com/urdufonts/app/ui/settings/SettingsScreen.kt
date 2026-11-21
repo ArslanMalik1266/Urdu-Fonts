@@ -440,7 +440,7 @@ private fun SettingsUserCard(
                                     .withZone(java.time.ZoneId.systemDefault())
                                     .format(instant)
                             } catch (e: Exception) {
-                                pending.effectiveAt
+                                pending.effectiveAt.orEmpty()
                             }
                         } else ""
                         val effectiveText = if (formattedDate.isNotBlank()) " on $formattedDate" else ""

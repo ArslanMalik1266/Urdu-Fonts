@@ -19,8 +19,9 @@ class MoreAppsRepositoryImpl(
         return withContext(Dispatchers.IO) {
             try {
                 val response = apiService.getMoreApps()
-                if (response.status && !response.data.isNullOrEmpty()) {
-                    response.data.flatMap { it.apps ?: emptyList() }.map { it.toDomain() }
+                val categories = response.data
+                if (response.status && !categories.isNullOrEmpty()) {
+                    categories.flatMap { it.apps ?: emptyList() }.map { it.toDomain() }
                         .also { if (it.isNotEmpty()) cachedApps = it }
                 } else {
                     emptyList()

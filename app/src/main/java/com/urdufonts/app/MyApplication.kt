@@ -16,6 +16,13 @@ import java.io.File
 class MyApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
+        // Keys and version for the shared (KMP) network code; must run before Koin builds the HTTP clients
+        com.urdufonts.app.platform.AppBuildConfig.init(
+            apiKey = BuildConfig.API_KEY,
+            iapAppToken = BuildConfig.IAP_APP_TOKEN,
+            versionName = BuildConfig.VERSION_NAME,
+            isDebug = BuildConfig.DEBUG
+        )
         startKoin {
             androidLogger(Level.DEBUG)
             androidContext(this@MyApplication)

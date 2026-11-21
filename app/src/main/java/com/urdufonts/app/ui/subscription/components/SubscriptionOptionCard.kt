@@ -143,9 +143,9 @@ fun SubscriptionOptionCard(
                     color = HeadingBlackColor,
                     lineHeight = 16.sp
                 )
-                if (option.pricePeriodSubtitle != null) {
+                option.pricePeriodSubtitle?.let { subtitle ->
                     Text(
-                        text = option.pricePeriodSubtitle,
+                        text = subtitle,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = NunitoFontFamily,
@@ -153,7 +153,8 @@ fun SubscriptionOptionCard(
                         lineHeight = 12.sp
                     )
                 }
-                if (option.discountTag != null) {
+                option.discountTag?.let { discountTag ->
+
                     Spacer(modifier = Modifier.height(Dimens.space4))
                     Box(
                         modifier = Modifier
@@ -162,7 +163,7 @@ fun SubscriptionOptionCard(
                             .padding(horizontal = Dimens.space8, vertical = 2.dp)
                     ) {
                         Text(
-                            text = option.discountTag,
+                            text = discountTag,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = NunitoFontFamily,

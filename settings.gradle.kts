@@ -41,4 +41,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Urdu Fonts"
 include(":app")
+include(":shared")
  

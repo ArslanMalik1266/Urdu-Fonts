@@ -6,6 +6,9 @@ import com.urdufonts.app.data.remote.api.EntitlementApiService
 import com.urdufonts.app.data.remote.dto.EntitlementsResponseDto
 import com.urdufonts.app.data.remote.dto.PurchaseConfirmRequestDto
 import com.urdufonts.app.data.remote.dto.PurchaseConfirmResponseDto
+import com.urdufonts.app.data.remote.PrettyJson
+import io.ktor.client.statement.bodyAsText
+import kotlinx.serialization.encodeToString
 
 class EntitlementRemoteDataSource(
     private val apiService: EntitlementApiService,
@@ -16,7 +19,7 @@ class EntitlementRemoteDataSource(
         private const val BASE_URL = "https://iap.webscare.app"
     }
 
-    private val prettyGson = com.google.gson.GsonBuilder().setPrettyPrinting().create()
+
 
     suspend fun getEntitlements(externalUserId: String): EntitlementsResponseDto {
         val url = "$BASE_URL/api/v1/me/entitlements"
@@ -28,14 +31,13 @@ class EntitlementRemoteDataSource(
             deviceSecret = who.deviceSecret
         )
 
-        val rawPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
+        val rawPrettyJson = try { PrettyJson.encodeToString(response) } catch (_: Exception) { "" }
         Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         Log.d(TAG, "GET $url?external_user_id=$externalUserId\n\n$rawPrettyJson")
         Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         response.entitlements.forEach { (key, item) ->
-            if (item.pendingChange != null) {
-                val pc = item.pendingChange
+            item.pendingChange?.let { pc ->
                 Log.i(TAG, "🔔 [PENDING CHANGE DETECTED in '$key'] -> productSku='${pc.productSku}', planName='${pc.planName}', effectiveAt='${pc.effectiveAt}'")
             }
         }
@@ -54,22 +56,21 @@ class EntitlementRemoteDataSource(
                 deviceSecret = who.deviceSecret,
                 request = sent
             )
-        } catch (e: retrofit2.HttpException) {
-            Log.e(TAG, "CONFIRM FAILED: HTTP ${e.code()} ${e.response()?.errorBody()?.string()}")
+        } catch (e: io.ktor.client.plugins.ResponseException) {
+            Log.e(TAG, "CONFIRM FAILED: HTTP ${e.response.status.value} ${runCatching { e.response.bodyAsText() }.getOrNull()}")
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "CONFIRM FAILED: ${e.javaClass.simpleName}: ${e.message}")
             throw e
         }
 
-        val rawConfirmPrettyJson = try { prettyGson.toJson(response) } catch (_: Exception) { "" }
+        val rawConfirmPrettyJson = try { PrettyJson.encodeToString(response) } catch (_: Exception) { "" }
         Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         Log.d(TAG, "POST $url\n\n$rawConfirmPrettyJson")
         Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         response.entitlements?.entitlements?.forEach { (key, item) ->
-            if (item.pendingChange != null) {
-                val pc = item.pendingChange
+            item.pendingChange?.let { pc ->
                 Log.i(TAG, "🔔 [PENDING CHANGE DETECTED in '$key'] -> productSku='${pc.productSku}', planName='${pc.planName}', effectiveAt='${pc.effectiveAt}'")
             }
         }

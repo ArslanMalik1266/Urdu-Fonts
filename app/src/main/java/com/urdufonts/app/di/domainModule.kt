@@ -44,7 +44,7 @@ val domainModule = module {
     factory { CheckUserStatusUseCase(get(), get()) }
     factory { VerifyOtpUseCase(get()) }
     factory { LoginUseCase(get()) }
-    factory { GetSubscriptionOptionsUseCase(get()) }
+    factory { GetSubscriptionOptionsUseCase(get(), AndroidFeatureIcons) }
     factory { PurchaseSubscriptionUseCase(get()) }
     factory { RestoreSubscriptionUseCase(get()) }
     factory { CheckSubscriptionStatusUseCase(get()) }

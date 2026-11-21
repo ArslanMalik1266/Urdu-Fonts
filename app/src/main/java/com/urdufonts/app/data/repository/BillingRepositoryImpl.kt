@@ -16,6 +16,7 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.urdufonts.app.R
 import com.urdufonts.app.data.local.UserPreferences
+import com.urdufonts.app.data.iap.httpStatus
 import com.urdufonts.app.domain.models.SubscriptionOption
 import com.urdufonts.app.domain.repo.BillingRepository
 import kotlinx.coroutines.CoroutineScope
@@ -466,7 +467,7 @@ class BillingRepositoryImpl(
                 val error = confirmed?.exceptionOrNull()
                 Log.e(TAG, "BACKEND DID NOT ACCEPT purchase: sku=$backendSku, ${error?.message}")
                 entitlementRepository?.refreshEntitlements(externalUserId, force = true)
-                val ownedElsewhere = (error as? retrofit2.HttpException)?.code() == 409
+                val ownedElsewhere = error?.httpStatus == 409
                 _purchaseProblems.tryEmit(
                     if (ownedElsewhere) "This Google Play purchase is linked to a different account. Please contact support."
                     else "We could not confirm your purchase yet. It will be retried when you reopen the app."

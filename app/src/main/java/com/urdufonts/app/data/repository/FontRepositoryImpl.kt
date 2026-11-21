@@ -17,6 +17,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import java.io.FileOutputStream
+import io.ktor.utils.io.jvm.javaio.toInputStream
 
 class FontRepositoryImpl(
     private val apiService: FontApiService,
@@ -55,12 +56,11 @@ class FontRepositoryImpl(
                 val cacheManager = FontPreviewCacheManager(context)
                 cacheManager.getCachedFontFile(fontItem.id)?.let { return@runCatching it }
                 val url = fontItem.fontFileUrl ?: throw IllegalArgumentException("URL is null")
-                val response = apiService.downloadFile(url)
-                if (!response.isSuccessful) throw Exception("Download failed: ${response.code()}")
-                val body = response.body() ?: throw Exception("Empty response body")
                 // Own temp name per caller: preview, weights and device download run concurrently
                 val zipFile = File(context.cacheDir, "font_${fontItem.id}_preview.zip")
-                writeAtomically(zipFile) { out -> body.byteStream().use { it.copyTo(out) } }
+                apiService.downloadFile(url) { body, _ ->
+                    writeAtomically(zipFile) { out -> body.toInputStream().use { it.copyTo(out) } }
+                }
                 val ttfFile = extractTtfFromZip(zipFile, fontItem.id)
                 zipFile.delete() // cleanup temp zip
 
@@ -116,10 +116,9 @@ class FontRepositoryImpl(
                 // Download zip (reuse cached zip if already there)
                 val zipFile = File(context.cacheDir, "font_${fontItem.id}_weights.zip")
                 if (!zipFile.exists()) {
-                    val response = apiService.downloadFile(url)
-                    if (!response.isSuccessful) throw Exception("Download failed: ${response.code()}")
-                    val body = response.body() ?: throw Exception("Empty response body")
-                    writeAtomically(zipFile) { out -> body.byteStream().use { it.copyTo(out) } }
+                    apiService.downloadFile(url) { body, _ ->
+                        writeAtomically(zipFile) { out -> body.toInputStream().use { it.copyTo(out) } }
+                    }
                 }
 
                 // Extract ALL ttf/otf files
@@ -174,15 +173,11 @@ class FontRepositoryImpl(
     ): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
             val url = fontItem.fontFileUrl ?: throw IllegalArgumentException("URL is null")
-            val response = apiService.downloadFile(url)
-            if (!response.isSuccessful) throw Exception("Download failed: ${response.code()}")
-
-            val body = response.body() ?: throw Exception("Empty response body")
-            val totalBytes = body.contentLength()
-
             // 1. Download ZIP to cache temp directory first
             val tempZipFile = File(context.cacheDir, "font_${fontItem.id}_download.zip")
-            body.byteStream().use { inputStream ->
+            apiService.downloadFile(url) { body, contentLength ->
+            val totalBytes = contentLength ?: -1L
+            body.toInputStream().use { inputStream ->
                 writeAtomically(tempZipFile) { outputStream ->
                     val buffer = ByteArray(8192)
                     var bytesRead: Long = 0
@@ -196,6 +191,7 @@ class FontRepositoryImpl(
                         read = inputStream.read(buffer)
                     }
                 }
+            }
             }
 
             // 2. Extract ALL font weights from the ZIP locally

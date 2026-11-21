@@ -1,7 +1,6 @@
 package com.urdufonts.app.data.mapper
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.urdufonts.app.data.local.FontClassifierJson
 import com.urdufonts.app.data.local.entity.FontEntity
 import com.urdufonts.app.data.remote.NetworkConstants
 import com.urdufonts.app.data.remote.dto.FontClassifierDto
@@ -9,7 +8,6 @@ import com.urdufonts.app.data.remote.dto.FontDto
 import com.urdufonts.app.domain.models.FontClassifier
 import com.urdufonts.app.domain.models.FontItem
 
-private val gson = Gson()
 
 private fun String?.toFullImageUrl(): String? {
     if (this.isNullOrBlank()) return null
@@ -67,15 +65,14 @@ fun FontItem.toEntity(): FontEntity = FontEntity(
     fontFileUrl    = fontFileUrl,
     previewFileUrl = previewFileUrl,
     weightCount    = weightCount,
-    categoriesJson = gson.toJson(categories ?: emptyList<FontClassifier>()),
-    stylesJson     = gson.toJson(styles ?: emptyList<FontClassifier>()),
+    categoriesJson = FontClassifierJson.encode(categories),
+    stylesJson     = FontClassifierJson.encode(styles),
     isPremium      = isPremium
 )
 
 // ── Room Entity → Domain ──────────────────────────────────────────────────────
 
 fun FontEntity.toDomain(): FontItem {
-    val classifierType = object : TypeToken<List<FontClassifier>>() {}.type
     return FontItem(
         id             = id,
         name           = name,
@@ -90,8 +87,8 @@ fun FontEntity.toDomain(): FontItem {
         fontFileUrl    = fontFileUrl,
         previewFileUrl = previewFileUrl,
         weightCount    = weightCount,
-        categories     = gson.fromJson(categoriesJson, classifierType),
-        styles         = gson.fromJson(stylesJson, classifierType),
+        categories     = FontClassifierJson.decode(categoriesJson),
+        styles         = FontClassifierJson.decode(stylesJson),
         isPremium      = isPremium
     )
 }

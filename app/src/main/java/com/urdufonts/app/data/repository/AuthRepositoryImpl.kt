@@ -126,9 +126,7 @@ class AuthRepositoryImpl(
     }.mapError()
 
     override suspend fun resetPassword(email: String, resetToken: String, newPassword: String): Result<Unit> = caller.result {
-        val response = api.resetPassword(IapConfig.appBearer, ResetPasswordRequest(email.trim(), resetToken, newPassword))
-        if (!response.isSuccessful) throw retrofit2.HttpException(response)
-        Unit
+        api.resetPassword(IapConfig.appBearer, ResetPasswordRequest(email.trim(), resetToken, newPassword))
     }.mapError()
 
     override fun getSession(): Flow<UserSession?> = userPreferences.userSession

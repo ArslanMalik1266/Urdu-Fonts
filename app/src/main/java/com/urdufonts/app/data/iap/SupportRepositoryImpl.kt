@@ -21,10 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.OffsetDateTime
 import java.util.Locale
@@ -62,16 +58,16 @@ class SupportRepositoryImpl(
 
     override suspend fun create(ticket: NewTicket): Result<Ticket> = run { who ->
         val fields = buildMap {
-            who.externalUserId?.let { put("external_user_id", it.part()) }
-            put("subject", ticket.subject.part())
-            put("body", ticket.description.part())
-            put("email", ticket.email.part())
-            ticket.category?.let { put("category_slug", it.slug.part()) }
-            put("platform", IapConfig.PLATFORM.part())
+            who.externalUserId?.let { put("external_user_id", it) }
+            put("subject", ticket.subject)
+            put("body", ticket.description)
+            put("email", ticket.email)
+            ticket.category?.let { put("category_slug", it.slug) }
+            put("platform", IapConfig.PLATFORM)
             // Which app version and phone the ticket comes from, so support does not have to ask
-            deviceDetails.current().toMetadata().forEach { (name, value) -> put("metadata[$name]", value.part()) }
+            deviceDetails.current().toMetadata().forEach { (name, value) -> put("metadata[$name]", value) }
         }
-        val created = api.createTicket(who.bearer, who.externalUserId, who.deviceSecret, fields, ticket.attachment.part())
+        val created = api.createTicket(who.bearer, who.externalUserId, who.deviceSecret, fields, ticket.attachment)
             .ticket?.toDomain() ?: throw PremiumException(PremiumProblem.UNKNOWN)
         remember(created)
         created
@@ -79,10 +75,10 @@ class SupportRepositoryImpl(
 
     override suspend fun reply(ticketId: Int, body: String, attachment: AttachmentDraft?): Result<Ticket> = run { who ->
         val fields = buildMap {
-            who.externalUserId?.let { put("external_user_id", it.part()) }
-            put("body", body.part())
+            who.externalUserId?.let { put("external_user_id", it) }
+            put("body", body)
         }
-        val answer = api.reply(who.bearer, who.externalUserId, who.deviceSecret, ticketId, fields, attachment.part())
+        val answer = api.reply(who.bearer, who.externalUserId, who.deviceSecret, ticketId, fields, attachment)
         val sent = answer.message?.toDomain()
         val before = opened[ticketId]
         if (sent == null || before == null) {
@@ -123,7 +119,7 @@ class SupportRepositoryImpl(
         val dir = File(context.cacheDir, "support").apply { mkdirs() }
         val file = File(dir, name)
         if (file.exists() && file.length() > 0) return@run file.absolutePath
-        val bytes = api.attachment(who.bearer, who.externalUserId, who.deviceSecret, ticketId, attachment.id).bytes()
+        val bytes = api.attachment(who.bearer, who.externalUserId, who.deviceSecret, ticketId, attachment.id)
         withContext(Dispatchers.IO) { file.writeBytes(bytes) }
         file.absolutePath
     }
@@ -152,17 +148,6 @@ class SupportRepositoryImpl(
             identity.forgetGuest()
             block(identity.current())
         }
-    }
-
-    private fun String.part(): RequestBody = toRequestBody("text/plain".toMediaTypeOrNull())
-
-    private fun AttachmentDraft?.part(): MultipartBody.Part? {
-        if (this == null) return null
-        return MultipartBody.Part.createFormData(
-            "attachment",
-            fileName.replace("\"", ""),
-            bytes.toRequestBody(mimeType.toMediaTypeOrNull())
-        )
     }
 
     private companion object {
