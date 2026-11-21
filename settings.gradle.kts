@@ -5,10 +5,20 @@ pluginManagement {
                 includeGroupByRegex("com\\.android.*")
                 includeGroupByRegex("com\\.google.*")
                 includeGroupByRegex("androidx.*")
+                // Google Mobile Ads Next-Gen (WebsCareAds 4.2) pulls Cronet from org.chromium
+                includeGroupByRegex("org\\.chromium.*")
             }
         }
         mavenCentral()
         gradlePluginPortal()
+        // WebsCareAds placements plugin (credentials come from gpr.key, never committed)
+        maven {
+            url = uri("https://maven.pkg.github.com/webscarepk/WebCareAds")
+            credentials {
+                username = "webscarepk"
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GPR_KEY")
+            }
+        }
     }
 }
 plugins {
@@ -23,7 +33,7 @@ dependencyResolutionManagement {
             url = uri("https://maven.pkg.github.com/webscarepk/WebCareAds")
             credentials {
                 username = "webscarepk"
-                password = providers.gradleProperty("gpr.key").getOrElse(System.getenv("GITHUB_TOKEN") ?: "")
+                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GPR_KEY")
             }
         }
     }

@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Keystore / signing passwords and tokens: never commit
+gradle.properties
