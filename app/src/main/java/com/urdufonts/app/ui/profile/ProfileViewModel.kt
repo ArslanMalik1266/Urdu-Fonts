@@ -114,7 +114,7 @@ class ProfileViewModel(
     fun onLogoutClick() {
         viewModelScope.launch {
             logoutUseCase()
-            val anonymousId = UserPreferences.getAnonymousDeviceId(context)
+            val anonymousId = com.urdufonts.app.data.local.AndroidDeviceId.get(context)
             entitlementRepository.refreshEntitlements(anonymousId, force = true)
         }
     }

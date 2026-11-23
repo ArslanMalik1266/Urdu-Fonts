@@ -3,7 +3,6 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
     // Generates WebsCarePlacements constants and the AdMob/UMP app ID in the merged manifest from Firebase
     alias(libs.plugins.webscare.placements)
     // Firebase Cloud Messaging (push from the IAP backend), configured by app/google-services.json
@@ -102,9 +101,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
-    implementation (libs.androidx.room.runtime)
-    implementation (libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
