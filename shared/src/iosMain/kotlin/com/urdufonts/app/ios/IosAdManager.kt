@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitView
@@ -15,6 +14,7 @@ import com.urdufonts.app.ads.AdPlacement
 import com.urdufonts.app.ads.NativeAdSize
 import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.platform.AppBuildConfig
+import com.urdufonts.app.platform.AppLog
 import com.urdufonts.app.platform.PlatformActivity
 import com.urdufonts.app.platform.PlatformContext
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -23,11 +23,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import platform.CoreGraphics.CGRectZero
 import platform.UIKit.UIView
 
 /**
- * The shared [AdManager] on iOS: every call goes to WebsCare Ads for iOS through [AdsBridge] (Swift).
- * Placement ids are the same names as on Android (urdufonts_home_native, ...).
+ * The shared [AdManager] on iOS: WebsCareAds 4.2.5 for iOS (XCFramework), reached through [AdsBridge]
+ * (AdsBridgeImpl.swift). Same placements and rules as the Android WebsCareAdManagerImpl.
  */
 class IosAdManager(
     private val ads: AdsBridge,
@@ -36,7 +37,11 @@ class IosAdManager(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var isProUser = false
+
+    /** Native containers by placement + slot, so a row scrolled away and back keeps its ad (as on Android). */
+    private val nativeViews = mutableMapOf<String, UIView>()
     private val failedNative = mutableStateMapOf<String, Boolean>()
+    private val bannerViews = mutableMapOf<String, UIView>()
 
     override fun initSdk(context: PlatformContext) {
         ads.initialize(AppBuildConfig.isDebug)
@@ -49,7 +54,10 @@ class IosAdManager(
     }
 
     override fun requestConsent(activity: PlatformActivity, onConsentResult: (Boolean) -> Unit) =
-        ads.requestConsent { gathered -> scope.launch { onConsentResult(gathered) } }
+        ads.requestConsent { gathered ->
+            AppLog.d(TAG, "Consent finished, gathered=$gathered")
+            scope.launch { onConsentResult(gathered) }
+        }
 
     override fun isPrivacyOptionsRequired(): Boolean = ads.isPrivacyOptionsRequired()
 
@@ -90,14 +98,15 @@ class IosAdManager(
             onDismissed()
             return
         }
-        // The library enforces the cooldown and caps; no fill continues at once
+        // The library enforces the interstitial cooldown and caps; no fill continues at once
         showInterstitial(activity, placement) {
             ads.preload("interstitial", placement.id)
             onDismissed()
         }
     }
 
-    override fun suppressNextReturnAppOpen() = ads.suppressNextReturnAppOpen()
+    /** WebsCareAds for iOS has no such call: its return-to-app ad handles app switches itself. */
+    override fun suppressNextReturnAppOpen() = Unit
 
     override fun setAppOpenLoadingScreenVisible(visible: Boolean) = ads.setAppOpenLoadingScreenVisible(visible)
 
@@ -107,12 +116,14 @@ class IosAdManager(
         val isPro by userPreferences.isProUser.collectAsState(initial = false)
         val key = "${placement.id}#$slot"
         if (isPro || failedNative[key] == true) return
-        val view: UIView = remember(key) {
-            ads.makeNativeView(placement.id, size == NativeAdSize.SMALL) { scope.launch { failedNative[key] = true } }
-        } ?: return
+        val container = nativeViews.getOrPut(key) {
+            UIView(frame = CGRectZero.readValue()).also { view ->
+                ads.loadNative(view, placement.id) { scope.launch { failedNative[key] = true } }
+            }
+        }
         UIKitView(
-            factory = { view },
-            modifier = modifier.fillMaxWidth().height(if (size == NativeAdSize.SMALL) 120.dp else 300.dp)
+            factory = { container },
+            modifier = modifier.fillMaxWidth().height(if (size == NativeAdSize.SMALL) 132.dp else 320.dp)
         )
     }
 
@@ -123,12 +134,18 @@ class IosAdManager(
     override fun BannerAd(placement: AdPlacement, modifier: Modifier) {
         val isPro by userPreferences.isProUser.collectAsState(initial = false)
         if (isPro) return
-        val view: UIView = remember(placement) { ads.makeBannerView(placement.id) } ?: return
-        UIKitView(factory = { view }, modifier = modifier.fillMaxWidth().height(60.dp))
+        val container = bannerViews.getOrPut(placement.id) {
+            UIView(frame = CGRectZero.readValue()).also { ads.loadBanner(it, placement.id) }
+        }
+        UIKitView(factory = { container }, modifier = modifier.fillMaxWidth().height(60.dp))
+    }
+
+    private companion object {
+        const val TAG = "WebsCareAdsLog"
     }
 }
 
-/** The same placement names the Android app uses with WebsCareAds. */
+/** The same placement names the Android app uses (from WebsCarePlacements); the iOS policy must define them too. */
 val AdPlacement.id: String
     get() = when (this) {
         AdPlacement.APP_OPEN -> "urdufonts_app_open"

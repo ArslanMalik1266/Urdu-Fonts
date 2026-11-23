@@ -44,7 +44,7 @@ class EntitlementRemoteDataSource(
     }
 
     suspend fun confirmPurchase(request: PurchaseConfirmRequestDto): PurchaseConfirmResponseDto {
-        val url = "$BASE_URL/api/v1/purchases/${com.urdufonts.app.data.iap.IapConfig.PLATFORM}/confirm"
+        val url = "$BASE_URL/api/v1/purchases/android/confirm"
         val who = identity.current()
         val sent = request.copy(externalUserId = who.externalUserId)
         Log.d(TAG, "POST $url as ${if (who.externalUserId == null) "member" else "guest ${who.externalUserId}"}: sku=${sent.sku}, type=${sent.productType}, token=${sent.purchaseToken.take(16)}…")
@@ -74,5 +74,19 @@ class EntitlementRemoteDataSource(
             }
         }
         return response
+    }
+
+    /** App Store purchase (StoreKit 2): POST purchases/ios/confirm with the signed transaction. */
+    suspend fun confirmIosPurchase(request: com.urdufonts.app.data.remote.dto.IosPurchaseConfirmRequestDto): PurchaseConfirmResponseDto {
+        val url = "$BASE_URL/api/v1/purchases/ios/confirm"
+        val who = identity.current()
+        val sent = request.copy(externalUserId = who.externalUserId)
+        Log.d(TAG, "POST $url as ${if (who.externalUserId == null) "member" else "guest ${who.externalUserId}"}: sku=${sent.sku}, type=${sent.productType}, transaction=${sent.transactionId}")
+        return try {
+            apiService.confirmIosPurchase(url = url, authHeader = who.bearer, deviceSecret = who.deviceSecret, request = sent)
+        } catch (e: io.ktor.client.plugins.ResponseException) {
+            Log.e(TAG, "iOS CONFIRM FAILED: HTTP ${e.response.status.value} ${runCatching { e.response.bodyAsText() }.getOrNull()}")
+            throw e
+        }
     }
 }

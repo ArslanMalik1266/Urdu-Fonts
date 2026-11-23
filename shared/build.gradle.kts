@@ -20,7 +20,9 @@ kotlin {
     listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
         target.binaries.framework {
             baseName = "Shared"
-            isStatic = true
+            // Dynamic: the app also links WebsCareAds, another Kotlin/Native framework; separate binaries keep
+            // the two Kotlin runtimes apart
+            isStatic = false
         }
     }
 

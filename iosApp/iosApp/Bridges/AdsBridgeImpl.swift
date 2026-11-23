@@ -1,86 +1,112 @@
 import UIKit
 import Shared
-// import WebsCareAds   // TODO: once the WebsCare iOS pod is in the Podfile
+import WebsCareAds
 
 /**
- * WebsCare Ads for iOS, for the shared Kotlin AdManager (IosAdManager). Placement names are the same as on
- * Android (urdufonts_home_native, urdufonts_download_interstitial, ...).
+ * WebsCareAds 4.2.5 for iOS (the XCFramework from the release ZIP, linked by the Podfile) for the shared Kotlin
+ * AdManager (IosAdManager). Same placements and rules as the Android WebsCareAdManagerImpl:
+ * - init once on the main thread, TEST environment for debug builds, PRODUCTION for release (still gated by the
+ *   remote policy's test_mode until the owner enables live inventory)
+ * - consent (UMP) before any ad; a visible privacy-options entry when required
+ * - premium users get no ads; app-open only while the splash is on screen; rewards only from the SDK callback.
  *
- * Until the WebsCare iOS SDK is added, ads stay OFF: every "show" call continues at once (as WebsCare does on
- * no-fill), so the splash, downloads and rewards keep working. Replace each TODO with the matching WebsCare
- * call (the Android WebsCareAdManagerImpl.kt shows which one).
+ * Both this app's Kotlin framework (Shared) and WebsCareAds are Kotlin/Native frameworks, so their boxed
+ * types are written with the module name (Shared.KotlinBoolean vs WebsCareAds.KotlinBoolean).
  */
 final class AdsBridgeImpl: NSObject, AdsBridge {
 
-    private var isPremium = false
+    private let resumePlacement = "urdufonts_app_resume"
+    private let splashWaitMs: Int64 = 6_000 // WebsCareAds' DEFAULT_APP_OPEN_WAIT_MS
+    /** Native slots still waiting for an ad, by placement, so a failure can remove their rows. */
+    private var pendingNative: [String: [() -> Void]] = [:]
 
     func initialize(isDebug: Bool) {
-        // TODO: WebsCareAds.init(adapters: [AdMobAdapter()], isDebug: isDebug) { premiumCheck = { self.isPremium } }
-        // TODO: WebsCareAds.enableAutoAppOpen(placement: "urdufonts_app_resume")
+        WebsCareAds.shared.doInit { config in
+            config.environment = isDebug ? AdEnvironment.test : AdEnvironment.production
+            config.onAdFailed = { [weak self] adType, placement, _, message in
+                if adType.lowercased().contains("native") {
+                    DispatchQueue.main.async { self?.nativeFailed(placement) }
+                }
+                if isDebug { print("WebsCareAds onAdFailed: \(adType) '\(placement)' -> \(message)") }
+            }
+            config.onAdLoaded = { [weak self] adType, placement, _ in
+                if adType.lowercased().contains("native") {
+                    DispatchQueue.main.async { self?.pendingNative[placement] = nil }
+                }
+            }
+        }
+        // Return-to-app ad on its own placement, as on Android
+        WebsCareAds.shared.enableAutoAppOpen(placement: resumePlacement, minBackgroundSeconds: 30)
     }
 
     func setPremium(isPremium: Bool) {
-        self.isPremium = isPremium
-        // TODO: WebsCareAds.setPremium(isPremium)
+        WebsCareAds.shared.setPremium(enabled: isPremium)
     }
 
-    func requestConsent(completion: @escaping (KotlinBoolean) -> Void) {
-        // TODO: WebsCareAds.requestConsent(from: topViewController) { gathered in completion(KotlinBoolean(bool: gathered)) }
-        completion(KotlinBoolean(bool: true))
+    func requestConsent(completion: @escaping (Shared.KotlinBoolean) -> Void) {
+        WebsCareAds.shared.requestConsent { gathered in
+            completion(Shared.KotlinBoolean(bool: gathered.boolValue))
+        }
     }
 
     func isPrivacyOptionsRequired() -> Bool {
-        // TODO: WebsCareAds.isPrivacyOptionsRequired()
-        false
+        WebsCareAds.shared.isPrivacyOptionsRequired()
     }
 
     func showPrivacyOptions(completion: @escaping () -> Void) {
-        // TODO: WebsCareAds.showConsentForm(from: topViewController, completion: completion)
-        completion()
+        WebsCareAds.shared.showConsentForm(onComplete: completion)
     }
 
     func preload(kind: String, placement: String) {
-        guard !isPremium else { return }
-        // TODO: switch kind { case "app_open": WebsCareAds.preloadAppOpen(placement)
-        //                     case "interstitial": WebsCareAds.preloadInterstitial(placement)
-        //                     case "rewarded": WebsCareAds.preloadRewarded(placement) }
+        switch kind {
+        case "app_open": WebsCareAds.shared.preloadAppOpen(placement: placement)
+        case "interstitial": WebsCareAds.shared.preloadInterstitial(placement: placement)
+        case "rewarded": WebsCareAds.shared.preloadRewarded(placement: placement)
+        default: break
+        }
     }
 
     func showSplashAppOpen(placement: String, onContinue: @escaping () -> Void) {
-        // TODO: WebsCareAds.checkConsent { WebsCareAds.loadAndShowAppOpen(placement, onDismissed: onContinue) }
-        onContinue()
+        // As on Android: inside checkConsent; onDismissed runs exactly once on every path (shown, no fill,
+        // timeout, premium, consent), and navigation happens only there
+        WebsCareAds.shared.checkConsent(viewController: topViewController) {
+            WebsCareAds.shared.loadAndShowAppOpen(
+                placement: placement,
+                timeoutMs: self.splashWaitMs,
+                onFailed: { error in print("Splash app-open not shown: \(error)") },
+                onDismissed: onContinue
+            )
+        }
     }
 
     func showInterstitial(placement: String, onDismissed: @escaping () -> Void) {
-        // TODO: WebsCareAds.showInterstitial(from: topViewController, placement: placement, onDismissed: onDismissed)
-        onDismissed()
+        WebsCareAds.shared.showInterstitial(placement: placement, onDismissed: onDismissed)
     }
 
-    func showRewarded(placement: String, onRewarded: @escaping (String, KotlinInt) -> Void, onNotReady: @escaping () -> Void) {
-        // TODO: WebsCareAds.showRewarded(from: topViewController, placement: placement,
-        //           onRewarded: { type, amount in onRewarded(type, KotlinInt(int: Int32(amount))) }, onNotReady: onNotReady)
-        onNotReady()
-    }
-
-    func suppressNextReturnAppOpen() {
-        // TODO: WebsCareAds.suppressNextReturnAppOpen()
+    func showRewarded(placement: String, onRewarded: @escaping (String, Shared.KotlinInt) -> Void, onNotReady: @escaping () -> Void) {
+        WebsCareAds.shared.showRewarded(
+            placement: placement,
+            onRewarded: { type, amount in onRewarded(type, Shared.KotlinInt(int: amount.int32Value)) },
+            onDismissed: {},
+            onNotReady: onNotReady
+        )
     }
 
     func setAppOpenLoadingScreenVisible(visible: Bool) {
-        // TODO: WebsCareAds.setAppOpenLoadingScreenVisible(visible)
+        WebsCareAds.shared.setAppOpenLoadingScreenVisible(visible: visible)
     }
 
-    func makeBannerView(placement: String) -> UIView? {
-        guard !isPremium else { return nil }
-        // TODO: return WebsCareAds.bannerView(placement: placement, rootViewController: topViewController)
-        return nil
+    func loadBanner(container: UIView, placement: String) {
+        WebsCareAds.shared.loadBanner(container: container, placement: placement)
     }
 
-    func makeNativeView(placement: String, small: Bool, onFailed: @escaping () -> Void) -> UIView? {
-        guard !isPremium else { return nil }
-        // TODO: return WebsCareAds.nativeView(placement: placement, size: small ? .small : .medium, onFailed: onFailed)
-        onFailed()
-        return nil
+    func loadNative(container: UIView, placement: String, onFailed: @escaping () -> Void) {
+        pendingNative[placement, default: []].append(onFailed)
+        WebsCareAds.shared.loadNative(container: container, placement: placement)
+    }
+
+    private func nativeFailed(_ placement: String) {
+        pendingNative.removeValue(forKey: placement)?.forEach { $0() }
     }
 
     private var topViewController: UIViewController? { GoogleSignInBridgeImpl.topViewController() }

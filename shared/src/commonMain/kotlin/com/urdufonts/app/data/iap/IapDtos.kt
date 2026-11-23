@@ -196,5 +196,7 @@ data class NotificationOpenedRequestDto(@SerialName("nid") val nid: String)
 @Serializable
 data class PurchaseIdentityDto(
     @SerialName("external_user_id") val externalUserId: String? = null,
-    @SerialName("obfuscated_account_id") val obfuscatedAccountId: String? = null
+    @SerialName("obfuscated_account_id") val obfuscatedAccountId: String? = null,
+    /** A UUID for StoreKit's appAccountToken, tying an App Store purchase to this member. */
+    @SerialName("app_account_token") val appAccountToken: String? = null
 )

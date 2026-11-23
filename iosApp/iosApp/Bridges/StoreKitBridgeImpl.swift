@@ -45,7 +45,7 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
                 case .success(let verification):
                     switch verification {
                     case .verified(let transaction):
-                        completion(StorePurchaseResult(status: "success", transaction: storeTransaction(transaction, jws: verification.jwsRepresentation), error: nil))
+                        completion(StorePurchaseResult(status: "success", transaction: await storeTransaction(transaction, jws: verification.jwsRepresentation), error: nil))
                     case .unverified(_, let error):
                         completion(StorePurchaseResult(status: "failed", transaction: nil, error: error.localizedDescription))
                     }
@@ -67,7 +67,7 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
             var owned: [StoreTransaction] = []
             for await result in Transaction.currentEntitlements {
                 if case .verified(let transaction) = result {
-                    owned.append(storeTransaction(transaction, jws: result.jwsRepresentation))
+                    owned.append(await storeTransaction(transaction, jws: result.jwsRepresentation))
                 }
             }
             completion(owned)
@@ -95,18 +95,25 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
         updatesTask = Task.detached { [weak self] in
             for await result in Transaction.updates {
                 guard let self, case .verified(let transaction) = result else { continue }
-                onTransaction(self.storeTransaction(transaction, jws: result.jwsRepresentation))
+                onTransaction(await self.storeTransaction(transaction, jws: result.jwsRepresentation))
             }
         }
     }
 
-    private func storeTransaction(_ transaction: Transaction, jws: String) -> StoreTransaction {
+    /// The transaction for Kotlin, with the subscription's renewal-info JWS (the backend reads pending downgrades from it).
+    private func storeTransaction(_ transaction: Transaction, jws: String) async -> StoreTransaction {
         unfinished[String(transaction.id)] = transaction
+        var renewalJws: String? = nil
+        if #available(iOS 16.4, *), transaction.productType == .autoRenewable,
+           let status = try? await transaction.subscriptionStatus, case .verified = status.renewalInfo {
+            renewalJws = status.renewalInfo.jwsRepresentation
+        }
         return StoreTransaction(
             productId: transaction.productID,
             transactionId: String(transaction.id),
             originalTransactionId: String(transaction.originalID),
             signedTransaction: jws,
+            signedRenewalInfo: renewalJws,
             isSubscription: transaction.productType == .autoRenewable
         )
     }

@@ -40,6 +40,18 @@ class EntitlementApiService(private val client: HttpClient) {
         setBody(request)
     }.body()
 
+    suspend fun confirmIosPurchase(
+        url: String,
+        authHeader: String,
+        deviceSecret: String?,
+        request: com.urdufonts.app.data.remote.dto.IosPurchaseConfirmRequestDto
+    ): PurchaseConfirmResponseDto = client.post(url) {
+        header("Authorization", authHeader)
+        header("X-Device-Secret", deviceSecret)
+        contentType(ContentType.Application.Json)
+        setBody(request)
+    }.body()
+
     suspend fun getProducts(url: String, authHeader: String): ProductsResponseDto =
         client.get(url) { header("Authorization", authHeader) }.body()
 }

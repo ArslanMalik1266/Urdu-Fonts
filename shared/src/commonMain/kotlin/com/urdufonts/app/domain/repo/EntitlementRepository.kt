@@ -16,4 +16,14 @@ interface EntitlementRepository {
         purchaseToken: String,
         productType: String = "subscription"
     ): Result<Boolean>
+
+    /** An App Store purchase (StoreKit 2). Premium only from the backend's answer, as on Android. */
+    suspend fun confirmIosPurchase(
+        externalUserId: String,
+        sku: String,
+        transactionId: String,
+        signedTransactionInfo: String,
+        signedRenewalInfo: String?,
+        productType: String
+    ): Result<Boolean>
 }

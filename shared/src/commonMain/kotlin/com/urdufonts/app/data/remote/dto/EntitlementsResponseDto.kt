@@ -75,3 +75,18 @@ data class PurchaseConfirmResponseDto(
     val isConfirmed: Boolean
         get() = status == "confirmed" || subscriptionStatus == "active" || entitlements?.unlocked == true || entitlements?.entitlements?.values?.any { it.unlocked } == true
 }
+
+/**
+ * POST purchases/ios/confirm (StoreKit 2). The backend prefers [signedTransactionInfo] (the transaction's JWS)
+ * and verifies it with Apple; [signedRenewalInfo] lets it see a pending downgrade. [sku] is the App Store
+ * product id from the iOS catalog. Left out for a signed-in member: the backend takes the member from the token.
+ */
+@Serializable
+data class IosPurchaseConfirmRequestDto(
+    @SerialName("external_user_id") val externalUserId: String?,
+    @SerialName("sku") val sku: String,
+    @SerialName("product_type") val productType: String,
+    @SerialName("transaction_id") val transactionId: String?,
+    @SerialName("signed_transaction_info") val signedTransactionInfo: String,
+    @SerialName("signed_renewal_info") val signedRenewalInfo: String? = null
+)

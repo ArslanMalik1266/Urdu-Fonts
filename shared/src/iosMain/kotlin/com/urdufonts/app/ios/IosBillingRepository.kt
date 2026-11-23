@@ -47,7 +47,8 @@ object IosProductIds {
 /**
  * StoreKit 2 subscriptions for iOS. Same rules as Google Play billing on Android: the user must be signed in,
  * a purchase is premium only once the IAP backend has accepted it (POST purchases/ios/confirm with the
- * signed transaction), and only then is the transaction finished.
+ * signed transaction and renewal info), and only then is the transaction finished. A failed confirmation leaves
+ * it unfinished, so StoreKit delivers it again (Transaction.updates) and it is retried.
  */
 class IosBillingRepository(
     private val storeKit: StoreKitBridge,
@@ -113,10 +114,13 @@ class IosBillingRepository(
         }
         val productId = if (option.id == SubscriptionType.LIFETIME.sku || option.id == "lifetime-purchase") IosProductIds.lifetime
         else SubscriptionType.fromSku(option.id)?.let { IosProductIds.plans[it] } ?: option.id
+        // The backend requires every App Store purchase to carry the member's app_account_token
+        val accountToken = appAccountToken()
+            ?: return Result.failure(Exception("We couldn't verify your account. Please sign in again and retry."))
 
         com.urdufonts.app.ads.suppressNextReturnAppOpen()
         val result = suspendCancellableCoroutine { cont ->
-            storeKit.purchase(productId, appAccountToken()) { cont.resume(it) }
+            storeKit.purchase(productId, accountToken) { cont.resume(it) }
         }
         return when (result.status) {
             "success" -> {
@@ -136,10 +140,10 @@ class IosBillingRepository(
         return Result.success(owned.isNotEmpty())
     }
 
-    /** The member's account id from IAP as StoreKit's appAccountToken, when it is a UUID (Apple requires one). */
+    /** The member's app_account_token from IAP (a UUID) for StoreKit, so Apple ties the purchase to this account. */
     private suspend fun appAccountToken(): String? = try {
         val token = identity.memberToken()
-        val id = if (token == null) null else iapApi.purchaseIdentity("Bearer $token").obfuscatedAccountId
+        val id = if (token == null) null else iapApi.purchaseIdentity("Bearer $token").appAccountToken
         id?.takeIf { UUID_PATTERN.matches(it) }
     } catch (e: Exception) {
         Log.w(TAG, "purchase-identity failed: ${e.message}")
@@ -151,20 +155,23 @@ class IosBillingRepository(
         if (transaction.transactionId in confirmedIds) return@withLock
         val externalUserId = userPreferences.userSession.firstOrNull()?.email
         if (externalUserId.isNullOrBlank()) return@withLock
-        val sku = IosProductIds.backendSku(transaction.productId)
+        // The iOS catalog's sku is the App Store product id itself (the backend keeps a separate iOS catalog)
+        val sku = transaction.productId
         val productType = if (transaction.isSubscription) "subscription" else "non_consumable"
         Log.d(TAG, "Confirming App Store purchase: sku=$sku, type=$productType, transaction=${transaction.transactionId}")
 
-        val confirmed = entitlementRepository.confirmPurchase(
+        val confirmed = entitlementRepository.confirmIosPurchase(
             externalUserId = externalUserId,
             sku = sku,
-            purchaseToken = transaction.signedTransaction,
+            transactionId = transaction.transactionId,
+            signedTransactionInfo = transaction.signedTransaction,
+            signedRenewalInfo = transaction.signedRenewalInfo,
             productType = productType
         )
         if (confirmed.isSuccess) {
             confirmedIds += transaction.transactionId
             storeKit.finish(transaction.transactionId)
-            userPreferences.saveSubscriptionStatus(isPro = true, planId = sku, purchaseToken = transaction.originalTransactionId)
+            userPreferences.saveSubscriptionStatus(isPro = true, planId = IosProductIds.backendSku(sku), purchaseToken = transaction.originalTransactionId)
         } else {
             val error = confirmed.exceptionOrNull()
             Log.e(TAG, "Backend did not accept App Store purchase: ${error?.message}")

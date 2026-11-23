@@ -96,8 +96,35 @@ class EntitlementRepositoryImpl(
             productType = productType
         )
 
+        return applyConfirmation(externalUserId) { remoteDataSource.confirmPurchase(request) }
+    }
+
+    override suspend fun confirmIosPurchase(
+        externalUserId: String,
+        sku: String,
+        transactionId: String,
+        signedTransactionInfo: String,
+        signedRenewalInfo: String?,
+        productType: String
+    ): Result<Boolean> {
+        val request = com.urdufonts.app.data.remote.dto.IosPurchaseConfirmRequestDto(
+            externalUserId = externalUserId,
+            sku = sku,
+            productType = productType,
+            transactionId = transactionId,
+            signedTransactionInfo = signedTransactionInfo,
+            signedRenewalInfo = signedRenewalInfo
+        )
+        return applyConfirmation(externalUserId) { remoteDataSource.confirmIosPurchase(request) }
+    }
+
+    /** Sends a store purchase to the backend and keeps the entitlements it answers with (both stores). */
+    private suspend fun applyConfirmation(
+        externalUserId: String,
+        send: suspend () -> com.urdufonts.app.data.remote.dto.PurchaseConfirmResponseDto
+    ): Result<Boolean> {
         return try {
-            val response = remoteDataSource.confirmPurchase(request)
+            val response = send()
             if (response.isConfirmed) {
                 val confirmedEntitlements = response.entitlements
                 if (confirmedEntitlements != null) {

@@ -3,7 +3,7 @@ package com.urdufonts.app.ios
 import platform.UIKit.UIView
 
 /*
- * The iOS SDKs this app needs (StoreKit 2, Google Sign-In, Firebase Messaging, WebsCare Ads) are Swift APIs that
+ * The iOS SDKs this app needs (StoreKit 2, Google Sign-In, Firebase Messaging, the WebsCareAds XCFramework) are Swift APIs that
  * Kotlin cannot call directly. Each is wrapped in one of these small interfaces, implemented in Swift in the
  * iosApp project (iosApp/iosApp/Bridges/), and handed to Kotlin once at start-up in [initUrduFonts].
  * All callbacks may be called on any thread; the Kotlin side moves to the main thread itself.
@@ -26,6 +26,8 @@ data class StoreTransaction(
     val transactionId: String,
     val originalTransactionId: String,
     val signedTransaction: String,
+    /** The subscription's renewal-info JWS (shows a pending downgrade to the backend); null for one-time products. */
+    val signedRenewalInfo: String?,
     val isSubscription: Boolean,
 )
 
@@ -71,7 +73,7 @@ interface PushBridge {
     fun currentToken(completion: (String?) -> Unit)
 }
 
-// ── WebsCare Ads for iOS ───────────────────────────────────────────────────
+// ── WebsCareAds for iOS (the XCFramework, called from Swift) ───────────────
 
 interface AdsBridge {
     fun initialize(isDebug: Boolean)
@@ -85,16 +87,14 @@ interface AdsBridge {
     fun showSplashAppOpen(placement: String, onContinue: () -> Unit)
     fun showInterstitial(placement: String, onDismissed: () -> Unit)
     fun showRewarded(placement: String, onRewarded: (type: String, amount: Int) -> Unit, onNotReady: () -> Unit)
-    fun suppressNextReturnAppOpen()
     fun setAppOpenLoadingScreenVisible(visible: Boolean)
 
-    /** A banner view for [placement], or null when there is none (premium, no fill, ads off). */
-    fun makeBannerView(placement: String): UIView?
+    /** Loads a banner for [placement] into [container]. */
+    fun loadBanner(container: UIView, placement: String)
 
-    /** A native ad view; [onFailed] is called if it never fills, so the list can drop the row. */
-    fun makeNativeView(placement: String, small: Boolean, onFailed: () -> Unit): UIView?
+    /** Loads a native ad into [container]; [onFailed] is called if it never fills, so the list can drop the row. */
+    fun loadNative(container: UIView, placement: String, onFailed: () -> Unit)
 }
-
 /** Everything Swift provides, handed over once in [initUrduFonts]. */
 class IosBridges(
     val storeKit: StoreKitBridge,

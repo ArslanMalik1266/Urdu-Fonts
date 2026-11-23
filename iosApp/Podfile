@@ -5,12 +5,12 @@ target 'iosApp' do
   # Google sign-in (account picker → ID token for the IAP backend)
   pod 'GoogleSignIn', '~> 8.0'
 
-  # Push: FCM tokens on top of APNs, the same push backend as Android
-  pod 'FirebaseCore'
-  pod 'FirebaseMessaging'
+  # WebsCareAds 4.2.5 for iOS: extract the release ZIP (WebsCareAds-iOS-4.2.5 from
+  # https://github.com/webscarepk/WebCareAds/releases/tag/v4.2.5) into iosApp/Vendor/WebsCareAds-iOS-4.2.5.
+  # Its podspec brings the XCFramework, Google Mobile Ads 13.11.0, UMP 3.1.0, the Meta adapter 6.22.1.0,
+  # FirebaseCore/RemoteConfig 12.19.0, the -ObjC flag and WebsCareAdsPrivacy.bundle.
+  pod 'WebsCareAds', :path => 'Vendor/WebsCareAds-iOS-4.2.5'
 
-  # WebsCare Ads for iOS. TODO: replace with the exact pod name / source your team publishes, e.g.
-  #   pod 'WebsCareAds', :git => 'https://github.com/webscarepk/WebsCareAds-iOS.git', :tag => '4.2.5'
-  # Until it is added, AdsBridgeImpl.swift keeps ads switched off.
-  # pod 'WebsCareAds'
+  # Push: FCM tokens on top of APNs (same Firebase version WebsCareAds pins)
+  pod 'FirebaseMessaging', '12.19.0'
 end
