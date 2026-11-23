@@ -1,0 +1,8 @@
+Configuration/Secrets.xcconfig
+GoogleService-Info.plist
+Pods/
+*.xcworkspace/
+iosApp.xcodeproj/
+build/
+DerivedData/
+xcuserdata/

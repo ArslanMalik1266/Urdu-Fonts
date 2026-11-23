@@ -25,7 +25,7 @@ class ProductsRepositoryImpl(
             return Result.success(memoryCache)
         }
 
-        val url = "$BASE_URL/api/v1/apps/$appSlug/products?platform=android"
+        val url = "$BASE_URL/api/v1/apps/$appSlug/products?platform=${com.urdufonts.app.data.iap.IapConfig.PLATFORM}"
         Log.d(TAG, "Fetching products from GET $url")
         return try {
             val response = apiService.getProducts(

@@ -1,0 +1,67 @@
+# Xcode project for the iOS app, generated with XcodeGen (brew install xcodegen):
+#   cd iosApp && xcodegen generate && pod install && open iosApp.xcworkspace
+name: iosApp
+options:
+  bundleIdPrefix: com.urdufonts
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+configFiles:
+  Debug: Configuration/Config.xcconfig
+  Release: Configuration/Config.xcconfig
+
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosApp
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: Urdu Fonts
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIRequiresFullScreen: true
+        # Downloaded fonts are saved to Documents/UrduFonts and shown in the Files app
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UIBackgroundModes: [remote-notification]
+        # Read by iOSApp.swift and handed to the shared Kotlin code (values come from Secrets.xcconfig)
+        UFApiKey: $(UF_API_KEY)
+        UFIapAppToken: $(UF_IAP_APP_TOKEN)
+        GIDClientID: $(GOOGLE_IOS_CLIENT_ID)
+        GADApplicationIdentifier: $(ADMOB_APP_ID)
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [$(GOOGLE_REVERSED_CLIENT_ID)]
+        LSApplicationQueriesSchemes: [itms-apps, mailto]
+        NSUserTrackingUsageDescription: Your data is used to show you more relevant ads.
+        SKAdNetworkItems:
+          - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
+    entitlements:
+      path: iosApp/iosApp.entitlements
+      properties:
+        aps-environment: development
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(UF_BUNDLE_ID)
+        MARKETING_VERSION: "1.1.1"
+        CURRENT_PROJECT_VERSION: "11"
+        TARGETED_DEVICE_FAMILY: "1"
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        OTHER_LDFLAGS: ["$(inherited)", "-framework", "Shared"]
+        FRAMEWORK_SEARCH_PATHS: ["$(inherited)", "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"]
+    preBuildScripts:
+      # Builds the shared Kotlin code (Compose UI, data, logic) into Shared.framework for this build
+      - name: Compile Kotlin Framework
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "YES" = "$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED" ]; then
+            echo "Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \"YES\""
+            exit 0
+          fi
+          cd "$SRCROOT/.."
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode

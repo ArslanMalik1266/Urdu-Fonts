@@ -1,0 +1,16 @@
+// Shared build settings for the iOS app. Secrets live in Secrets.xcconfig (not committed).
+
+UF_BUNDLE_ID = com.urdufonts.app
+
+// Google Sign-In for iOS: create an iOS OAuth client for UF_BUNDLE_ID in Google Cloud / Firebase.
+// GOOGLE_REVERSED_CLIENT_ID is the same id reversed (com.googleusercontent.apps.XXXX).
+GOOGLE_IOS_CLIENT_ID = REPLACE_ME.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.REPLACE_ME
+
+// AdMob app id for iOS (used by WebsCare Ads)
+ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+
+UF_API_KEY =
+UF_IAP_APP_TOKEN =
+
+#include? "Secrets.xcconfig"

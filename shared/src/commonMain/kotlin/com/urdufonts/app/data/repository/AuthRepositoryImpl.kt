@@ -1,12 +1,7 @@
 package com.urdufonts.app.data.repository
 
-import android.content.Context
-import android.util.Log
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.urdufonts.app.platform.PlatformContext
+import com.urdufonts.app.platform.AppLog as Log
 import com.urdufonts.app.data.iap.AuthSessionDto
 import com.urdufonts.app.data.iap.IAP_SESSION_ROLE
 import com.urdufonts.app.data.iap.IapApi
@@ -30,6 +25,8 @@ import com.urdufonts.app.domain.models.User
 import com.urdufonts.app.domain.models.UserSession
 import com.urdufonts.app.domain.repo.AuthRepository
 import com.urdufonts.app.domain.repo.PushRepository
+import com.urdufonts.app.domain.repo.GoogleSignInProvider
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +45,7 @@ class AuthRepositoryImpl(
     private val caller: IapCaller,
     private val userPreferences: UserPreferences,
     private val push: PushRepository,
+    private val googleSignIn: GoogleSignInProvider,
     private val entitlementLocalDataSource: EntitlementLocalDataSource? = null
 ) : AuthRepository {
 
@@ -87,28 +85,8 @@ class AuthRepositoryImpl(
         signedIn(answer.toSession(fallbackName = ""))
     }.mapError()
 
-    override suspend fun signInWithGoogle(context: Context): Result<GoogleUser> = withContext(Dispatchers.IO) {
-        runCatching {
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setServerClientId(IapConfig.GOOGLE_WEB_CLIENT_ID)
-                .setFilterByAuthorizedAccounts(false)
-                .build()
-            val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
-            com.webscare.ads.WebsCareAds.suppressNextReturnAppOpen()
-            val credential = CredentialManager.create(context).getCredential(context = context, request = request).credential
-            if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                val google = GoogleIdTokenCredential.createFrom(credential.data)
-                GoogleUser(
-                    idToken = google.idToken,
-                    email = google.id,
-                    name = google.displayName,
-                    profilePictureUri = google.profilePictureUri?.toString()
-                )
-            } else {
-                throw Exception("Unexpected credential type: ${credential.type}")
-            }
-        }.onFailure { Log.e(TAG, "Google sign-in failed", it) }
-    }
+    override suspend fun signInWithGoogle(context: PlatformContext): Result<GoogleUser> =
+        runCatching { googleSignIn.signIn(context) }.onFailure { Log.e(TAG, "Google sign-in failed", it) }
 
     override suspend fun loginWithGoogle(idToken: String): Result<UserSession> = caller.result {
         val answer = api.oauthLogin(IapConfig.appBearer, OAuthLoginRequest(provider = "google", idToken = idToken))

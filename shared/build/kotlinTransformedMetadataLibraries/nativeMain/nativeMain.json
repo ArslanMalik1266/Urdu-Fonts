@@ -1,0 +1,1742 @@
+[
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-coroutines-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-coroutines-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-coroutines-core-1.10.2-nativeDarwinMain--jzUgA.klib",
+    "sourceSetName": "nativeDarwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-coroutines-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-coroutines-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-coroutines-core-1.10.2-nativeMain-wJOvIw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-json"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-json"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-serialization-json-1.9.0-nativeMain-_ulzXg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-client-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-client-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-client-core-3.3.2-posixMain-pjeYEQ.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-client-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-client-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-client-core-3.3.2-nonJvmMain-pjeYEQ.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.insert-koin",
+        "name": "koin-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.insert-koin",
+        "name": "koin-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.insert-koin-koin-core-4.1.1-nativeMain-hXs0VA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.datastore",
+        "name": "datastore-preferences-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.datastore",
+        "name": "datastore-preferences-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.datastore-datastore-preferences-core-1.1.7-nativeMain-hildbA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.room",
+        "name": "room-runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.room",
+        "name": "room-runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.room-room-runtime-2.8.4-nativeMain-oKhOvw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.room",
+        "name": "room-runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.room",
+        "name": "room-runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.room-room-runtime-2.8.4-jvmNativeMain-oKhOvw.klib",
+    "sourceSetName": "jvmNativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-datetime-0.7.1-darwinMain-HeEIcg.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-datetime-0.7.1-tzdbOnFilesystemMain-uTxUqg.klib",
+    "sourceSetName": "tzdbOnFilesystemMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-datetime-0.7.1-tzfileMain-uTxUqg.klib",
+    "sourceSetName": "tzfileMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-datetime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-datetime-0.7.1-commonKotlinMain-uTxUqg.klib",
+    "sourceSetName": "commonKotlinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.components",
+        "name": "components-resources"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.components",
+        "name": "components-resources"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.components-components-resources-1.12.2-iosMain-4n6I0w.klib",
+    "sourceSetName": "iosMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.components",
+        "name": "components-resources"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.components",
+        "name": "components-resources"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.components-components-resources-1.12.2-nativeMain-4n6I0w.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.components",
+        "name": "components-resources"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.components",
+        "name": "components-resources"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.components-components-resources-1.12.2-skikoMain-x-IbKw.klib",
+    "sourceSetName": "skikoMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-compose-2.9.2-uikitMain-SIcjCQ.klib",
+    "sourceSetName": "uikitMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-compose-2.9.2-nativeMain-SIcjCQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-compose-2.9.2-nonAndroidMain-HXa7Kg.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.insert-koin",
+        "name": "koin-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.insert-koin",
+        "name": "koin-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.insert-koin-koin-compose-4.1.1-nativeMain-Txoobw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-client-content-negotiation"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-client-content-negotiation"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-client-content-negotiation-3.3.2-posixMain-Wy99aw.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-client-logging"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-client-logging"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-client-logging-3.3.2-posixMain-YiRRnQ.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-serialization-kotlinx-json"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-serialization-kotlinx-json"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-serialization-kotlinx-json-3.3.2-posixMain-Em8oaw.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-io-core-0.8.2-appleMain-O_WPsw.klib",
+    "sourceSetName": "appleMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-io-core-0.8.2-nativeNonAndroidMain-xiPa1w.klib",
+    "sourceSetName": "nativeNonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-io-core-0.8.2-nativeMain-xiPa1w.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-network-ktor3"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-network-ktor3"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-network-ktor3-3.2.0-nativeMain-ywhC3A.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-network-ktor3"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-network-ktor3"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-network-ktor3-3.2.0-nonJvmCommonMain-shiS-w.klib",
+    "sourceSetName": "nonJvmCommonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-svg"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-svg"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-svg-3.2.0-nativeMain-jY9E5g.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-svg"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-svg"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-svg-3.2.0-nonJvmCommonMain-1fls2g.klib",
+    "sourceSetName": "nonJvmCommonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-svg"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-svg"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-svg-3.2.0-nonAndroidMain-1fls2g.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-atomicfu-0.28.0-appleMain-kCq7Ng.klib",
+    "sourceSetName": "appleMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-atomicfu-0.28.0-nativeUnixLikeMain-UmPgNA.klib",
+    "sourceSetName": "nativeUnixLikeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-atomicfu-0.28.0-nativeMain-UmPgNA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-atomicfu-0.28.0-concurrentMain-UmPgNA.klib",
+    "sourceSetName": "concurrentMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "atomicfu"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-atomicfu-0.28.0-commonMain-UmPgNA.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-serialization-core-1.9.0-nativeMain-DVGtaQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-http"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-http"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-http-3.3.2-posixMain--ohL3g.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-http-cio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-http-cio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-http-cio-3.3.2-posixMain-6EAxkQ.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "co.touchlab",
+        "name": "stately-concurrency"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "co.touchlab",
+        "name": "stately-concurrency"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\co.touchlab-stately-concurrency-2.1.0-appleMain-oa7GPg.klib",
+    "sourceSetName": "appleMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "co.touchlab",
+        "name": "stately-concurrency"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "co.touchlab",
+        "name": "stately-concurrency"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\co.touchlab-stately-concurrency-2.1.0-nativeMain-t1ZQYw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "co.touchlab",
+        "name": "stately-concurrency"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "co.touchlab",
+        "name": "stately-concurrency"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\co.touchlab-stately-concurrency-2.1.0-commonMain-t1ZQYw.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "co.touchlab",
+        "name": "stately-concurrent-collections"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "co.touchlab",
+        "name": "stately-concurrent-collections"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\co.touchlab-stately-concurrent-collections-2.1.0-commonMain-jSCQOA.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.datastore",
+        "name": "datastore-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.datastore",
+        "name": "datastore-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.datastore-datastore-core-1.1.7-nativeMain-3X5hEg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.datastore",
+        "name": "datastore-core-okio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.datastore",
+        "name": "datastore-core-okio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.datastore-datastore-core-okio-1.1.7-nativeMain-o1WRng.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "com.squareup.okio",
+        "name": "okio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "com.squareup.okio",
+        "name": "okio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\com.squareup.okio-okio-3.11.0-appleMain-CjN8Hw.klib",
+    "sourceSetName": "appleMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "com.squareup.okio",
+        "name": "okio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "com.squareup.okio",
+        "name": "okio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\com.squareup.okio-okio-3.11.0-unixMain-VC6qVQ.klib",
+    "sourceSetName": "unixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "com.squareup.okio",
+        "name": "okio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "com.squareup.okio",
+        "name": "okio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\com.squareup.okio-okio-3.11.0-nativeMain-VC6qVQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "com.squareup.okio",
+        "name": "okio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "com.squareup.okio",
+        "name": "okio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\com.squareup.okio-okio-3.11.0-nonJvmMain-VC6qVQ.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "com.squareup.okio",
+        "name": "okio"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "com.squareup.okio",
+        "name": "okio"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\com.squareup.okio-okio-3.11.0-hashFunctions-VC6qVQ.klib",
+    "sourceSetName": "hashFunctions"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-protobuf"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-protobuf"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-serialization-protobuf-1.6.3-nativeMain-a1M5Bg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-protobuf"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-serialization-protobuf"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-serialization-protobuf-1.6.3-commonMain-a1M5Bg.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.annotation",
+        "name": "annotation"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.annotation",
+        "name": "annotation"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.annotation-annotation-1.9.1-nonJvmMain-WmoUwA.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.collection",
+        "name": "collection"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.collection",
+        "name": "collection"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.collection-collection-1.5.0-darwinMain-1oCDtg.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.collection",
+        "name": "collection"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.collection",
+        "name": "collection"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.collection-collection-1.5.0-unixMain-j7f1lg.klib",
+    "sourceSetName": "unixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.collection",
+        "name": "collection"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.collection",
+        "name": "collection"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.collection-collection-1.5.0-nativeMain-j7f1lg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.collection",
+        "name": "collection"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.collection",
+        "name": "collection"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.collection-collection-1.5.0-nonJvmMain-j7f1lg.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.room",
+        "name": "room-common"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.room",
+        "name": "room-common"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.room-room-common-2.8.4-nativeMain-FV9dPA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.sqlite",
+        "name": "sqlite"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.sqlite",
+        "name": "sqlite"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.sqlite-sqlite-2.6.2-nativeMain-Y3bhRQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.sqlite",
+        "name": "sqlite-framework"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.sqlite",
+        "name": "sqlite-framework"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.sqlite-sqlite-framework-2.6.2-nativeMain-5Ubkcg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.compose.runtime",
+        "name": "runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.compose.runtime",
+        "name": "runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.compose.runtime-runtime-1.12.1-nonJvmMain-uGrQsQ.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.compose.runtime",
+        "name": "runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.compose.runtime",
+        "name": "runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.compose.runtime-runtime-1.12.1-nativeMain-uGrQsQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.compose.runtime",
+        "name": "runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.compose.runtime",
+        "name": "runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.compose.runtime-runtime-1.12.1-nonAndroidMain-uGrQsQ.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.ui",
+        "name": "ui-uikit"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.ui",
+        "name": "ui-uikit"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.ui-ui-uikit-1.12.2-iosMain-1wqbHQ.klib",
+    "sourceSetName": "iosMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.skiko-skiko-0.150.2-iosMain-jIV0nA.klib",
+    "sourceSetName": "iosMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.skiko-skiko-0.150.2-uikitMain-jIV0nA.klib",
+    "sourceSetName": "uikitMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.skiko-skiko-0.150.2-darwinMain-jIV0nA.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.skiko-skiko-0.150.2-nativeMain-WLtCvA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.skiko-skiko-0.150.2-nativeJsMain-WLtCvA.klib",
+    "sourceSetName": "nativeJsMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.skiko",
+        "name": "skiko"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.skiko-skiko-0.150.2-commonMain-WLtCvA.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.compose.runtime",
+        "name": "runtime-retain"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.compose.runtime",
+        "name": "runtime-retain"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.compose.runtime-runtime-retain-1.12.1-nonJvmMain-c_A_bA.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-viewmodel-compose-2.11.0-nonJvmMain-7f7_jw.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel-savedstate"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel-savedstate"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-viewmodel-savedstate-2.11.0-nonAndroidMain-W6e6nQ.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel-savedstate"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel-savedstate"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-viewmodel-savedstate-2.11.0-nativeMain-W6e6nQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.savedstate",
+        "name": "savedstate-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.savedstate",
+        "name": "savedstate-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.savedstate-savedstate-compose-1.4.0-nonAndroidMain-YfHBdg.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigationevent",
+        "name": "navigationevent-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigationevent",
+        "name": "navigationevent-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigationevent-navigationevent-compose-1.1.0-commonMain-jN0Ktw.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.annotation-internal",
+        "name": "annotation"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.annotation-internal",
+        "name": "annotation"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.annotation-internal-annotation-1.10.0-commonMain-jG1XTg.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.collection-internal",
+        "name": "collection"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.collection-internal",
+        "name": "collection"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.collection-internal-collection-1.10.0-commonMain-PdmhIQ.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.ui",
+        "name": "ui-backhandler"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.ui",
+        "name": "ui-backhandler"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.ui-ui-backhandler-1.12.2-jbMain-3hHFJQ.klib",
+    "sourceSetName": "jbMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.compose.ui",
+        "name": "ui-backhandler"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.compose.ui",
+        "name": "ui-backhandler"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.compose.ui-ui-backhandler-1.12.2-commonMain-3hHFJQ.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.graphics",
+        "name": "graphics-shapes"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.graphics",
+        "name": "graphics-shapes"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.graphics-graphics-shapes-1.1.0-nonJvmMain-fBTZNQ.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-common"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-common"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-common-2.9.2-darwinMain-cGh4Eg.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-common"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-common"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-common-2.9.2-nativeMain-iP6YuQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-common"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-common"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-common-2.9.2-nonAndroidMain-iP6YuQ.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-runtime-2.9.2-nativeMain-wqr4yQ.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-runtime-2.9.2-nonJvmMain-wqr4yQ.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.androidx.navigation",
+        "name": "navigation-runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.androidx.navigation-navigation-runtime-2.9.2-nonAndroidMain-wqr4yQ.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-3.2.0-nonAndroidMain-O-FNGA.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-compose-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-compose-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-compose-core-3.2.0-nonAndroidMain-zTCljw.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-serialization-kotlinx"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-serialization-kotlinx"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-serialization-kotlinx-3.3.2-posixMain-m1CjRQ.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-bytestring"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-bytestring"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-io-bytestring-0.8.2-appleMain-KeI2ow.klib",
+    "sourceSetName": "appleMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-bytestring"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "org.jetbrains.kotlinx",
+        "name": "kotlinx-io-bytestring"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\org.jetbrains.kotlinx-kotlinx-io-bytestring-0.8.2-nativeMain-VZ6v5A.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-core-3.2.0-nativeMain-FiAFWw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-core-3.2.0-nonJvmCommonMain-GT_YWg.klib",
+    "sourceSetName": "nonJvmCommonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-core-3.2.0-nonAndroidMain-GT_YWg.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.coil-kt.coil3",
+        "name": "coil-network-core"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.coil-kt.coil3",
+        "name": "coil-network-core"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.coil-kt.coil3-coil-network-core-3.2.0-nonAndroidMain-9aTQqQ.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-utils"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-utils"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-utils-3.3.2-darwinMain-DzKCCw.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-utils"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-utils"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-utils-3.3.2-nixMain-XhwyBQ.klib",
+    "sourceSetName": "nixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-utils"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-utils"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-utils-3.3.2-posixMain-XhwyBQ.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-io"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-io"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-io-3.3.2-darwinMain-biGPYQ.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-io"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-io"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-io-3.3.2-posixMain-cgpFiA.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "co.touchlab",
+        "name": "stately-strict"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "co.touchlab",
+        "name": "stately-strict"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\co.touchlab-stately-strict-2.1.0-nativeMain-dKdBGA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "co.touchlab",
+        "name": "stately-strict"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "co.touchlab",
+        "name": "stately-strict"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\co.touchlab-stately-strict-2.1.0-commonMain-dKdBGA.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-common"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-common"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-common-2.11.0-nonJvmMain-5YDLUQ.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-viewmodel-2.11.0-nonJvmMain-Qjv5zA.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-viewmodel"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-viewmodel-2.11.0-nativeMain-Qjv5zA.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.savedstate-savedstate-1.4.0-darwinMain-PeDSBw.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.savedstate-savedstate-1.4.0-unixMain-JkDvJw.klib",
+    "sourceSetName": "unixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.savedstate-savedstate-1.4.0-nativeMain-JkDvJw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.savedstate",
+        "name": "savedstate"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.savedstate-savedstate-1.4.0-nonAndroidMain-JkDvJw.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.navigationevent",
+        "name": "navigationevent-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.navigationevent",
+        "name": "navigationevent-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.navigationevent-navigationevent-compose-1.1.1-nonAndroidMain-VFSq1Q.klib",
+    "sourceSetName": "nonAndroidMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.navigationevent",
+        "name": "navigationevent-compose"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.navigationevent",
+        "name": "navigationevent-compose"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.navigationevent-navigationevent-compose-1.1.1-commonMain-VFSq1Q.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-runtime"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.lifecycle",
+        "name": "lifecycle-runtime"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.lifecycle-lifecycle-runtime-2.11.0-nativeMain-u4l1lg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-websockets"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-websockets"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\io.ktor-ktor-websockets-3.3.2-posixMain-jTM5IQ.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.navigationevent",
+        "name": "navigationevent"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.navigationevent",
+        "name": "navigationevent"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.navigationevent-navigationevent-1.1.1-nativeMain-vUBpRg.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.navigationevent",
+        "name": "navigationevent"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.navigationevent",
+        "name": "navigationevent"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\nativeMain\\androidx.navigationevent-navigationevent-1.1.1-commonMain-vUBpRg.klib",
+    "sourceSetName": "commonMain"
+  }
+]

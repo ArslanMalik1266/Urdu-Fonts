@@ -64,4 +64,10 @@ val sharedDataModule = module {
         PushRepositoryImpl(api = get(), caller = get(), identity = get(), tokens = get(), preferences = get(), deviceDetails = get())
     }
     single { NotificationTapInbox() }
+    single<com.urdufonts.app.domain.repo.BannerRepository> { com.urdufonts.app.data.repository.BannerRepositoryImpl() }
+
+    // ── Accounts (Google's account picker comes from the platform: GoogleSignInProvider) ──
+    single<com.urdufonts.app.domain.repo.AuthRepository> {
+        com.urdufonts.app.data.repository.AuthRepositoryImpl(api = get(), caller = get(), userPreferences = get(), push = get(), googleSignIn = get(), entitlementLocalDataSource = get())
+    }
 }

@@ -1,0 +1,167 @@
+[
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-client-darwin"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-client-darwin"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-client-darwin-3.3.2-darwinMain-7ZUCDw.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.sqlite",
+        "name": "sqlite-bundled"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.sqlite",
+        "name": "sqlite-bundled"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\androidx.sqlite-sqlite-bundled-2.6.2-nativeMain-dCYVRw.klib",
+    "sourceSetName": "nativeMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "androidx.sqlite",
+        "name": "sqlite-bundled"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "androidx.sqlite",
+        "name": "sqlite-bundled"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\androidx.sqlite-sqlite-bundled-2.6.2-commonMain-dCYVRw.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network-tls"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network-tls"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-tls-3.3.2-nonJvmMain-Fjtrfw.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network-tls"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network-tls"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-tls-3.3.2-commonMain-Fjtrfw.klib",
+    "sourceSetName": "commonMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-3.3.2-iosMain-SXD6Dg.klib",
+    "sourceSetName": "iosMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-3.3.2-darwinMain-SXD6Dg.klib",
+    "sourceSetName": "darwinMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-3.3.2-nixMain-AaaCdg.klib",
+    "sourceSetName": "nixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-3.3.2-posixMain-AaaCdg.klib",
+    "sourceSetName": "posixMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-3.3.2-nonJvmMain-AaaCdg.klib",
+    "sourceSetName": "nonJvmMain"
+  },
+  {
+    "moduleId": {
+      "groupAndName": {
+        "group": "io.ktor",
+        "name": "ktor-network"
+      },
+      "componentId": {
+        "type": "module",
+        "group": "io.ktor",
+        "name": "ktor-network"
+      }
+    },
+    "file": "D:\\UrduFonts\\shared\\build\\kotlinTransformedMetadataLibraries\\iosMain\\io.ktor-ktor-network-3.3.2-commonMain-AaaCdg.klib",
+    "sourceSetName": "commonMain"
+  }
+]

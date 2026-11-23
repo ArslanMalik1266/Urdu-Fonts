@@ -32,6 +32,6 @@ actual fun LoadedFont.heavier(): LoadedFont = LoadedFont(identity, bytes, (weigh
 
 actual fun LoadedFont.bold(): LoadedFont = LoadedFont(identity, bytes, 700)
 
-/** iOS saves fonts the user downloads into Documents/UrduFonts (visible in the Files app). */
+/** iOS saves a downloaded font into Documents/UrduFonts/<Font_Name>/ (visible in the Files app). */
 actual fun isFontSavedInDownloads(fileName: String): Boolean =
-    SystemFileSystem.exists(Path(AppDirectories().filesDir, "UrduFonts", fileName))
+    SystemFileSystem.exists(Path(AppDirectories().filesDir, "UrduFonts", fileName.substringBeforeLast('.')))
