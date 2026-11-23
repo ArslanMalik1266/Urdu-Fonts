@@ -1,5 +1,6 @@
 package com.urdufonts.app.domain.models
 
+import org.jetbrains.compose.resources.DrawableResource
 data class SubscriptionOption(
     val id: String,
     val title: String,
@@ -8,7 +9,7 @@ data class SubscriptionOption(
     val pricePeriodSubtitle: String? = null,
     val originalPriceText: String? = null,
     val discountTag: String? = null,
-    val iconRes: Int,
+    val iconRes: DrawableResource,
     val isMostPopular: Boolean = false,
     /** What the plan gives, as the entitlement names set on the IAP dashboard. */
     val features: List<String> = emptyList(),

@@ -20,3 +20,6 @@ expect val PlatformFile.absolutePathString: String
 
 /** "Android" or "iOS", e.g. for analytics or the support ticket device details. */
 expect val platformName: String
+
+/** The activity as a context (on Android an Activity is a Context; iOS has a single context). */
+expect fun PlatformActivity.asPlatformContext(): PlatformContext

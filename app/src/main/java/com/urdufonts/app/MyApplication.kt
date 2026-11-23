@@ -1,9 +1,6 @@
 package com.urdufonts.app
 
 import android.app.Application
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.SvgDecoder
 import com.urdufonts.app.di.appModule
 import com.urdufonts.app.ui.AppInitViewModel
 import org.koin.android.ext.koin.androidContext
@@ -13,7 +10,7 @@ import org.koin.core.logger.Level
 import org.koin.java.KoinJavaComponent.getKoin
 import java.io.File
 
-class MyApplication : Application(), ImageLoaderFactory {
+class MyApplication : Application(), coil3.SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         // Keys and version for the shared (KMP) network code; must run before Koin builds the HTTP clients
@@ -38,23 +35,6 @@ class MyApplication : Application(), ImageLoaderFactory {
         adManager.initSdk(this)
     }
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
-            .memoryCache {
-                coil.memory.MemoryCache.Builder(this)
-                    .maxSizePercent(0.15)
-                    .build()
-            }
-            .diskCache {
-                coil.disk.DiskCache.Builder()
-                    .directory(cacheDir.resolve("image_cache"))
-                    .maxSizeBytes(50L * 1024L * 1024L)
-                    .build()
-            }
-            .components {
-                add(SvgDecoder.Factory())
-            }
-            .respectCacheHeaders(false)
-            .build()
-    }
+    override fun newImageLoader(context: coil3.PlatformContext): coil3.ImageLoader =
+        com.urdufonts.app.ui.util.buildAppImageLoader(context, cacheDir.absolutePath)
 }

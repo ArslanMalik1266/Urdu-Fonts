@@ -13,7 +13,7 @@ composeBom = "2026.02.01"
 loggingInterceptor = "5.4.0"
 material = "1.14.0"
 navigationCompose = "2.8.0"
-koin = "3.5.3"
+koin = "4.1.1"
 lifecycleRuntimeCompose = "2.7.0"
 okhttp = "5.4.0"
 retrofit = "3.0.0"
@@ -33,6 +33,11 @@ kotlinxCoroutines = "1.10.2"
 ktor = "3.3.2"
 kotlinxIo = "0.8.2"
 sqliteBundled = "2.6.2"
+composeMultiplatform = "1.12.2"
+composeMaterial3Mp = "1.12.0-alpha03"
+lifecycleMp = "2.11.0"
+navigationMp = "2.9.2"
+coil3 = "3.2.0"
 kotlinxSerialization = "1.9.0"
 
 
@@ -89,6 +94,20 @@ koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin"
 androidx-datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo" }
+mp-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+mp-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+mp-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+mp-compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+mp-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3Mp" }
+mp-compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+mp-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleMp" }
+mp-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleMp" }
+mp-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationMp" }
+coil3-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
+coil3-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
+coil3-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil3" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
 
 
 [plugins]
@@ -96,6 +115,7 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 webscare-placements = { id = "com.webscare.ads.placements", version.ref = "webscareAds" }

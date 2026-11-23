@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Urdu Fonts</string>
+    <string name="urdu_canvas_app_name">Urdu Canvas</string>
+    <string name="promo_urdu_canvas_title">Create beautiful designs\nwith this font</string>
+    <string name="promo_urdu_canvas_subtitle">Try it in Urdu Canvas</string>
+    <string name="promo_open_app">Open App</string>
+    <string name="promo_dialog_title">Design with this font in Urdu Canvas</string>
+    <string name="action_done">Done</string>F
+    <string name="action_skip">Skip</string>
+    <string name="cd_close_dialog">Close dialog</string>
+    <string name="cd_urdu_canvas_promo_image">Urdu Canvas promotional banner</string>
+    
+    <!-- Subscription Bottom Sheet -->
+    <string name="subscription_title">Go Premium</string>
+    <string name="subscription_subtitle">Unlock all premium features and\nenhance your font experience</string>
+    <string name="subscription_no_plans_title">No Subscriptions Available</string>
+    <string name="subscription_no_plans_desc">There are currently no active subscription plans available. Please check back later or retry.</string>
+    <string name="subscription_premium_features">Premium Features</string>
+    <string name="subscription_secure_payment">Secure Payment</string>
+    <string name="subscription_restore_purchases">Restore Purchases</string>
+    <string name="subscription_current_plan">Current Plan</string>
+    <string name="subscription_most_popular">Most Popular</string>
+    <string name="subscription_downgrade_scheduled">Downgrade Scheduled</string>
+    <string name="action_retry">Retry</string>
+</resources>

@@ -1,0 +1,169 @@
+package com.urdufonts.app.ui.style
+
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.urdufonts.app.domain.models.StyleItem
+import com.urdufonts.app.ui.components.CustomSearchBar
+import com.urdufonts.app.ui.components.OfflineErrorState
+import com.urdufonts.app.ui.components.SimpleTopAppBar
+import com.urdufonts.app.ui.util.BlurOverlay
+import com.urdufonts.app.ui.util.StaggeredFadeIn
+import com.urdufonts.app.ui.util.springOverscroll
+import org.koin.compose.viewmodel.koinViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StylesScreen(
+    onCartClick: () -> Unit = {},
+    onStyleClick: (StyleItem) -> Unit = {},
+    onSearchClick: () -> Unit = {},
+    onSubscriptionClick: () -> Unit = {},
+    viewModel: StylesViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val focusManager = LocalFocusManager.current
+    val seenItems = viewModel.seenItems
+    com.urdufonts.app.ui.util.LogScreenEntry("StylesScreen")
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures(onTap = { focusManager.clearFocus() })
+        }) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                SimpleTopAppBar(
+                    title = "Urdu Font Styles",
+                    onCartClick = onCartClick,
+                    onSubscriptionClick = onSubscriptionClick,
+                    showSubscriptionIcon = true
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)) {
+                    CustomSearchBar(
+                        readOnly = true,
+                        placeholderText = "Search fonts, categories, styles...",
+                        onClick = onSearchClick,
+                        modifier = Modifier.padding(horizontal = 0.dp)
+                    )
+                }
+
+                when {
+                    uiState.isLoading -> {
+                        StylesSkeleton()
+                    }
+                    uiState.errorMessage != null -> {
+                        OfflineErrorState(
+                            message = uiState.errorMessage!!,
+                            onRetry = viewModel::retry
+                        )
+                    }
+                    else -> {
+                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                        val visibleStyles = uiState.styles
+
+                        androidx.compose.runtime.LaunchedEffect(Unit) {
+                            com.urdufonts.app.ui.util.PerfDiagnostics.logScreenTransition("StylesScreen", "Content Rendered (${uiState.styles.size} items)")
+                        }
+                        androidx.compose.runtime.LaunchedEffect(listState) {
+                            androidx.compose.runtime.snapshotFlow { listState.firstVisibleItemIndex }
+                                .collect { idx ->
+                                    com.urdufonts.app.ui.util.PerfDiagnostics.logScrollEvent("StylesScreen", idx, uiState.styles.size)
+                                }
+                        }
+                        com.urdufonts.app.ui.util.LazyColumnImagePrefetcher(
+                            listState = listState,
+                            imageUrls = remember(uiState.styles) { uiState.styles.mapNotNull { it.thumbnailUrl } },
+                            requestFor = com.urdufonts.app.ui.util.CardImageRequests::style,
+                            bufferAheadCount = 4
+                        )
+                        Box(modifier = Modifier.clipToBounds()) {
+                            // Premium users, and ads that failed to load, get no ad item at all, so no empty gap is left behind
+                            val isProUser by org.koin.compose.koinInject<com.urdufonts.app.data.local.UserPreferences>().isProUser.collectAsStateWithLifecycle(initialValue = false)
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.springOverscroll(),
+                                contentPadding = PaddingValues(
+                                    start = 18.dp,
+                                    end = 18.dp,
+                                    top = 8.dp,
+                                    bottom = 80.dp
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                visibleStyles.forEachIndexed { index, style ->
+                                    item(key = style.id, contentType = "style_card") {
+                                        StaggeredFadeIn(
+                                            index = index,
+                                            seenItems = seenItems
+                                        ) {
+                                            StyleItemCard(
+                                                style = style,
+                                                onClick = { onStyleClick(style) }
+                                            )
+                                        }
+                                    }
+
+                                    // Small native after the 2nd style, then after every 12 more.
+                                    // Its own item, so the list's 16dp gap separates it from the cards.
+                                    if (!isProUser && com.urdufonts.app.ads.isNativeAdSlot(index + 1, first = 2, every = 12) &&
+        !com.urdufonts.app.ads.isNativeAdFailed(com.urdufonts.app.ads.AdPlacement.STYLES_NATIVE, index)) {
+                                        item(key = "native_ad_$index", contentType = "native_ad") {
+                                            com.urdufonts.app.ads.NativeAdSlot(
+                                                placement = com.urdufonts.app.ads.AdPlacement.STYLES_NATIVE,
+                                                slot = index,
+                                                nativeSize = com.urdufonts.app.ads.NativeAdSize.SMALL,
+                                                modifier = Modifier.padding(vertical = 0.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

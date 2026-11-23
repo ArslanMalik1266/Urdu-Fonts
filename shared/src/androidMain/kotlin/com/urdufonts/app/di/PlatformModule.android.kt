@@ -21,4 +21,5 @@ actual val platformModule = module {
     }
 
     single<DeviceDetailsSource> { AndroidDeviceDetailsSource() }
+    single { com.urdufonts.app.ui.platform.ExternalNavigator(get<Context>()) }
 }

@@ -99,8 +99,6 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.material)
-    implementation(libs.coil.compose)
-    implementation(libs.coil.svg)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)

@@ -17,6 +17,7 @@ import com.android.billingclient.api.QueryPurchasesParams
 import com.urdufonts.app.R
 import com.urdufonts.app.data.local.UserPreferences
 import com.urdufonts.app.data.iap.httpStatus
+import com.urdufonts.app.resources.*
 import com.urdufonts.app.domain.models.SubscriptionOption
 import com.urdufonts.app.domain.repo.BillingRepository
 import kotlinx.coroutines.CoroutineScope
@@ -127,9 +128,9 @@ class BillingRepositoryImpl(
                 priceText = price ?: "",
                 pricePeriodSubtitle = "/ month",
                 iconRes = when (plan) {
-                    com.urdufonts.app.domain.models.SubscriptionType.BASIC -> R.drawable.ic_calender
-                    com.urdufonts.app.domain.models.SubscriptionType.PRO -> R.drawable.ic_premium
-                    else -> R.drawable.ic_infinity
+                    com.urdufonts.app.domain.models.SubscriptionType.BASIC -> com.urdufonts.app.resources.Res.drawable.ic_calender
+                    com.urdufonts.app.domain.models.SubscriptionType.PRO -> com.urdufonts.app.resources.Res.drawable.ic_premium
+                    else -> com.urdufonts.app.resources.Res.drawable.ic_infinity
                 },
                 isMostPopular = plan == com.urdufonts.app.domain.models.SubscriptionType.PRO,
                 tierRank = plan.rank

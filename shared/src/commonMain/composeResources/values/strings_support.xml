@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_back">Back</string>
+    <string name="action_try_again">Try again</string>
+    <string name="chat_attach">Attach a file</string>
+    <string name="chat_attach_files">Files</string>
+    <string name="chat_attach_gallery">Gallery</string>
+    <string name="chat_load_error">Couldn't load this conversation</string>
+    <string name="chat_not_sent">Not sent. Tap to try again.</string>
+    <string name="chat_open_failed">No app on this phone can open that file.</string>
+    <string name="chat_rate_comment_hint">Anything to add? (optional)</string>
+    <string name="chat_rate_message">Tap a star to rate this conversation.</string>
+    <string name="chat_rate_submit">Send rating</string>
+    <string name="chat_rate_title">How was our help?</string>
+    <string name="chat_rated">You rated this conversation</string>
+    <string name="chat_reason_hint">Tell us what still needs fixing (optional)</string>
+    <string name="chat_reason_send">Send to support</string>
+    <string name="chat_reason_title">What is still wrong?</string>
+    <string name="chat_reply_hint">Write a message</string>
+    <string name="chat_resolve_auto_close">It closes by itself on %1$s if we don't hear from you.</string>
+    <string name="chat_resolve_message">Our team marked this ticket as solved.</string>
+    <string name="chat_resolve_no">Not yet</string>
+    <string name="chat_resolve_title">Is your problem solved?</string>
+    <string name="chat_resolve_yes">Yes, solved</string>
+    <string name="chat_resolved_done_note">This conversation is resolved.</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_sending">Sending</string>
+    <string name="chat_star">%1$d of 5 stars</string>
+    <string name="chat_support_name">Urdu Fonts Support</string>
+    <string name="chat_waiting_note">We've got your message. Our team will reply here.</string>
+    <string name="empty_sleep_letter">z</string>
+    <string name="error_generic">Please try again in a moment.</string>
+    <string name="error_title">Something went wrong</string>
+    <string name="section_today">Today</string>
+    <string name="section_yesterday">Yesterday</string>
+    <string name="support_empty_action">Start a conversation</string>
+    <string name="support_empty_message">Have a question or a problem? Start a conversation and our team will get back to you.</string>
+    <string name="support_empty_title">No conversations yet</string>
+    <string name="support_error_title">Couldn't load your conversations</string>
+    <string name="support_new_ticket">New conversation</string>
+    <string name="support_preview_support">Support: %1$s</string>
+    <string name="support_preview_you">You: %1$s</string>
+    <string name="support_status_closed">Closed</string>
+    <string name="support_status_open">Open</string>
+    <string name="support_status_resolved">Confirm solved</string>
+    <string name="support_status_waiting_support">With support</string>
+    <string name="support_status_waiting_you">Reply needed</string>
+    <string name="support_title">Help &amp; Support</string>
+    <string name="ticket_attach_note">Optional. One file, up to 10 MB.</string>
+    <string name="ticket_attach_remove">Remove attachment</string>
+    <string name="ticket_attach_title">Add a screenshot or file</string>
+    <string name="ticket_category_account">Account &amp; Login</string>
+    <string name="ticket_category_bug">Bug Report</string>
+    <string name="ticket_category_feature">Feature Request</string>
+    <string name="ticket_category_other">Other</string>
+    <string name="ticket_category_premium">Premium &amp; Payment</string>
+    <string name="ticket_description_hint">Describe the problem, and what you expected instead.</string>
+    <string name="ticket_description_label">What happened?</string>
+    <string name="ticket_email_hint">name@example.com</string>
+    <string name="ticket_email_label">Email</string>
+    <string name="ticket_error_attachment_large">That file is over 10 MB. Choose a smaller one.</string>
+    <string name="ticket_error_attachment_read">That file couldn't be read. Try another one.</string>
+    <string name="ticket_error_attachment_type">That kind of file can't be sent. Use a picture, a PDF or a text file.</string>
+    <string name="ticket_error_category">Choose what it is about.</string>
+    <string name="ticket_error_description">Tell us what happened.</string>
+    <string name="ticket_error_email_invalid">Enter a valid email, like name@example.com.</string>
+    <string name="ticket_error_email_missing">Enter your email, so we can reply.</string>
+    <string name="ticket_error_subject">Add a short subject.</string>
+    <string name="ticket_new_title">New conversation</string>
+    <string name="ticket_subject_hint">A short summary</string>
+    <string name="ticket_subject_label">Subject</string>
+    <string name="ticket_submit">Send to support</string>
+    <string name="ticket_topic_label">What is it about?</string>
+    <string name="time_ago_just_now">just now</string>
+    <!-- UrduFonts ticket topics (slugs must exist in IAP dashboard: Support -> Categories) -->
+    <string name="ticket_category_fonts">Fonts &amp; Downloads</string>
+    <string name="ticket_category_install">Installing Fonts</string>
+    <string name="ticket_category_search">Search &amp; Browse</string>
+    <string name="ticket_category_ads">Ads</string>
+
+    <!-- Problems shown for sign-in, support and push -->
+    <string name="problem_offline">No internet connection. Check it and try again.</string>
+    <string name="problem_session_expired">Your login has expired. Please sign in again.</string>
+    <string name="problem_sign_in_unavailable">Google sign-in isn't available on this phone.</string>
+    <string name="problem_sign_in_rejected">Sign-in didn't work. Please try again.</string>
+    <string name="problem_store_busy">The server is busy right now. Please try again in a moment.</string>
+    <string name="problem_unknown">Something went wrong. Please try again.</string>
+
+    <!-- Notifications -->
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_hint">Support replies and account news</string>
+    <string name="settings_notifications_failed">Notifications couldn't be turned off. Check your internet and try again.</string>
+    <string name="push_channel_transactional">Account and support</string>
+    <string name="push_channel_marketing">Offers and news</string>
+</resources>

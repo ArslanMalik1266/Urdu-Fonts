@@ -14,6 +14,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.urdufonts.app.ui.components.ads.ComposableWebsCareBanner
+import com.urdufonts.app.ui.components.ads.ComposableWebsCareNative
+import com.urdufonts.app.ui.components.ads.isNativeAdFailed
+import com.webscare.ads.NativeSize
 
 /**
  * WebsCareAds 4.2 implementation. No ad unit IDs, no direct Google Mobile Ads calls: the library reads
@@ -35,7 +41,8 @@ class WebsCareAdManagerImpl(
     @Volatile
     private var isProUser: Boolean = false
 
-    override fun initSdk(application: Application) {
+    override fun initSdk(context: Context) {
+        val application = context.applicationContext as Application
         WebsCareAds.init(application, adapters = listOf(AdMobAdapter()), isDebug = BuildConfig.DEBUG) {
             // Pro users never see ads, including ads that were already loaded
             premiumCheck = { isProUser }
@@ -71,53 +78,53 @@ class WebsCareAdManagerImpl(
         WebsCareAds.showConsentForm(activity, onComplete)
     }
 
-    override fun preloadAppOpen(context: Context, placement: String) {
+    override fun preloadAppOpen(context: Context, placement: AdPlacement) {
         if (isProUser) return
-        WebsCareAds.preloadAppOpen(context, placement)
+        WebsCareAds.preloadAppOpen(context, placement.id)
     }
 
-    override fun showSplashAppOpen(activity: Activity, placement: String, onContinue: () -> Unit) {
+    override fun showSplashAppOpen(activity: Activity, placement: AdPlacement, onContinue: () -> Unit) {
         // 4.2.5: inside checkConsent, default timeout (counted from the ad request), no own delay.
         // onDismissed runs exactly once on every path (shown+dismissed, no fill, timeout, premium,
         // consent) — navigation happens only there.
         WebsCareAds.checkConsent(activity) {
             WebsCareAds.loadAndShowAppOpen(
                 activity,
-                placement,
+                placement.id,
                 onFailed = { error -> Log.d(LIB_TAG, "Splash app-open not shown: $error") },
                 onDismissed = onContinue
             )
         }
     }
 
-    override fun preloadInterstitial(context: Context, placement: String) {
+    override fun preloadInterstitial(context: Context, placement: AdPlacement) {
         if (isProUser) return
-        WebsCareAds.preloadInterstitial(context, placement)
+        WebsCareAds.preloadInterstitial(context, placement.id)
     }
 
-    override fun showInterstitial(activity: Activity, placement: String, onDismissed: () -> Unit) {
+    override fun showInterstitial(activity: Activity, placement: AdPlacement, onDismissed: () -> Unit) {
         WebsCareAds.showInterstitial(
             activity,
-            placement,
+            placement.id,
             onFailed = { error -> Log.d(TAG, "Interstitial $placement not shown: $error") },
             onDismissed = onDismissed
         )
     }
 
-    override fun preloadRewarded(context: Context, placement: String) {
+    override fun preloadRewarded(context: Context, placement: AdPlacement) {
         if (isProUser) return
-        WebsCareAds.preloadRewarded(context, placement)
+        WebsCareAds.preloadRewarded(context, placement.id)
     }
 
     override fun showRewarded(
         activity: Activity,
-        placement: String,
+        placement: AdPlacement,
         onRewarded: (rewardType: String, amount: Int) -> Unit,
         onNotReady: () -> Unit
     ) {
         WebsCareAds.showRewarded(
             activity,
-            placement,
+            placement.id,
             onRewarded = onRewarded,
             onNotReady = onNotReady
         )
@@ -125,7 +132,7 @@ class WebsCareAdManagerImpl(
 
     override fun showDownloadInterstitialWithCooldown(
         activity: Activity,
-        placement: String,
+        placement: AdPlacement,
         onDismissed: () -> Unit
     ) {
         if (isProUser) {
@@ -139,6 +146,27 @@ class WebsCareAdManagerImpl(
         }
     }
 
+    override fun suppressNextReturnAppOpen() = WebsCareAds.suppressNextReturnAppOpen()
+
+    override fun setAppOpenLoadingScreenVisible(visible: Boolean) = WebsCareAds.setAppOpenLoadingScreenVisible(visible)
+
+    @Composable
+    override fun NativeAd(placement: AdPlacement, slot: Any, modifier: Modifier, size: NativeAdSize) {
+        ComposableWebsCareNative(
+            placement = placement.id,
+            slot = slot,
+            modifier = modifier,
+            nativeSize = if (size == NativeAdSize.SMALL) NativeSize.SMALL else NativeSize.MEDIUM
+        )
+    }
+
+    override fun isNativeAdFailed(placement: AdPlacement, slot: Any): Boolean = isNativeAdFailed(placement.id, slot)
+
+    @Composable
+    override fun BannerAd(placement: AdPlacement, modifier: Modifier) {
+        ComposableWebsCareBanner(modifier = modifier, placement = placement.id)
+    }
+
     /**
      * Separate placement for the return-to-app ad. Uses "urdufonts_app_resume" once it exists in
      * Firebase (it then appears in WebsCarePlacements.ALL); until then falls back to app-open.
@@ -147,3 +175,16 @@ class WebsCareAdManagerImpl(
         if (APP_RESUME_PLACEMENT in WebsCarePlacements.ALL) APP_RESUME_PLACEMENT
         else WebsCarePlacements.URDUFONTS_APP_OPEN
 }
+
+/** This app's WebsCareAds placement id for each shared [AdPlacement]. */
+val AdPlacement.id: String
+    get() = when (this) {
+        AdPlacement.APP_OPEN -> WebsCarePlacements.URDUFONTS_APP_OPEN
+        AdPlacement.DOWNLOAD_INTERSTITIAL -> WebsCarePlacements.URDUFONTS_DOWNLOAD_INTERSTITIAL
+        AdPlacement.DOWNLOAD_FONT_REWARDED -> WebsCarePlacements.URDUFONTS_DOWNLOAD_FONT_REWARDED
+        AdPlacement.FONT_DETAILS_BANNER -> WebsCarePlacements.URDUFONTS_FONT_DETAILS_BANNER
+        AdPlacement.HOME_NATIVE -> WebsCarePlacements.URDUFONTS_HOME_NATIVE
+        AdPlacement.FONT_LIST_NATIVE -> WebsCarePlacements.URDUFONTS_FONT_LIST_NATIVE
+        AdPlacement.CATEGORIES_NATIVE -> WebsCarePlacements.URDUFONTS_CATEGORIES_NATIVE
+        AdPlacement.STYLES_NATIVE -> WebsCarePlacements.URDUFONTS_STYLES_NATIVE
+    }

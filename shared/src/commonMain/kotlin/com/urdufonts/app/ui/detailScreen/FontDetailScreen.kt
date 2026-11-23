@@ -1,0 +1,1272 @@
+package com.urdufonts.app.ui.detailScreen
+
+import org.jetbrains.compose.resources.DrawableResource
+import com.urdufonts.app.resources.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.alpha
+import kotlinx.coroutines.delay
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.withStarted
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import org.jetbrains.compose.resources.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.urdufonts.app.domain.models.FontClassifier
+import com.urdufonts.app.domain.models.FontItem
+import com.urdufonts.app.ui.components.AnimatedDownloadButton
+import com.urdufonts.app.ui.components.PremiumBadge
+import com.urdufonts.app.ui.components.UnlockPremiumButton
+import com.urdufonts.app.ui.components.UrduCanvasPromoCard
+import com.urdufonts.app.ui.platform.ExternalNavigator
+import com.urdufonts.app.ui.theme.AppColor
+import com.urdufonts.app.ui.theme.DarkGreen
+import com.urdufonts.app.ui.theme.GreyColor
+import com.urdufonts.app.ui.theme.HeadingBlackColor
+import com.urdufonts.app.ui.theme.NunitoFontFamily
+import com.urdufonts.app.ui.util.CustomSlider
+import com.urdufonts.app.ui.util.ShimmerBox
+import com.urdufonts.app.ui.util.addPressEffect
+import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import com.urdufonts.app.ads.BannerAdSlot
+import com.urdufonts.app.ui.theme.NunitoFontFamily
+import com.urdufonts.app.ui.theme.YellowColor
+import com.urdufonts.app.ui.util.springOverscroll
+import kotlinx.coroutines.flow.collectLatest
+
+private const val DEFAULT_PREVIEW_TEXT = "بہتر کل کی امید اور کامل یقین"
+private val URDU_SAMPLE_TEXTS = listOf(
+    "بہتر کل کی امید",
+    "اللہ اکبر",
+    "پاکستان زندہ باد",
+    "محبت کی راہ میں"
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FontDetailScreen(
+    onBackClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
+    onDownloadClick: () -> Unit = {},
+    onNavigateToSubscription: () -> Unit = {},
+    onOpenUrduCanvas: (() -> Unit)? = null,
+    viewModel: FontDetailViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var lastScrollValue by remember { mutableStateOf(0) }
+    val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val adManager: com.urdufonts.app.ads.AdManager = org.koin.compose.koinInject()
+    val externalNavigator = org.koin.compose.koinInject<ExternalNavigator>()
+    val activity = com.urdufonts.app.ui.platform.rememberPlatformActivity()
+
+    if (uiState.showDownloadLimitBottomSheet) {
+        DownloadLimitBottomSheet(
+            onDismiss = { viewModel.dismissDownloadLimitBottomSheet() },
+            onUpgradeToPremium = onNavigateToSubscription,
+            dailyLimit = uiState.dailyFontLimit ?: com.urdufonts.app.domain.models.SubscriptionType.FREE_DAILY_FONTS,
+            planName = uiState.planType?.displayName
+        )
+    }
+
+    val scope = rememberCoroutineScope()
+
+    // No manual preload: WebsCareAds 4.2 preloads every fullscreen placement listed in Firebase
+
+    var showUrduCanvasPromoDialog by remember { mutableStateOf(false) }
+    var pendingDownloadSuccessEvent by remember { mutableStateOf<FontDetailViewModel.UiEvent.DownloadSuccess?>(null) }
+
+    val handleDownloadSuccessDismiss = {
+        val pendingEvent = pendingDownloadSuccessEvent
+        showUrduCanvasPromoDialog = false
+        pendingDownloadSuccessEvent = null
+        if (pendingEvent != null) {
+            if (pendingEvent.shouldShowAd) {
+                activity?.let { act ->
+                    adManager.showDownloadInterstitialWithCooldown(act) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(message = pendingEvent.message)
+                        }
+                    }
+                } ?: run {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = pendingEvent.message)
+                    }
+                }
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar(message = pendingEvent.message)
+                }
+            }
+        }
+    }
+
+    if (showUrduCanvasPromoDialog) {
+        UrduCanvasPromoDialog(
+            onDismiss = handleDownloadSuccessDismiss,
+            onOpenApp = {
+                // Close the dialog before leaving the app so its window isn't left attached to a stopped screen
+                showUrduCanvasPromoDialog = false
+                pendingDownloadSuccessEvent = null
+                try {
+                    externalNavigator.openOrInstallApp()
+                } catch (_: Exception) {
+                }
+            }
+        )
+    }
+
+    // 🟢 Listen to ViewModel events (Show Promo Dialog on download success, or Snackbar on error)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is FontDetailViewModel.UiEvent.DownloadSuccess -> {
+                    // Smoothly wait for button animation to reach 100% and show "Downloaded" state
+                    delay(400)
+                    // Only open the dialog while the screen is visible; suspends until it is
+                    lifecycleOwner.lifecycle.withStarted {
+                        pendingDownloadSuccessEvent = event
+                        showUrduCanvasPromoDialog = true
+                    }
+                }
+                is FontDetailViewModel.UiEvent.DownloadFailure -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = event.error)
+                    }
+                }
+                is FontDetailViewModel.UiEvent.ShowSnackbar -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(message = event.message)
+                    }
+                }
+            }
+        }
+    }
+    var isExpanded by remember { mutableStateOf(true) }
+    val fontFamily by viewModel.fontFamilyState.collectAsStateWithLifecycle()
+    val fontWeights by viewModel.fontWeightsState.collectAsStateWithLifecycle()
+    val selectedWeightIndex by viewModel.selectedWeightIndex.collectAsStateWithLifecycle()
+    val initialFontFamily by viewModel.initialFontFamily.collectAsStateWithLifecycle()
+
+    // ── Consolidate loading logic: Ready only when API details + Weights + Font Files are loaded ──
+    // (no font file → nothing more to load, the page shows the preview image)
+    val isContentReady = uiState.fontDetail != null &&
+            (uiState.fontFileUnavailable || (initialFontFamily != null && fontWeights.isNotEmpty()))
+
+    LaunchedEffect(scrollState.value) {
+        val currentScroll = scrollState.value
+        when {
+            currentScroll == 0 -> isExpanded = true
+            currentScroll > lastScrollValue -> isExpanded = false
+            currentScroll < lastScrollValue -> isExpanded = true
+        }
+        lastScrollValue = currentScroll
+    }
+
+    val isBlurActive = showUrduCanvasPromoDialog && com.urdufonts.app.ui.platform.supportsBackgroundBlur
+
+    Scaffold(
+        modifier = Modifier.then(
+            if (isBlurActive) Modifier.blur(16.dp) else Modifier
+        ),
+        topBar = {
+            DetailTopAppBar(
+                title = uiState.fontDetail?.name ?: "",
+                onBackClick = onBackClick,
+                onShareClick = onShareClick
+            )
+        },
+        bottomBar = {
+            if (isContentReady) {
+                BannerAdSlot()
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                val parts = data.visuals.message.split("|")
+                val title = parts.getOrNull(0) ?: data.visuals.message
+                val folderPath = parts.getOrNull(1)
+
+                androidx.compose.material3.Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    containerColor = Color.White, // Rich dark theme background
+                    contentColor = HeadingBlackColor,
+                    shape = RoundedCornerShape(12.dp),
+                    action = {
+                        Text(
+                            text = "OK",
+                            color = AppColor, // App Green Theme Action
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            modifier = Modifier
+                                .clickable { data.dismiss() }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(AppColor.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(Res.drawable.ic_tick),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(AppColor),
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = title,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = NunitoFontFamily,
+                                color = HeadingBlackColor
+                            )
+                            if (!folderPath.isNullOrEmpty()) {
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Saved in: $folderPath",
+                                    fontSize = 11.sp,
+                                    fontFamily = NunitoFontFamily,
+                                    color = HeadingBlackColor.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        floatingActionButton = {
+
+        // Show download FAB only when content is ready
+            if (uiState.errorMessage == null && isContentReady) {
+                if (uiState.fontDetail?.isPremium == true && !uiState.isProUser) {
+                    // Premium font, not unlocked: never try to download (the API sends no file); sell it instead
+                    UnlockPremiumButton(isExpanded = isExpanded, onClick = onNavigateToSubscription)
+                } else {
+                    AnimatedDownloadButton(
+                        downloadState = uiState.downloadState, // 🟢 Passed download state
+                        progress = uiState.downloadProgress,   // 🟢 Passed progress value
+                        isExpanded = isExpanded,
+                        onClick = { viewModel.downloadFont() } // 🟢 Updated click action
+                    )
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center
+    ) { innerPadding ->
+        Crossfade(
+            targetState = when {
+                uiState.errorMessage != null -> "error"
+                isContentReady -> "content"
+                else -> "loading"
+            },
+            animationSpec = tween(durationMillis = 350),
+            label = "detail_screen_transition"
+        ) { state ->
+            when (state) {
+                "loading" -> {
+                    FontDetailSkeleton(
+                        innerPadding = innerPadding,
+                        selectedTab = uiState.selectedTab,
+                        onTabSelected = viewModel::onTabSelected
+                    )
+                }
+                "error" -> {
+                    OfflineErrorState(
+                        message = uiState.errorMessage ?: "",
+                        onRetry = viewModel::retry,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .background(Color.White)
+                    )
+                }
+                "content" -> {
+                    FontDetailContent(
+                        modifier = Modifier.padding(innerPadding),
+                        uiState = uiState,
+                        fontFamily = fontFamily,
+                        fontWeights = fontWeights,
+                        initialFontFamily = initialFontFamily,
+                        selectedWeightIndex = selectedWeightIndex,
+                        onWeightSelected = viewModel::onWeightSelected,
+                        onTabSelected = viewModel::onTabSelected,
+                        onPreviewFontSizeChange = viewModel::onPreviewFontSizeChange,
+                        onBoldToggle = viewModel::onBoldToggle,
+                        onUnderlineToggle = viewModel::onUnderlineToggle,
+                        onOpenUrduCanvas = onOpenUrduCanvas ?: { externalNavigator.openOrInstallApp() },
+                        scrollState = scrollState
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ─── Visible fraction helper ─────────────────────────────────────────────────
+@Composable
+private fun FontDetailContent(
+    uiState: FontDetailUiState,
+    fontFamily: FontFamily?,
+    initialFontFamily: FontFamily?,
+    fontWeights: List<Pair<String, FontFamily>>,
+    selectedWeightIndex: Int,
+    onWeightSelected: (Int) -> Unit,
+    onTabSelected: (DetailTab) -> Unit,
+    onPreviewFontSizeChange: (Float) -> Unit,
+    onBoldToggle: () -> Unit,
+    scrollState: ScrollState,
+    onUnderlineToggle: () -> Unit,
+    onOpenUrduCanvas: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val detail = uiState.fontDetail ?: return
+    val coroutineScope = rememberCoroutineScope()
+
+    var userSelectedTab by remember { mutableStateOf<DetailTab?>(null) }
+    var isAboutExpanded by remember { mutableStateOf(false) }
+    var isProgrammaticScroll by remember { mutableStateOf(false) }
+
+    var fontSectionY by remember { mutableStateOf(0f) }
+    var fontSectionH by remember { mutableStateOf(0f) }
+    var previewSectionY by remember { mutableStateOf(0f) }
+    var previewSectionH by remember { mutableStateOf(0f) }
+    var stylesSectionY by remember { mutableStateOf(0f) }
+    var stylesSectionH by remember { mutableStateOf(0f) }
+    var aboutSectionY by remember { mutableStateOf(0f) }
+    var aboutSectionH by remember { mutableStateOf(0f) }
+    var infoSectionY by remember { mutableStateOf(0f) }
+    var infoSectionH by remember { mutableStateOf(0f) }
+
+    val density = LocalDensity.current
+    val thresholdPx = with(density) { 100.dp.toPx() }
+    val scrollY = scrollState.value.toFloat()
+    val isAtTop = scrollState.value <= 20
+
+    val scrollDerivedTab = when {
+        isAtTop -> DetailTab.FONT
+        else -> {
+            val currentY = scrollY + thresholdPx
+            when {
+                infoSectionY > 0f && currentY >= infoSectionY -> DetailTab.INFO
+                aboutSectionY > 0f && currentY >= aboutSectionY -> DetailTab.ABOUT
+                stylesSectionY > 0f && currentY >= stylesSectionY -> DetailTab.STYLES
+                previewSectionY > 0f && currentY >= previewSectionY -> DetailTab.PREVIEW
+                else -> DetailTab.FONT
+            }
+        }
+    }
+
+    val activeTab = userSelectedTab ?: scrollDerivedTab
+
+    // Clear clicked tab override ONLY when user manually drags/swipes with finger
+    LaunchedEffect(scrollState.isScrollInProgress) {
+        if (scrollState.isScrollInProgress) {
+            if (!isProgrammaticScroll) {
+                userSelectedTab = null
+            }
+        } else {
+            isProgrammaticScroll = false
+        }
+    }
+
+    LaunchedEffect(activeTab) {
+        onTabSelected(activeTab)
+    }
+
+    var previewText by remember { mutableStateOf(DEFAULT_PREVIEW_TEXT) }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        DetailTabRow(
+            selectedTab = activeTab,
+            onTabSelected = { tab ->
+                onTabSelected(tab)
+                userSelectedTab = tab
+                isProgrammaticScroll = true
+                isAboutExpanded = (tab == DetailTab.ABOUT)
+                coroutineScope.launch {
+                    val target = when (tab) {
+                        DetailTab.FONT -> 0
+                        DetailTab.PREVIEW -> previewSectionY.toInt()
+                        DetailTab.STYLES -> stylesSectionY.toInt()
+                        DetailTab.ABOUT -> aboutSectionY.toInt()
+                        DetailTab.INFO -> infoSectionY.toInt()
+                    }
+                    scrollState.animateScrollTo(target.coerceAtLeast(0))
+                }
+            }
+        )
+
+        Box(modifier = Modifier.clipToBounds()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .springOverscroll()
+                    .verticalScroll(scrollState)
+            ) {
+            // ── FONT section ─────────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { coords ->
+                        fontSectionY = coords.positionInParent().y
+                        fontSectionH = coords.size.height.toFloat()
+                    }
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+                FontPreviewCard(
+                    fontFamily = initialFontFamily,
+                    fallbackImageUrl = if (uiState.fontFileUnavailable) detail.featureImageUrl else null,
+                    previewText = previewText,
+                    fontSizePx = uiState.previewFontSizePx,
+                    isBoldEnabled = uiState.isBoldEnabled,
+                    isUnderlineEnabled = uiState.isUnderlineEnabled,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                MetadataRow(
+                    fontWeight = detail.weightCount.toString(),
+                    categories = detail.categories ?: emptyList(),
+                    isPremium = detail.isPremium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            UrduCanvasPromoCard(
+                onOpenApp = onOpenUrduCanvas,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // No font file (premium / missing link): there's nothing to type-preview or pick weights from
+            if (!uiState.fontFileUnavailable) {
+            // ── PREVIEW section ──────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { coords ->
+                        previewSectionY = coords.positionInParent().y
+                        previewSectionH = coords.size.height.toFloat()
+                    }
+            ) {
+                SectionHeading(text = "Preview")
+                Spacer(modifier = Modifier.height(8.dp))
+                PreviewControlsSection(
+                    previewText = previewText,
+                    onPreviewTextChange = { previewText = it },
+                    fontSizePx = uiState.previewFontSizePx,
+                    fontFamily = fontFamily,
+                    isBoldEnabled = uiState.isBoldEnabled,
+                    isUnderlineEnabled = uiState.isUnderlineEnabled,
+                    onFontSizeChange = onPreviewFontSizeChange,
+                    onBoldToggle = onBoldToggle,
+                    onUnderlineToggle = onUnderlineToggle
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── WEIGHTS section ──────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { coords ->
+                        stylesSectionY = coords.positionInParent().y
+                        stylesSectionH = coords.size.height.toFloat()
+                    }
+            ) {
+                SectionHeading(text = "Weights")
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (fontWeights.isEmpty()) {
+                    // Shimmer while weights are loading
+                    repeat(3) {
+                        ShimmerBox(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                } else {
+                    fontWeights.forEachIndexed { index, (weightName, weightFamily) ->
+                        val isSelected = index == selectedWeightIndex
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .addPressEffect {
+                                    onWeightSelected(index)
+                                }
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    GreyColor.copy(alpha = 0.05f)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.Transparent,
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = weightName,
+                                fontSize = 13.sp,
+                                color = GreyColor,
+                                fontWeight = FontWeight.Normal,
+                                fontFamily = NunitoFontFamily
+                            )
+                            Text(
+                                text = previewText,
+                                fontSize = 16.sp,
+                                fontFamily = weightFamily,
+                                color = HeadingBlackColor
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ── ABOUT section ────────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { coords ->
+                        aboutSectionY = coords.positionInParent().y
+                        aboutSectionH = coords.size.height.toFloat()
+                    }
+            ) {
+                AboutSection(
+                    aboutText = detail.description,
+                    isExpanded = isAboutExpanded,
+                    onExpandedChange = { isAboutExpanded = it }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ── INFO section ─────────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { coords ->
+                        infoSectionY = coords.positionInParent().y
+                        infoSectionH = coords.size.height.toFloat()
+                    }
+            ) {
+                InfoSection(detail = detail)
+            }
+
+            Spacer(modifier = Modifier.height(120.dp))
+        }
+    }
+}
+}
+
+// Internal accessibility so FontDetailSkeleton.kt can draw it as a static anchor
+@Composable
+internal fun DetailTabRow(
+    selectedTab: DetailTab,
+    onTabSelected: (DetailTab) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        DetailTab.entries.forEach { tab ->
+            val isSelected = tab == selectedTab
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = tab.label,
+                    fontSize = 14.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (isSelected) HeadingBlackColor else GreyColor,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onTabSelected(tab) }
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                if (isSelected) {
+                    Box(
+                        modifier = Modifier
+                            .width(32.dp)
+                            .height(2.dp)
+                            .background(AppColor, RoundedCornerShape(2.dp))
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FontPreviewCard(
+    previewText: String,
+    fontSizePx: Float,
+    fontFamily: FontFamily?,
+    isBoldEnabled: Boolean,
+    isUnderlineEnabled: Boolean,
+    modifier: Modifier = Modifier,
+    fallbackImageUrl: String? = null,
+) {
+    val cardScrollState = rememberScrollState()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(150.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(color = GreyColor.copy(alpha = 0.06f))
+            .springOverscroll()
+            .verticalScroll(cardScrollState)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (fontFamily == null && fallbackImageUrl != null) {
+            // Font file isn't available: show the font's preview image instead of a shimmer forever
+            val context = coil3.compose.LocalPlatformContext.current
+            coil3.compose.AsyncImage(
+                model = remember(fallbackImageUrl) {
+                    com.urdufonts.app.ui.util.CardImageRequests.font(context, fallbackImageUrl)
+                },
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            )
+        } else if (fontFamily == null) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(20.dp)
+                )
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(20.dp)
+                )
+            }
+        } else {
+            Text(
+                text = previewText,
+                fontSize = fontSizePx.sp,
+                fontFamily = fontFamily,
+                fontWeight = if (isBoldEnabled) FontWeight.Bold else FontWeight.Normal,
+                textDecoration = if (isUnderlineEnabled) TextDecoration.Underline else null,
+                color = HeadingBlackColor,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetadataRow(
+    fontWeight: String,
+    categories: List<FontClassifier>,
+    modifier: Modifier = Modifier,
+    isPremium: Boolean = false
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (isPremium) PremiumBadge()
+        Text(
+            text = "Weight: $fontWeight",
+            fontSize = 12.sp,
+            color = GreyColor,
+            fontFamily = NunitoFontFamily
+        )
+        Text(text = "|", fontSize = 12.sp, color = GreyColor.copy(alpha = 0.4f), fontFamily = NunitoFontFamily)
+        categories.forEach { category ->
+            MetadataChip(text = category.title)
+        }
+    }
+}
+
+@Composable
+private fun MetadataChip(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .addPressEffect()
+            .clip(RoundedCornerShape(14.dp))
+            .background(AppColor.copy(alpha = 0.05f))
+            .border(BorderStroke(0.5.dp, AppColor.copy(alpha = 0.5f)), RoundedCornerShape(14.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            fontSize = 10.sp,
+            color = HeadingBlackColor,
+            fontFamily = NunitoFontFamily
+        )
+    }
+}
+
+@Composable
+private fun SectionHeading(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = GreyColor,
+        modifier = modifier,
+        fontFamily = NunitoFontFamily
+    )
+}
+
+@Composable
+private fun PreviewControlsSection(
+    previewText: String,
+    onPreviewTextChange: (String) -> Unit,
+    fontSizePx: Float,
+    fontFamily: FontFamily?,
+    isBoldEnabled: Boolean,
+    isUnderlineEnabled: Boolean,
+    onFontSizeChange: (Float) -> Unit,
+    onBoldToggle: () -> Unit,
+    onUnderlineToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusRequester = remember { FocusRequester() }
+    var isFocused by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier.fillMaxWidth()) {
+
+        AnimatedVisibility(
+            visible = isFocused,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(AppColor.copy(alpha = 0.07f))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "Go to Settings → Language → Add Urdu keyboard",
+                        fontSize = 11.sp,
+                        color = AppColor,
+                        lineHeight = 16.sp,
+                        fontFamily = NunitoFontFamily
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
+        // ── Editable text field ──────────────────────────────────────
+        val focusManager = LocalFocusManager.current
+
+        BasicTextField(
+            value = previewText,
+            onValueChange = onPreviewTextChange,
+            textStyle = TextStyle(
+                fontSize = 16.sp,
+                fontFamily = NunitoFontFamily,
+                fontWeight = FontWeight.Normal,
+                textDecoration = TextDecoration.None,
+                color = GreyColor.copy(0.5f),
+                textAlign = TextAlign.Right,
+                lineHeight = 28.sp
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    if (isFocused) AppColor.copy(alpha = 0.04f)
+                    else GreyColor.copy(alpha = 0.06f)
+                )
+                .border(
+                    width = 1.dp,
+                    color = if (isFocused) AppColor.copy(alpha = 0.3f) else Color.Transparent,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .focusRequester(focusRequester)
+                .onFocusChanged { isFocused = it.isFocused },
+            decorationBox = { innerTextField ->
+                Box(contentAlignment = Alignment.CenterEnd) {
+                    if (previewText.isEmpty()) {
+                        Text(
+                            text = "یہاں لکھیں...",
+                            fontSize = 16.sp,
+                            color = GreyColor.copy(alpha = 0.4f),
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // ── Size slider + bold/underline toggles ─────────────────────
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "${fontSizePx.toInt()}px", fontSize = 12.sp, color = GreyColor, fontFamily = NunitoFontFamily)
+            Spacer(modifier = Modifier.width(8.dp))
+            CustomSlider(
+                value = fontSizePx,
+                onValueChange = onFontSizeChange,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            StyleToggleIcon(
+                iconRes = Res.drawable.ic_bold,
+                isActive = isBoldEnabled,
+                onClick = onBoldToggle
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            StyleToggleIcon(
+                iconRes = Res.drawable.ic_underline,
+                isActive = isUnderlineEnabled,
+                onClick = onUnderlineToggle
+            )
+        }
+    }
+}
+
+@Composable
+private fun StyleToggleIcon(
+    iconRes: DrawableResource,
+    isActive: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(if (isActive) YellowColor.copy(0.8f) else Color.Transparent)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(if (isActive) HeadingBlackColor else GreyColor),
+            modifier = Modifier.size(14.dp)
+        )
+    }
+}
+
+@Composable
+private fun AboutSection(
+    aboutText: String,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var cutIndex by remember { mutableStateOf<Int?>(null) }
+
+    val plainText = remember(aboutText) {
+        com.urdufonts.app.ui.util.htmlToPlainText(aboutText)
+            .trimEnd()
+            .replace(Regex("\\n+$"), "")
+            .trimEnd()
+    }
+    val displayText = buildAnnotatedString {
+        if (isExpanded) {
+            append(plainText)
+            withStyle(
+                SpanStyle(
+                    color = AppColor,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = NunitoFontFamily,
+                    fontSize = 13.sp
+                )
+            ) {
+                append("  see less")
+            }
+        } else {
+            val cut = cutIndex
+            if (cut != null) {
+                val trimmed = plainText.take(cut).trimEnd().trimEnd { !it.isWhitespace() }.trimEnd()
+                append(trimmed)
+                withStyle(
+                    SpanStyle(
+                        color = AppColor,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = NunitoFontFamily,
+                        fontSize = 13.sp
+                    )
+                ) {
+                    append("... see more")
+                }
+            } else {
+                append(plainText)
+            }
+        }
+    }
+
+    Column(modifier = modifier
+        .animateContentSize(
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            )
+        )) {
+        SectionHeading(text = "About")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = displayText,
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
+            color = GreyColor,
+            fontFamily = NunitoFontFamily,
+            maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+            overflow = TextOverflow.Clip,
+            onTextLayout = { result ->
+                if (!isExpanded && cutIndex == null && result.hasVisualOverflow) {
+                    val lastLine = result.lineCount - 1
+                    val lineEnd = result.getLineEnd(lastLine, visibleEnd = true)
+                    cutIndex = (lineEnd - 25).coerceAtLeast(0)
+                }
+            },
+            modifier = Modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onExpandedChange(!isExpanded) }
+        )
+    }
+}
+
+@Composable
+private fun InfoSection(detail: FontItem, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        SectionHeading(text = "Info")
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(GreyColor.copy(alpha = 0.05f))
+                .padding(vertical = 4.dp)
+        ) {
+            Column {
+                InfoRow(
+                    iconRes = Res.drawable.ic_weights,
+                    label = "Weight",
+                    value = detail.weightCount.toString()
+                )
+                InfoDivider()
+                InfoRow(
+                    iconRes = Res.drawable.ic_language,
+                    label = "Language",
+                    value = detail.language
+                )
+                InfoDivider()
+                InfoRow(
+                    iconRes = Res.drawable.ic_developer,
+                    label = "Font Developer",
+                    value = detail.developer
+                )
+                InfoDivider()
+                InfoRow(
+                    iconRes = Res.drawable.ic_font_family,
+                    label = "Font Family",
+                    value = detail.fontFamily
+                )
+                InfoDivider()
+                InfoRow(iconRes = Res.drawable.ic_format, label = "Format", value = "TTF")
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(
+    iconRes: DrawableResource,
+    label: String,
+    value: String,
+    valueColor: Color = DarkGreen,
+    valueFontWeight: FontWeight = FontWeight.Normal,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(GreyColor.copy(alpha = 0.5f)),
+                modifier = Modifier.size(18.dp)
+            )
+            Text(text = label, fontSize = 14.sp, color = GreyColor, fontFamily = NunitoFontFamily)
+        }
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            color = valueColor,
+            fontWeight = valueFontWeight,
+            fontFamily = NunitoFontFamily
+        )
+    }
+}
+
+@Composable
+private fun InfoDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        thickness = 0.5.dp,
+        color = GreyColor.copy(alpha = 0.15f)
+    )
+}
+
+@Composable
+private fun OfflineErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isNoInternet = message.contains("internet", ignoreCase = true) ||
+            message.contains("connection", ignoreCase = true) ||
+            message.contains("timed out", ignoreCase = true)
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(88.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(AppColor.copy(alpha = 0.08f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(AppColor.copy(alpha = 0.12f))
+                        .alpha(if (isNoInternet) pulseAlpha else 1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(
+                            if (isNoInternet) Res.drawable.ic_no_wifi
+                            else Res.drawable.ic_error
+                        ),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(AppColor),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = if (isNoInternet) "You're Offline" else "Something Went Wrong",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = HeadingBlackColor,
+                textAlign = TextAlign.Center,
+                fontFamily = NunitoFontFamily
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = if (isNoInternet)
+                    "Check your connection and tap retry to load the font."
+                else message,
+                fontSize = 14.sp,
+                color = GreyColor.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp,
+                fontFamily = NunitoFontFamily
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(AppColor)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onRetry
+                    )
+                    .padding(horizontal = 36.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    text = "Try Again",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    fontFamily = NunitoFontFamily
+                )
+            }
+        }
+    }
+}

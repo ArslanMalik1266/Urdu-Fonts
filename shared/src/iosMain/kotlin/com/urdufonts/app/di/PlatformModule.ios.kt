@@ -13,6 +13,8 @@ import org.koin.dsl.module
 
 actual val platformModule = module {
     single { AppDirectories() }
+    // Coil's context, which some ViewModels use to preload images (Android gets it from androidContext())
+    single<coil3.PlatformContext> { coil3.PlatformContext.INSTANCE }
 
     single<AppDatabase> {
         Room.databaseBuilder<AppDatabase>(name = get<AppDirectories>().databasePath(AppDatabase.FILE_NAME))
@@ -23,4 +25,5 @@ actual val platformModule = module {
     }
 
     single<DeviceDetailsSource> { IosDeviceDetailsSource() }
+    single { com.urdufonts.app.ui.platform.ExternalNavigator() }
 }

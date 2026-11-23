@@ -1,0 +1,1353 @@
+package com.urdufonts.app.ui.profile
+
+import org.jetbrains.compose.resources.DrawableResource
+import com.urdufonts.app.resources.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.ui.window.Dialog
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import org.jetbrains.compose.resources.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.platform.LocalFocusManager
+import kotlinx.coroutines.delay
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.rememberAsyncImagePainter
+import com.urdufonts.app.ui.components.TopBarButton
+import com.urdufonts.app.ui.theme.AppColor
+import com.urdufonts.app.ui.theme.GreyColor
+import com.urdufonts.app.ui.theme.DarkGreen
+import com.urdufonts.app.ui.theme.HeadingBlackColor
+import com.urdufonts.app.ui.theme.NunitoFontFamily
+import com.urdufonts.app.ui.theme.RedColor
+import com.urdufonts.app.ui.util.addPressEffect
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun ProfileScreen(
+    onBackClick: () -> Unit,
+    viewModel: ProfileViewModel = koinViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val platformContext = com.urdufonts.app.ui.platform.rememberPlatformContext()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearSuccessMessage()
+        }
+    }
+
+    LaunchedEffect(uiState.navigateToHome) {
+        if (uiState.navigateToHome) {
+            onBackClick()
+            viewModel.clearNavigateToHome()
+        }
+    }
+
+    ProfileScreenInternal(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onBackClick = onBackClick,
+        onLogin = { email, password -> viewModel.onLoginClick(email, password) },
+        onSignUp = { name, email, pass, confirmPass ->
+            viewModel.onSignUpClick(
+                name,
+                email,
+                pass,
+                confirmPass
+            )
+        },
+        onVerifyOtp = { otp -> viewModel.onVerifyOtpClick(otp) },
+        onCancelOtp = { viewModel.cancelOtp() },
+        onToggleMode = { viewModel.toggleAuthMode() },
+        onLogout = { viewModel.onLogoutClick() },
+        onGoogleSignIn = { viewModel.onGoogleSignInClick(platformContext) },
+        reset = ResetActions(
+            onForgotPassword = viewModel::onForgotPasswordClick,
+            onSendCode = viewModel::onSendResetCode,
+            onVerifyCode = viewModel::onVerifyResetCode,
+            onSavePassword = viewModel::onSaveNewPassword,
+            onCancel = viewModel::cancelReset,
+            onResendCode = viewModel::onResendCode
+        )
+    )
+}
+
+/** What the forgot-password flow and the "Resend" link do. */
+internal class ResetActions(
+    val onForgotPassword: () -> Unit = {},
+    val onSendCode: (email: String) -> Unit = {},
+    val onVerifyCode: (code: String) -> Unit = {},
+    val onSavePassword: (password: String, confirm: String) -> Unit = { _, _ -> },
+    val onCancel: () -> Unit = {},
+    val onResendCode: () -> Unit = {}
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ProfileScreenInternal(
+    uiState: ProfileUiState,
+    snackbarHostState: SnackbarHostState,
+    onBackClick: () -> Unit,
+    onLogin: (email: String, password: String) -> Unit,
+    onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
+    onVerifyOtp: (otp: String) -> Unit,
+    onCancelOtp: () -> Unit,
+    onToggleMode: () -> Unit,
+    onLogout: () -> Unit,
+    onGoogleSignIn: () -> Unit,
+    reset: ResetActions = ResetActions()
+) {
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            com.urdufonts.app.ui.components.SimpleTopAppBar(
+                title = if (uiState.isLoggedIn) "Profile" else "Account",
+                onBackClick = onBackClick,
+                containerColor = Color.White
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Image(
+                painter = painterResource(Res.drawable.drawar_bg),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.4f)
+                    .align(Alignment.BottomCenter)
+            )
+
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                AnimatedContent(
+                targetState = uiState.isLoggedIn,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "profile_state"
+            ) { isLoggedIn ->
+                if (isLoggedIn) {
+                    LoggedInContent(uiState = uiState, onLogout = onLogout)
+                } else {
+                    LoggedOutContent(
+                        uiState = uiState,
+                        onLogin = onLogin,
+                        onSignUp = onSignUp,
+                        onVerifyOtp = onVerifyOtp,
+                        onCancelOtp = onCancelOtp,
+                        onToggleMode = onToggleMode,
+                        onGoogleSignIn = onGoogleSignIn,
+                        reset = reset
+                    )
+                }
+            }
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 80.dp)
+        )
+
+        ProfileFooter(modifier = Modifier.align(Alignment.BottomCenter))
+    }
+}
+}
+
+// ─── Logged-in view ───────────────────────────────────────────────────────────
+
+@Composable
+private fun LoggedInContent(
+    uiState: ProfileUiState,
+    onLogout: () -> Unit
+) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Avatar
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE7F5EC)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!uiState.profileImageUrl.isNullOrBlank()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(uiState.profileImageUrl),
+                        contentDescription = "Profile photo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else if (uiState.userName.isNotBlank()) {
+                    Text(
+                        text = uiState.userName.take(1).uppercase(),
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColor,
+                        fontFamily = NunitoFontFamily
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(Res.drawable.ic_drawer_profile),
+                        contentDescription = null,
+                        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(AppColor),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = uiState.userName,
+            fontSize = 16.sp,
+            fontFamily = NunitoFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            color = GreyColor
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = uiState.email,
+            fontSize = 12.sp,
+            fontFamily = NunitoFontFamily,
+            color = GreyColor.copy(alpha = 0.5f)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Email field (read-only)
+        ProfileReadOnlyField(
+            label = "Email",
+            value = uiState.email,
+            leadingIcon = Res.drawable.ic_email
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Username field (read-only)
+        ProfileReadOnlyField(
+            label = "Username",
+            value = uiState.userName,
+            leadingIcon = Res.drawable.ic_drawer_profile
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Logout button
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .addPressEffect() { showLogoutDialog = true }
+                .clip(RoundedCornerShape(12.dp))
+                .background(RedColor)
+                .padding(vertical = 14.dp)
+        ) {
+            androidx.compose.foundation.layout.Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_logout),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Logout",
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        if (showLogoutDialog) {
+            LogoutConfirmationDialog(
+                onDismiss = { showLogoutDialog = false },
+                onConfirm = {
+                    showLogoutDialog = false
+                    onLogout()
+                }
+            )
+        }
+    }
+}
+
+// ─── Logged-out / Login view ──────────────────────────────────────────────────
+
+@Composable
+private fun LoggedOutContent(
+    uiState: ProfileUiState,
+    onLogin: (email: String, password: String) -> Unit,
+    onSignUp: (name: String, email: String, pass: String, confirmPass: String) -> Unit,
+    onVerifyOtp: (otp: String) -> Unit,
+    onCancelOtp: () -> Unit,
+    onToggleMode: () -> Unit,
+    onGoogleSignIn: () -> Unit,
+    reset: ResetActions
+) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState.isSignUpMode) {
+        name = ""
+        email = ""
+        password = ""
+        confirmPassword = ""
+    }
+
+    // Which page of the logged-out flow shows: the form, a code screen, or a forgot-password step
+    val page = when {
+        uiState.isOtpMode -> "verify"
+        uiState.resetStep != null -> uiState.resetStep.name
+        else -> "form"
+    }
+    AnimatedContent(
+        targetState = page,
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        label = "otp_mode_transition"
+    ) { shown ->
+        if (shown == "verify") {
+            OtpVerificationContent(
+                uiState = uiState,
+                email = uiState.registrationEmail,
+                onVerifyOtp = onVerifyOtp,
+                onCancelOtp = onCancelOtp,
+                onResend = reset.onResendCode
+            )
+        } else if (shown == ResetStep.CODE.name) {
+            OtpVerificationContent(
+                uiState = uiState,
+                email = uiState.resetEmail,
+                title = "Reset Password",
+                buttonText = "Verify Code",
+                backText = "Back to Login",
+                onVerifyOtp = reset.onVerifyCode,
+                onCancelOtp = reset.onCancel,
+                onResend = reset.onResendCode
+            )
+        } else if (shown == ResetStep.EMAIL.name || shown == ResetStep.NEW_PASSWORD.name) {
+            ResetPasswordContent(uiState = uiState, initialEmail = email, reset = reset)
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Avatar placeholder
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF0F0F0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_drawer_profile),
+                        contentDescription = null,
+                        tint = GreyColor.copy(alpha = 0.4f),
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Dynamic Header Title
+                Text(
+                    text = if (uiState.isSignUpMode) "Create Account" else "Join Urdu Fonts",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = NunitoFontFamily,
+                    color = HeadingBlackColor
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Dynamic Header Subtext
+                Text(
+                    text = if (uiState.isSignUpMode) "Sign up to download and manage custom fonts" else "Login to access premium Urdu fonts",
+                    fontSize = 12.sp,
+                    color = GreyColor,
+                    fontFamily = NunitoFontFamily,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 1. Name Field (Only in Sign Up Mode)
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = uiState.isSignUpMode,
+                    enter = fadeIn() + androidx.compose.animation.expandVertically(),
+                    exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+                ) {
+                    Column {
+                        ProfileInputField(
+                            label = "Full Name",
+                            value = name,
+                            onValueChange = { name = it },
+                            leadingIcon = Res.drawable.ic_drawer_profile,
+                            keyboardType = KeyboardType.Text
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
+                // 2. Email input (Always shown)
+                ProfileInputField(
+                    label = "Email",
+                    value = email,
+                    onValueChange = { email = it },
+                    leadingIcon = Res.drawable.ic_email,
+                    keyboardType = KeyboardType.Email
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 3. Password input (Always shown)
+                ProfileInputField(
+                    label = "Password",
+                    value = password,
+                    onValueChange = { password = it },
+                    leadingIcon = Res.drawable.ic_pass,
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true,
+                    imeAction = if (uiState.isSignUpMode) ImeAction.Next else ImeAction.Done
+                )
+
+                // Forgot password (login only)
+                if (!uiState.isSignUpMode) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                        Text(
+                            text = "Forgot password?",
+                            fontSize = 12.5.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = AppColor,
+                            modifier = Modifier
+                                .addPressEffect { reset.onForgotPassword() }
+                                .padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 4.dp)
+                        )
+                    }
+                }
+
+                // 4. Confirm Password input (Only in Sign Up Mode)
+                AnimatedVisibility(
+                    visible = uiState.isSignUpMode,
+                    enter = fadeIn() + androidx.compose.animation.expandVertically(),
+                    exit = fadeOut() + androidx.compose.animation.shrinkVertically()
+                ) {
+                    Column {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        ProfileInputField(
+                            label = "Confirm Password",
+                            value = confirmPassword,
+                            onValueChange = { confirmPassword = it },
+                            leadingIcon = Res.drawable.ic_pass,
+                            keyboardType = KeyboardType.Password,
+                            isPassword = true,
+                            imeAction = ImeAction.Done
+                        )
+                    }
+                }
+
+                // Error message display
+                if (uiState.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = uiState.errorMessage,
+                        color = Color.Red,
+                        fontFamily = NunitoFontFamily,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // 5. Dynamic Auth Action Button
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .addPressEffect {
+                            if (!uiState.isLoading) {
+                                if (uiState.isSignUpMode) {
+                                    onSignUp(name, email, password, confirmPassword)
+                                } else {
+                                    onLogin(email, password)
+                                }
+                            }
+                        }
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
+                        .padding(vertical = 14.dp)
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (uiState.isSignUpMode) "Register" else "Login",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // Google Sign-In OR Divider & Button
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp)
+                            .background(Color(0xFFEEEEEE))
+                    )
+                    Text(
+                        text = "OR",
+                        fontSize = 11.sp,
+                        fontFamily = NunitoFontFamily,
+                        color = GreyColor.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(1.dp)
+                            .background(Color(0xFFEEEEEE))
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .addPressEffect {
+                            if (!uiState.isLoading && !uiState.isGoogleLoading) {
+                                onGoogleSignIn()
+                            }
+                        }
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (uiState.isGoogleLoading) {
+                        CircularProgressIndicator(
+                            color = AppColor,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(Res.drawable.ic_google),
+                            contentDescription = "Google Logo",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = if (uiState.isGoogleLoading) "Signing in..." else "Continue with Google",
+                        fontSize = 15.sp,
+                        fontFamily = NunitoFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        color = GreyColor
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 6. Dynamic Toggle  Mode Text Link
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (uiState.isSignUpMode) "Already have an ? " else "Don't have an account? ",
+                        fontSize = 13.sp,
+                        fontFamily = NunitoFontFamily,
+                        color = GreyColor
+                    )
+                    Text(
+                        text = if (uiState.isSignUpMode) "Log In" else "Sign Up",
+                        fontSize = 13.sp,
+                        fontFamily = NunitoFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColor, // 🟢 App Theme Green
+                        modifier = Modifier
+                            .addPressEffect()
+                            .addPressEffect { onToggleMode() }
+                            .padding(4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OtpVerificationContent(
+    uiState: ProfileUiState,
+    email: String,
+    onVerifyOtp: (String) -> Unit,
+    onCancelOtp: () -> Unit,
+    onResend: () -> Unit,
+    title: String = "Verify Email",
+    buttonText: String = "Verify & Register",
+    backText: String = "Back to Sign Up"
+) {
+    var otpValue by remember { mutableStateOf(TextFieldValue("")) }
+    var otpCode by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    var isTextFieldFocused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        delay(150)
+        focusRequester.requestFocus()
+    }
+
+    val imeAction = if (otpValue.selection.start < 5 && otpValue.text.length < 6) {
+        ImeAction.Next
+    } else {
+        ImeAction.Done
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Verification Icon in soft tint circle
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFF0F0F0)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.ic_drawer_privacy),
+                contentDescription = null,
+                tint = AppColor,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = title,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = NunitoFontFamily,
+            color = HeadingBlackColor
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "We sent a 6-digit verification code to \n$email",
+            fontSize = 12.sp,
+            color = GreyColor,
+            fontFamily = NunitoFontFamily,
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Custom OTP digit input cells with hidden BasicTextField
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            BasicTextField(
+                value = otpValue,
+                onValueChange = { newValue ->
+                    val oldText = otpValue.text
+                    val oldSelection = otpValue.selection.start
+                    val newText = newValue.text
+
+                    val updatedValue = when {
+                        // 1. Backspace/deletion detected
+                        newText.length < oldText.length -> {
+                            if (oldSelection < oldText.length) {
+                                // Clear digit at intermediate focused cell and shift cursor back
+                                val updatedText = oldText.substring(0, oldSelection) + oldText.substring(oldSelection + 1)
+                                val targetSelection = (oldSelection - 1).coerceAtLeast(0)
+                                TextFieldValue(text = updatedText, selection = TextRange(targetSelection))
+                            } else {
+                                // Default backspace at the very end
+                                val updatedText = oldText.substring(0, oldSelection - 1)
+                                val targetSelection = oldSelection - 1
+                                TextFieldValue(text = updatedText, selection = TextRange(targetSelection))
+                            }
+                        }
+                        // 2. Character typed/inserted
+                        newText.length > oldText.length -> {
+                            if (oldSelection < oldText.length) {
+                                // Replace existing intermediate digit with newly typed character
+                                val typedChar = newText[oldSelection]
+                                val updatedText = oldText.substring(0, oldSelection) + typedChar + oldText.substring(oldSelection + 1)
+                                val targetSelection = (oldSelection + 1).coerceAtMost(6)
+                                TextFieldValue(text = updatedText, selection = TextRange(targetSelection))
+                            } else {
+                                // Standard append at the end
+                                if (newText.length <= 6) newValue else otpValue
+                            }
+                        }
+                        // 3. Selection change / other edits
+                        else -> newValue
+                    }
+
+                    otpValue = updatedValue
+                    otpCode = updatedValue.text
+
+                    if (updatedValue.text.length == 6 && oldText.length < 6) {
+                        focusManager.clearFocus()
+                        onVerifyOtp(updatedValue.text)
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = imeAction
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        val currentCursor = otpValue.selection.start
+                        if (currentCursor < 5) {
+                            val nextCursor = (currentCursor + 1).coerceAtMost(otpValue.text.length)
+                            otpValue = otpValue.copy(selection = TextRange(nextCursor))
+                        }
+                    },
+                    onDone = {
+                        if (otpCode.length == 6) {
+                            onVerifyOtp(otpCode)
+                        } else {
+                            focusManager.clearFocus()
+                        }
+                    }
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(0.01f)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { isTextFieldFocused = it.isFocused }
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(6) { index ->
+                    val char = otpCode.getOrNull(index)?.toString() ?: ""
+                    val isFocusedCell = isTextFieldFocused && (
+                        otpValue.selection.start == index || (otpValue.selection.start == 6 && index == 5)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(width = 40.dp, height = 48.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isFocusedCell) AppColor.copy(alpha = 0.05f) else Color(
+                                    0xFFF7F7F7
+                                )
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (isFocusedCell) AppColor else Color(0xFFEEEEEE),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                val targetIndex = index.coerceAtMost(otpValue.text.length)
+                                otpValue = otpValue.copy(selection = TextRange(targetIndex))
+                                focusRequester.requestFocus()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = char,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = NunitoFontFamily,
+                            color = HeadingBlackColor
+                        )
+                    }
+                }
+            }
+        }
+
+        if (uiState.errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = uiState.errorMessage,
+                color = Color.Red,
+                fontFamily = NunitoFontFamily,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .addPressEffect {
+                    if (!uiState.isLoading) {
+                        onVerifyOtp(otpCode)
+                    }
+                }
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
+                .padding(vertical = 14.dp)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = buttonText,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Didn't get the code? ",
+                fontSize = 13.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor
+            )
+            Text(
+                text = "Resend",
+                fontSize = 13.sp,
+                fontFamily = NunitoFontFamily,
+                fontWeight = FontWeight.Bold,
+                color = AppColor,
+                modifier = Modifier
+                    .addPressEffect { if (!uiState.isLoading) onResend() }
+                    .padding(4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = backText,
+            fontSize = 13.sp,
+            fontFamily = NunitoFontFamily,
+            fontWeight = FontWeight.Bold,
+            color = AppColor,
+            modifier = Modifier
+                .addPressEffect { onCancelOtp() }
+                .padding(4.dp)
+        )
+    }
+}
+
+
+/** Forgot password: the email to send the code to, or (after the code) the new password twice. */
+@Composable
+private fun ResetPasswordContent(
+    uiState: ProfileUiState,
+    initialEmail: String,
+    reset: ResetActions
+) {
+    val askingEmail = uiState.resetStep == ResetStep.EMAIL
+    var email by remember { mutableStateOf(initialEmail.ifBlank { uiState.resetEmail }) }
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFF0F0F0)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(Res.drawable.ic_pass),
+                contentDescription = null,
+                tint = AppColor,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = if (askingEmail) "Forgot Password" else "New Password",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = NunitoFontFamily,
+            color = HeadingBlackColor
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = if (askingEmail) "Enter your account email and we'll send you a 6-digit code"
+            else "Choose a new password for\n${uiState.resetEmail}",
+            fontSize = 12.sp,
+            color = GreyColor,
+            fontFamily = NunitoFontFamily,
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (askingEmail) {
+            ProfileInputField(
+                label = "Email",
+                value = email,
+                onValueChange = { email = it },
+                leadingIcon = Res.drawable.ic_email,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Done
+            )
+        } else {
+            ProfileInputField(
+                label = "New Password",
+                value = password,
+                onValueChange = { password = it },
+                leadingIcon = Res.drawable.ic_pass,
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
+                imeAction = ImeAction.Next
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            ProfileInputField(
+                label = "Confirm Password",
+                value = confirm,
+                onValueChange = { confirm = it },
+                leadingIcon = Res.drawable.ic_pass,
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
+                imeAction = ImeAction.Done
+            )
+        }
+
+        if (uiState.errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = uiState.errorMessage,
+                color = Color.Red,
+                fontFamily = NunitoFontFamily,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .addPressEffect {
+                    if (!uiState.isLoading) {
+                        if (askingEmail) reset.onSendCode(email) else reset.onSavePassword(password, confirm)
+                    }
+                }
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (uiState.isLoading) AppColor.copy(alpha = 0.6f) else AppColor)
+                .padding(vertical = 14.dp)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = if (askingEmail) "Send Code" else "Save Password",
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Back to Login",
+            fontSize = 13.sp,
+            fontFamily = NunitoFontFamily,
+            fontWeight = FontWeight.Bold,
+            color = AppColor,
+            modifier = Modifier
+                .addPressEffect { reset.onCancel() }
+                .padding(4.dp)
+        )
+    }
+}
+
+// ─── Reusable field components ────────────────────────────────────────────────
+
+@Composable
+private fun ProfileReadOnlyField(
+    label: String,
+    value: String,
+    leadingIcon: DrawableResource
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        androidx.compose.foundation.layout.Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(leadingIcon),
+                contentDescription = null,
+                tint = GreyColor.copy(0.5f),
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor.copy(0.5f)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFFF7F7F7))
+                .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp))
+                .padding(horizontal = 14.dp, vertical = 12.dp)
+        ) {
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                fontFamily = NunitoFontFamily,
+                color = GreyColor.copy(0.5f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    leadingIcon: DrawableResource,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false,
+    imeAction: ImeAction = ImeAction.Next
+) {
+    var isPasswordVisible by remember { mutableStateOf(false) }
+
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = AppColor,
+        unfocusedBorderColor = Color(0xFFEEEEEE),
+        focusedLabelColor = AppColor,
+        unfocusedLabelColor = GreyColor,
+        cursorColor = AppColor,
+        focusedContainerColor = Color(0xFFF7F7F7),
+        unfocusedContainerColor = Color(0xFFF7F7F7)
+    )
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, fontSize = 12.sp, fontFamily = NunitoFontFamily) },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(leadingIcon),
+                contentDescription = null,
+                tint = GreyColor,
+                modifier = Modifier.size(16.dp)
+            )
+        },
+        trailingIcon = if (isPassword) {
+            {
+                Box(
+                    modifier = Modifier.addPressEffect(
+                        onClick = { isPasswordVisible = !isPasswordVisible }
+                    )) {
+                    Icon(
+                        painter = painterResource(
+                            if (isPasswordVisible) Res.drawable.ic_eye_open else Res.drawable.ic_eye_closed
+                        ),
+                        contentDescription = if (isPasswordVisible) "Hide password" else "Show password",
+                        tint = GreyColor.copy(alpha = 0.6f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        } else null,
+        visualTransformation = if (isPassword && !isPasswordVisible) {
+            PasswordVisualTransformation()
+        } else {
+            androidx.compose.ui.text.input.VisualTransformation.None
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = imeAction
+        ),
+        singleLine = true,
+        shape = RoundedCornerShape(10.dp),
+        colors = fieldColors,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun ProfileFooter(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.foundation.layout.Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Urdu Fonts App",
+                fontSize = 11.sp,
+                color = DarkGreen,
+                fontFamily = NunitoFontFamily,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = "  |  ",
+                fontSize = 11.sp,
+                color = GreyColor.copy(alpha = 0.3f),
+                fontFamily = NunitoFontFamily
+            )
+            Text(
+                text = "Version 1.0.0",
+                fontFamily = NunitoFontFamily,
+                fontSize = 11.sp,
+                color = GreyColor
+            )
+        }
+    }
+}
+
+@Composable
+private fun LogoutConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White)
+                .padding(24.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Warning Icon in soft tint circle
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(RedColor.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ic_logout),
+                        contentDescription = null,
+                        tint = RedColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Title
+                Text(
+                    text = "Leaving so soon?",
+                    fontSize = 18.sp,
+                    fontFamily = NunitoFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    color = HeadingBlackColor,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Subtitle
+                Text(
+                    text = "Are you sure you want to log out of your Urdu Fonts account?",
+                    fontSize = 14.sp,
+                    fontFamily = NunitoFontFamily,
+                    color = GreyColor,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Action Buttons Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Cancel Button
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .addPressEffect() { onDismiss() }
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(12.dp))
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = GreyColor
+                        )
+                    }
+
+                    // Confirm Log Out Button
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .addPressEffect() { onConfirm() }
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(RedColor)
+                            .padding(vertical = 12.dp)
+                    ) {
+                        Text(
+                            text = "Yes, Log Out",
+                            fontSize = 14.sp,
+                            fontFamily = NunitoFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

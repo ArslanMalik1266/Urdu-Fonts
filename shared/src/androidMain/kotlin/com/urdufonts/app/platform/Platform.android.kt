@@ -9,3 +9,5 @@ actual typealias PlatformFile = java.io.File
 actual val PlatformFile.absolutePathString: String get() = absolutePath
 
 actual val platformName: String = "Android"
+
+actual fun PlatformActivity.asPlatformContext(): PlatformContext = this

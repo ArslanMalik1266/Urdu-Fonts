@@ -3,6 +3,9 @@ package com.urdufonts.app.platform
 /** iOS needs no Context; kept so common signatures compile. */
 actual abstract class PlatformContext
 
+/** The one iOS [PlatformContext] instance. */
+object IosPlatformContext : PlatformContext()
+
 /** Will wrap the presenting UIViewController for StoreKit / Sign in with Google. */
 actual open class PlatformActivity
 
@@ -12,3 +15,5 @@ actual open class PlatformFile(val path: String)
 actual val PlatformFile.absolutePathString: String get() = path
 
 actual val platformName: String = "iOS"
+
+actual fun PlatformActivity.asPlatformContext(): PlatformContext = IosPlatformContext
