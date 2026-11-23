@@ -43,7 +43,7 @@ actual fun showToast(message: String) {
         val alert = UIAlertController.alertControllerWithTitle(null, message, UIAlertControllerStyleAlert)
         presenter.presentViewController(alert, animated = true, completion = null)
         // Like a toast: goes away by itself
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (2 * NSEC_PER_SEC).toLong()), dispatch_get_main_queue()) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (2uL * NSEC_PER_SEC).toLong()), dispatch_get_main_queue()) {
             alert.dismissViewControllerAnimated(true, completion = null)
         }
     }

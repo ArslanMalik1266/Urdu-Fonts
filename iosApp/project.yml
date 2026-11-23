@@ -26,6 +26,8 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true
+        # Required by Compose Multiplatform (it aborts at launch without it): allows 120 Hz on ProMotion iPhones
+        CADisableMinimumFrameDurationOnPhone: true
         # Downloaded fonts are saved to Documents/UrduFonts and shown in the Files app
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true

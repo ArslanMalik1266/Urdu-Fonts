@@ -18,6 +18,8 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import kotlinx.io.write
+import kotlinx.cinterop.ExperimentalForeignApi
+import platform.Foundation.timeIntervalSince1970
 
 /**
  * Fonts on iOS. Same behaviour as the Android FontRepositoryImpl: free fonts only, the list cached in Room,
@@ -134,6 +136,7 @@ class IosFontRepository(
         files.sortedBy { modifiedSeconds(it) }.take(files.size - keep).forEach { SystemFileSystem.delete(it, mustExist = false) }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun modifiedSeconds(path: Path): Double {
         val attrs = platform.Foundation.NSFileManager.defaultManager.attributesOfItemAtPath(path.toString(), null)
         val date = attrs?.get(platform.Foundation.NSFileModificationDate) as? platform.Foundation.NSDate

@@ -15,3 +15,7 @@
 local.properties
 # Keystore / signing passwords and tokens: never commit
 gradle.properties
+
+# Build output and JVM heap dumps (never commit)
+**/build/
+*.hprof
