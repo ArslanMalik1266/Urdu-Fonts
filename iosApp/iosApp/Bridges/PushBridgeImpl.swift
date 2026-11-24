@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseCore
 import FirebaseMessaging
 import Shared
 
@@ -6,7 +7,8 @@ import Shared
 final class PushBridgeImpl: NSObject, PushBridge {
     func currentToken(completion: @escaping (String?) -> Void) {
         // Firebase needs the APNs token first; without it there is no FCM token yet (it is retried on the next start)
-        guard Messaging.messaging().apnsToken != nil else {
+        // TEMP (local only): no Firebase without GoogleService-Info.plist
+        guard FirebaseApp.app() != nil, Messaging.messaging().apnsToken != nil else {
             completion(nil)
             return
         }

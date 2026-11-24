@@ -2,7 +2,12 @@ package com.urdufonts.app.ui.navigation
 
 import androidx.savedstate.read
 import com.urdufonts.app.ui.platform.ExternalNavigator
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -94,7 +99,7 @@ fun AppNavigation() {
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         BlurOverlay(modifier = Modifier.fillMaxSize())
         BaseScreen(
             bottomBarVisible = showBottomBar,
@@ -104,7 +109,13 @@ fun AppNavigation() {
             content = {
                 NavHost(
                     navController = navController,
-                    startDestination = startDestination
+                    startDestination = startDestination,
+                    // Explicit so iOS matches Android. CMP on iOS otherwise uses an iOS-style slide + dim, and since
+                    // screens are transparent (glow shows through), both screens overlap visibly during it.
+                    enterTransition = { fadeIn(tween(250)) },
+                    exitTransition = { fadeOut(tween(250)) },
+                    popEnterTransition = { fadeIn(tween(250)) },
+                    popExitTransition = { fadeOut(tween(250)) }
                 ) {
                     composable(Screen.Splash.route) {
                         SplashScreen(

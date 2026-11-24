@@ -33,9 +33,9 @@ import kotlin.coroutines.resume
  */
 object IosProductIds {
     var plans: Map<SubscriptionType, String> = mapOf(
-        SubscriptionType.BASIC to "monthly",
-        SubscriptionType.PRO to "monthly-pro",
-        SubscriptionType.BUSINESS to "monthly-business",
+        SubscriptionType.BASIC to "urdu_fonts_basic_monthly",
+        SubscriptionType.PRO to "Urdu_fonts_pro_monthly",
+        SubscriptionType.BUSINESS to "urdu_fonts_business_monthly",
     )
     var lifetime: String = "urdu_fonts_lifetime"
 
@@ -103,7 +103,8 @@ class IosBillingRepository(
                     else -> Res.drawable.ic_infinity
                 },
                 isMostPopular = plan == SubscriptionType.PRO,
-                tierRank = plan.rank
+                tierRank = plan.rank,
+                storeProductId = product.id
             )
         }
     }

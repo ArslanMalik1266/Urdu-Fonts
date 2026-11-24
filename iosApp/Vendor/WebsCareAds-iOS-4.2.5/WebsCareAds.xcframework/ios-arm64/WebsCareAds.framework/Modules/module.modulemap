@@ -1,0 +1,8 @@
+framework module "WebsCareAds" {
+    umbrella header "WebsCareAds.h"
+
+    export *
+    module * { export * }
+
+    use Foundation
+}

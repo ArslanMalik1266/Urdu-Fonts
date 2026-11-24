@@ -1,0 +1,169 @@
+PODS:
+  - AppAuth (1.7.6):
+    - AppAuth/Core (= 1.7.6)
+    - AppAuth/ExternalUserAgent (= 1.7.6)
+  - AppAuth/Core (1.7.6)
+  - AppAuth/ExternalUserAgent (1.7.6):
+    - AppAuth/Core
+  - AppCheckCore (11.3.2):
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+    - PromisesSwift (~> 2.4)
+    - RecaptchaInterop (~> 101.0)
+  - FBAudienceNetwork (6.22.1)
+  - FirebaseABTesting (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+  - FirebaseCore (12.19.0):
+    - FirebaseCoreInternal (~> 12.19.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/Logger (~> 8.1)
+  - FirebaseCoreInternal (12.19.0):
+    - "GoogleUtilities/NSData+zlib (~> 8.1)"
+  - FirebaseInstallations (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/UserDefaults (~> 8.1)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (12.19.0):
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
+    - GoogleDataTransport (~> 10.1)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/Reachability (~> 8.1)
+    - GoogleUtilities/UserDefaults (~> 8.1)
+    - nanopb (~> 3.30910.0)
+  - FirebaseRemoteConfig (12.19.0):
+    - FirebaseABTesting (~> 12.19.0)
+    - FirebaseCore (~> 12.19.0)
+    - FirebaseInstallations (~> 12.19.0)
+    - FirebaseRemoteConfigInterop (~> 12.19.0)
+    - FirebaseSharedSwift (~> 12.19.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - "GoogleUtilities/NSData+zlib (~> 8.1)"
+  - FirebaseRemoteConfigInterop (12.19.0)
+  - FirebaseSharedSwift (12.19.0)
+  - Google-Mobile-Ads-SDK (13.11.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - GoogleDataTransport (10.1.1):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
+  - GoogleMobileAdsMediationFacebook (6.22.1.0):
+    - FBAudienceNetwork (= 6.22.1)
+    - Google-Mobile-Ads-SDK (~> 13.3)
+  - GoogleSignIn (8.0.0):
+    - AppAuth (< 2.0, >= 1.7.3)
+    - AppCheckCore (~> 11.0)
+    - GTMAppAuth (< 5.0, >= 4.1.1)
+    - GTMSessionFetcher/Core (~> 3.3)
+  - GoogleUserMessagingPlatform (3.1.0)
+  - GoogleUtilities/AppDelegateSwizzler (8.1.5):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Network
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Environment (8.1.5):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.1.5):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Network (8.1.5):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Privacy
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (8.1.5)":
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.1.5)
+  - GoogleUtilities/Reachability (8.1.5):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/UserDefaults (8.1.5):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GTMAppAuth (4.1.1):
+    - AppAuth/Core (~> 1.7)
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3)
+  - GTMSessionFetcher/Core (3.5.0)
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
+  - PromisesObjC (2.4.1)
+  - PromisesSwift (2.4.1):
+    - PromisesObjC (= 2.4.1)
+  - RecaptchaInterop (101.0.0)
+  - WebsCareAds (4.2.5):
+    - FirebaseCore (= 12.19.0)
+    - FirebaseRemoteConfig (= 12.19.0)
+    - Google-Mobile-Ads-SDK (= 13.11.0)
+    - GoogleMobileAdsMediationFacebook (= 6.22.1.0)
+    - GoogleUserMessagingPlatform (= 3.1.0)
+
+DEPENDENCIES:
+  - FirebaseCore (= 12.19.0)
+  - FirebaseMessaging (= 12.19.0)
+  - GoogleSignIn (~> 8.0)
+  - WebsCareAds (from `Vendor/WebsCareAds-iOS-4.2.5`)
+
+SPEC REPOS:
+  trunk:
+    - AppAuth
+    - AppCheckCore
+    - FBAudienceNetwork
+    - FirebaseABTesting
+    - FirebaseCore
+    - FirebaseCoreInternal
+    - FirebaseInstallations
+    - FirebaseMessaging
+    - FirebaseRemoteConfig
+    - FirebaseRemoteConfigInterop
+    - FirebaseSharedSwift
+    - Google-Mobile-Ads-SDK
+    - GoogleDataTransport
+    - GoogleMobileAdsMediationFacebook
+    - GoogleSignIn
+    - GoogleUserMessagingPlatform
+    - GoogleUtilities
+    - GTMAppAuth
+    - GTMSessionFetcher
+    - nanopb
+    - PromisesObjC
+    - PromisesSwift
+    - RecaptchaInterop
+
+EXTERNAL SOURCES:
+  WebsCareAds:
+    :path: Vendor/WebsCareAds-iOS-4.2.5
+
+SPEC CHECKSUMS:
+  AppAuth: 58e37c546bb9bf2073c1392ccba8cef35ff283cb
+  AppCheckCore: be8fce5469f68d7f6a29aa94b25f097409ff7fdc
+  FBAudienceNetwork: 983cf7f3fcb37c3cf22125fe7ed74adf61c5ecce
+  FirebaseABTesting: 3f0f330ed5e19323fe512006d62a38399a7de7c1
+  FirebaseCore: c990214798d7c568ad436a15ba7da25c7a278c9a
+  FirebaseCoreInternal: 656b1c2fd5a1c5976183dc54b73deda78fb26ee3
+  FirebaseInstallations: f70a49eed611f5602f373e40974b3b01556ac217
+  FirebaseMessaging: c15f48126adbe8b4d3238a5e1fa24bab3ad3e472
+  FirebaseRemoteConfig: 93d0b4712662842bbea714375ec92f0411d567f6
+  FirebaseRemoteConfigInterop: 90659b3cac8f6de884f2d930fbdbeb711533e142
+  FirebaseSharedSwift: c91f36aeaa566e12b682caacc40d34c8303c3124
+  Google-Mobile-Ads-SDK: 09d0868abe43b9f851b7b340a245679f0eafc96c
+  GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
+  GoogleMobileAdsMediationFacebook: a48700800d2c3a7fe4fb51d8dca14dc564b49c45
+  GoogleSignIn: e6b83a7093495f8ba4b7547460485f1e308c8df5
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
+  GoogleUtilities: 7dc09b3fa9ecb5c2298b952313d14628b61b9da3
+  GTMAppAuth: 4a3fbbb34098b327feaa51cfbf98b0b12f6892e7
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
+  PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
+  RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  WebsCareAds: 7987c1e0a30ea6047c1d47d855c13ac4005f2976
+
+PODFILE CHECKSUM: 3a22797239113a48d83f684c6ad08b07afeae2de
+
+COCOAPODS: 1.16.2

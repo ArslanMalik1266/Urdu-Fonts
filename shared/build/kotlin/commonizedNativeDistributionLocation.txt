@@ -1,1 +1,1 @@
-C:\Users\WebsCare\.konan\kotlin-native-prebuilt-windows-x86_64-2.4.21\klib\commonized\2.4.21
+/Users/ghaz-webscare/.konan/kotlin-native-prebuilt-macos-x86_64-2.4.21/klib/commonized/2.4.21

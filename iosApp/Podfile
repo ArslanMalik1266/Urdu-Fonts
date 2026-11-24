@@ -10,6 +10,7 @@ target 'iosApp' do
   # Its podspec brings the XCFramework, Google Mobile Ads 13.11.0, UMP 3.1.0, the Meta adapter 6.22.1.0,
   # FirebaseCore/RemoteConfig 12.19.0, the -ObjC flag and WebsCareAdsPrivacy.bundle.
   pod 'WebsCareAds', :path => 'Vendor/WebsCareAds-iOS-4.2.5'
+  pod 'FirebaseCore', '12.19.0'
 
   # Push: FCM tokens on top of APNs (same Firebase version WebsCareAds pins)
   pod 'FirebaseMessaging', '12.19.0'

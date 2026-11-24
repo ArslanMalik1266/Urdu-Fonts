@@ -102,7 +102,7 @@ class SubscriptionViewModel(
 
             // Each card shows the plan's name and entitlements from the IAP dashboard
             val options = rawOptions.map { option ->
-                val product = backendProducts.find { it.sku.equals(option.id, ignoreCase = true) }
+                val product = backendProducts.find { it.sku.equals(option.storeProductId ?: option.id, ignoreCase = true) }
                     ?: return@map option
                 option.copy(
                     title = product.name.takeIf { it.isNotBlank() } ?: option.title,

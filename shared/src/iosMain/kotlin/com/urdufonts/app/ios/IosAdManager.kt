@@ -25,6 +25,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import platform.CoreGraphics.CGRectZero
+import platform.UIKit.UIColor
 import platform.UIKit.UIView
 
 /**
@@ -43,6 +44,9 @@ class IosAdManager(
     private val nativeViews = mutableMapOf<String, UIView>()
     private val failedNative = mutableStateMapOf<String, Boolean>()
     private val bannerViews = mutableMapOf<String, UIView>()
+    /** Slots whose ad has filled. Until then nothing is drawn, so an empty slot takes no space (as on Android). */
+    private val loadedAds = mutableStateMapOf<String, Double>() // slot -> ad height (pt)
+    private val failedBanner = mutableStateMapOf<String, Boolean>()
 
     override fun initSdk(context: PlatformContext) {
         ads.initialize(AppBuildConfig.isDebug)
@@ -119,13 +123,17 @@ class IosAdManager(
         if (isPro || failedNative[key] == true) return
         val container = nativeViews.getOrPut(key) {
             UIView(frame = CGRectZero.readValue()).also { view ->
-                ads.loadNative(view, placement.id) { scope.launch { failedNative[key] = true } }
+                view.backgroundColor = UIColor.whiteColor
+                ads.loadNative(
+                    view, placement.id,
+                    size = if (size == NativeAdSize.SMALL) "small" else "medium",
+                    onLoaded = { h -> scope.launch { loadedAds[key] = h } },
+                    onFailed = { scope.launch { failedNative[key] = true } }
+                )
             }
         }
-        UIKitView(
-            factory = { container },
-            modifier = modifier.fillMaxWidth().height(if (size == NativeAdSize.SMALL) 132.dp else 320.dp)
-        )
+        val height = loadedAds[key] ?: return
+        UIKitView(factory = { container }, modifier = modifier.fillMaxWidth().height(height.dp))
     }
 
     override fun isNativeAdFailed(placement: AdPlacement, slot: Any): Boolean = failedNative["${placement.id}#$slot"] == true
@@ -134,11 +142,20 @@ class IosAdManager(
     @Composable
     override fun BannerAd(placement: AdPlacement, modifier: Modifier) {
         val isPro by userPreferences.isProUser.collectAsState(initial = false)
-        if (isPro) return
+        val key = "banner#${placement.id}"
+        if (isPro || failedBanner[key] == true) return
         val container = bannerViews.getOrPut(placement.id) {
-            UIView(frame = CGRectZero.readValue()).also { ads.loadBanner(it, placement.id) }
+            UIView(frame = CGRectZero.readValue()).also { view ->
+                view.backgroundColor = UIColor.whiteColor
+                ads.loadBanner(
+                    view, placement.id,
+                    onLoaded = { h -> scope.launch { loadedAds[key] = h } },
+                    onFailed = { scope.launch { failedBanner[key] = true } }
+                )
+            }
         }
-        UIKitView(factory = { container }, modifier = modifier.fillMaxWidth().height(60.dp))
+        val height = loadedAds[key] ?: return
+        UIKitView(factory = { container }, modifier = modifier.fillMaxWidth().height(height.dp))
     }
 
     private companion object {

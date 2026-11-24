@@ -29,8 +29,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        FirebaseApp.configure()
-        Messaging.messaging().delegate = self
+        // TEMP (local only): Firebase/push only when GoogleService-Info.plist is in the app
+        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+            FirebaseApp.configure()
+            Messaging.messaging().delegate = self
+        }
         UNUserNotificationCenter.current().delegate = self
 
         let info = Bundle.main.infoDictionary ?? [:]
@@ -70,6 +73,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
     // APNs → Firebase, so FCM can deliver the backend's pushes
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        guard FirebaseApp.app() != nil else { return }
         Messaging.messaging().apnsToken = deviceToken
     }
 

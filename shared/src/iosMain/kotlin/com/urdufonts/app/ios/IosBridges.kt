@@ -89,11 +89,11 @@ interface AdsBridge {
     fun showRewarded(placement: String, onRewarded: (type: String, amount: Int) -> Unit, onNotReady: () -> Unit)
     fun setAppOpenLoadingScreenVisible(visible: Boolean)
 
-    /** Loads a banner for [placement] into [container]. */
-    fun loadBanner(container: UIView, placement: String)
+    /** Loads a banner for [placement] into [container]; [onLoaded] when it fills, [onFailed] if it never does. */
+    fun loadBanner(container: UIView, placement: String, onLoaded: (height: Double) -> Unit, onFailed: () -> Unit)
 
-    /** Loads a native ad into [container]; [onFailed] is called if it never fills, so the list can drop the row. */
-    fun loadNative(container: UIView, placement: String, onFailed: () -> Unit)
+    /** Loads a native ad into [container]; [size] is "small" or "medium"; [onLoaded] with the ad's height in points when it fills, [onFailed] if it never does (the row is dropped). */
+    fun loadNative(container: UIView, placement: String, size: String, onLoaded: (height: Double) -> Unit, onFailed: () -> Unit)
 }
 /** Everything Swift provides, handed over once in [initUrduFonts]. */
 class IosBridges(
