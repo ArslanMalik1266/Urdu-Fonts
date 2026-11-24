@@ -4,8 +4,8 @@ UF_BUNDLE_ID = com.urdufonts.app
 
 // Google Sign-In for iOS: create an iOS OAuth client for UF_BUNDLE_ID in Google Cloud / Firebase.
 // GOOGLE_REVERSED_CLIENT_ID is the same id reversed (com.googleusercontent.apps.XXXX).
-GOOGLE_IOS_CLIENT_ID = REPLACE_ME.apps.googleusercontent.com
-GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.REPLACE_ME
+GOOGLE_IOS_CLIENT_ID = 403532354068-g3ogtbp6glsu1ak7tftf7vf8es4vkb8m.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.403532354068-g3ogtbp6glsu1ak7tftf7vf8es4vkb8m
 
 // iOS AdMob APPLICATION id for Urdu Fonts from the WebsCare policy owner (format ca-app-pub-XXXX~YYYY).
 // Until then: Google's demo iOS app id, which WebsCare uses with demo inventory only.
