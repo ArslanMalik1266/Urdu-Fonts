@@ -121,6 +121,7 @@ fun ProfileScreen(
         onToggleMode = { viewModel.toggleAuthMode() },
         onLogout = { viewModel.onLogoutClick() },
         onGoogleSignIn = { viewModel.onGoogleSignInClick(platformContext) },
+        onAppleSignIn = { viewModel.onAppleSignInClick() },
         reset = ResetActions(
             onForgotPassword = viewModel::onForgotPasswordClick,
             onSendCode = viewModel::onSendResetCode,
@@ -155,6 +156,7 @@ internal fun ProfileScreenInternal(
     onToggleMode: () -> Unit,
     onLogout: () -> Unit,
     onGoogleSignIn: () -> Unit,
+    onAppleSignIn: () -> Unit = {},
     reset: ResetActions = ResetActions()
 ) {
     Scaffold(
@@ -201,6 +203,7 @@ internal fun ProfileScreenInternal(
                         onCancelOtp = onCancelOtp,
                         onToggleMode = onToggleMode,
                         onGoogleSignIn = onGoogleSignIn,
+                        onAppleSignIn = onAppleSignIn,
                         reset = reset
                     )
                 }
@@ -367,6 +370,7 @@ private fun LoggedOutContent(
     onCancelOtp: () -> Unit,
     onToggleMode: () -> Unit,
     onGoogleSignIn: () -> Unit,
+    onAppleSignIn: () -> Unit,
     reset: ResetActions
 ) {
     var name by remember { mutableStateOf("") }
@@ -616,7 +620,7 @@ private fun LoggedOutContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .addPressEffect {
-                            if (!uiState.isLoading && !uiState.isGoogleLoading) {
+                            if (!uiState.isLoading && !uiState.isGoogleLoading && !uiState.isAppleLoading) {
                                 onGoogleSignIn()
                             }
                         }
@@ -649,6 +653,40 @@ private fun LoggedOutContent(
                     )
                 }
 
+
+                // Sign in with Apple (iOS only; App Store rule 4.8 when Google sign-in is offered)
+                if (uiState.showAppleSignIn) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .addPressEffect {
+                                if (!uiState.isLoading && !uiState.isGoogleLoading && !uiState.isAppleLoading) {
+                                    onAppleSignIn()
+                                }
+                            }
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.Black)
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.isAppleLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
+                        Text(
+                            text = if (uiState.isAppleLoading) "Signing in..." else "Sign in with Apple",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // 6. Dynamic Toggle  Mode Text Link

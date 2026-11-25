@@ -46,7 +46,8 @@ targets:
           - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
     entitlements:
       path: iosApp/iosApp.entitlements
-      properties: {}
+      properties:
+        com.apple.developer.applesignin: [Default]
         # TEMP (local only): push needs a paid team; re-enable with GoogleService-Info.plist
         # aps-environment: development
     settings:

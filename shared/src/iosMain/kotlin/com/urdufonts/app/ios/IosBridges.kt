@@ -66,6 +66,16 @@ interface GoogleSignInBridge {
     fun signIn(completion: (account: GoogleAccount?, error: String?) -> Unit)
 }
 
+// ── Sign in with Apple ─────────────────────────────────────────────────────
+
+/** [email] and [name] are sent by Apple only on the first sign-in of this Apple ID. */
+data class AppleAccount(val idToken: String, val email: String?, val name: String?)
+
+interface AppleSignInBridge {
+    /** Shows Apple's sign-in sheet. Exactly one of the two is non-null. */
+    fun signInWithApple(completion: (account: AppleAccount?, error: String?) -> Unit)
+}
+
 // ── Push (Firebase Messaging on top of APNs) ───────────────────────────────
 
 interface PushBridge {
@@ -99,6 +109,7 @@ interface AdsBridge {
 class IosBridges(
     val storeKit: StoreKitBridge,
     val googleSignIn: GoogleSignInBridge,
+    val appleSignIn: AppleSignInBridge,
     val push: PushBridge,
     val ads: AdsBridge,
 )

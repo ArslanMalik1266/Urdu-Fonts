@@ -49,6 +49,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
             bridges: IosBridges(
                 storeKit: StoreKitBridgeImpl(),
                 googleSignIn: GoogleSignInBridgeImpl(),
+                appleSignIn: AppleSignInBridgeImpl(),
                 push: PushBridgeImpl(),
                 ads: AdsBridgeImpl()
             ),

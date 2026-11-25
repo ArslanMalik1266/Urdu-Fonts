@@ -35,7 +35,7 @@ class ProfileViewModel(
     private val authRepository: com.urdufonts.app.domain.repo.AuthRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
+    private val _uiState = MutableStateFlow(ProfileUiState(showAppleSignIn = authRepository.isAppleSignInAvailable))
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     init {
@@ -49,6 +49,7 @@ class ProfileViewModel(
                         profileImageUrl = session?.avatar,
                         isLoading = false,
                         isGoogleLoading = false,
+                        isAppleLoading = false,
                         errorMessage = null
                     )
                 }
@@ -76,6 +77,23 @@ class ProfileViewModel(
                 .onFailure { error ->
                     com.urdufonts.app.platform.AppLog.e("GoogleSignIn", "ViewModel: Google Sign-in flow failure: ${error.message}", error)
                     onError(error.message ?: "Google Sign-In failed")
+                }
+        }
+    }
+
+    fun onAppleSignInClick() {
+        _uiState.update { it.copy(isAppleLoading = true, errorMessage = null) }
+        viewModelScope.launch {
+            authRepository.signInWithApple()
+                .onSuccess { session ->
+                    if (session.email.isNotBlank()) {
+                        entitlementRepository.refreshEntitlements(session.email, force = true)
+                    }
+                    _uiState.update { it.copy(isAppleLoading = false, navigateToHome = true) }
+                }
+                .onFailure { error ->
+                    com.urdufonts.app.platform.AppLog.e("AppleSignIn", "Apple sign-in failed: ${error.message}", error)
+                    onError(error.message ?: "Sign in with Apple failed")
                 }
         }
     }
@@ -292,7 +310,7 @@ class ProfileViewModel(
     }
 
     fun onError(message: String) {
-        _uiState.update { it.copy(isLoading = false, isGoogleLoading = false, errorMessage = message) }
+        _uiState.update { it.copy(isLoading = false, isGoogleLoading = false, isAppleLoading = false, errorMessage = message) }
     }
 }
 

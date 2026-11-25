@@ -47,6 +47,7 @@ fun initUrduFonts(
         single { bridges }
         single<AdManager> { IosAdManager(bridges.ads, get()) }
         single<GoogleSignInProvider> { IosGoogleSignIn(bridges.googleSignIn) }
+        single<com.urdufonts.app.domain.repo.AppleSignInProvider> { IosAppleSignIn(bridges.appleSignIn) }
         single<PushTokenSource> { IosPushTokenSource(bridges.push) }
         single<BillingRepository> { IosBillingRepository(bridges.storeKit, get(), get(), get(), get()) }
         single<FontRepository> { IosFontRepository(apiService = get(), fontDao = get(), directories = get()) }

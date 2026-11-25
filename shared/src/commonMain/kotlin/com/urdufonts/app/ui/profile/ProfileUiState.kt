@@ -10,6 +10,9 @@ data class ProfileUiState(
     val profileImageUrl: String? = null,
     val isLoading: Boolean = false,
     val isGoogleLoading: Boolean = false,
+    val isAppleLoading: Boolean = false,
+    /** Sign in with Apple is offered (iOS only). */
+    val showAppleSignIn: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
     val navigateToHome: Boolean = false,

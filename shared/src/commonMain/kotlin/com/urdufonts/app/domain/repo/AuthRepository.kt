@@ -13,6 +13,12 @@ interface AuthRepository {
     suspend fun registerUser(params: RegisterParams): Result<AuthResult>
     suspend fun signInWithGoogle(context: PlatformContext): Result<GoogleUser>
     suspend fun loginWithGoogle(idToken: String): Result<UserSession>
+
+    /** True where Sign in with Apple exists (iOS). */
+    val isAppleSignInAvailable: Boolean get() = false
+
+    /** Apple's sign-in sheet, then the IAP backend (auth/oauth/login, provider "apple"). */
+    suspend fun signInWithApple(): Result<UserSession> = Result.failure(UnsupportedOperationException("Sign in with Apple is not available"))
     fun getSession(): Flow<UserSession?>
     suspend fun saveSession(session: UserSession)
     suspend fun logout(): Result<Unit>

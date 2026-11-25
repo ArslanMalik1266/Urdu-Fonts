@@ -1,4 +1,4 @@
-com.urdufonts.shared-androidMain-0 D:\UrduFonts\shared\build\generated\updated_navigation_xml\androidMain\res
-com.urdufonts.shared-packageAndroidMainResources-1 D:\UrduFonts\shared\build\intermediates\incremental\androidMain\packageAndroidMainResources\merged.dir
-com.urdufonts.shared-packageAndroidMainResources-2 D:\UrduFonts\shared\build\intermediates\incremental\androidMain\packageAndroidMainResources\stripped.dir
-com.urdufonts.shared-packageAndroidMainResources-3 D:\UrduFonts\shared\build\intermediates\packaged_res\androidMain\packageAndroidMainResources\res
+com.urdufonts.shared-androidMain-0 /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/build/generated/updated_navigation_xml/androidMain/res
+com.urdufonts.shared-packageAndroidMainResources-1 /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/build/intermediates/incremental/androidMain/packageAndroidMainResources/merged.dir
+com.urdufonts.shared-packageAndroidMainResources-2 /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/build/intermediates/incremental/androidMain/packageAndroidMainResources/stripped.dir
+com.urdufonts.shared-packageAndroidMainResources-3 /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/build/intermediates/packaged_res/androidMain/packageAndroidMainResources/res

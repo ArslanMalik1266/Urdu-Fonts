@@ -46,6 +46,7 @@ class AuthRepositoryImpl(
     private val userPreferences: UserPreferences,
     private val push: PushRepository,
     private val googleSignIn: GoogleSignInProvider,
+    private val appleSignIn: com.urdufonts.app.domain.repo.AppleSignInProvider? = null,
     private val entitlementLocalDataSource: EntitlementLocalDataSource? = null
 ) : AuthRepository {
 
@@ -92,6 +93,19 @@ class AuthRepositoryImpl(
         val answer = api.oauthLogin(IapConfig.appBearer, OAuthLoginRequest(provider = "google", idToken = idToken))
         signedIn(answer.toSession(fallbackName = ""))
     }.mapError()
+
+    override val isAppleSignInAvailable: Boolean get() = appleSignIn != null
+
+    override suspend fun signInWithApple(): Result<UserSession> {
+        val provider = appleSignIn ?: return Result.failure(UnsupportedOperationException("Sign in with Apple is not available"))
+        val apple = runCatching { provider.signIn() }.onFailure { Log.e(TAG, "Apple sign-in failed", it) }
+            .getOrElse { return Result.failure(it) }
+        return caller.result {
+            val answer = api.oauthLogin(IapConfig.appBearer, OAuthLoginRequest(provider = "apple", idToken = apple.idToken))
+            // Apple sends the name only on the first sign-in; the backend may not have one yet
+            signedIn(answer.toSession(fallbackName = apple.name.orEmpty()))
+        }.mapError()
+    }
 
     override suspend fun requestPasswordReset(email: String): Result<Unit> = caller.result {
         api.otpRequest(IapConfig.appBearer, OtpRequest(email.trim(), PURPOSE_RESET))

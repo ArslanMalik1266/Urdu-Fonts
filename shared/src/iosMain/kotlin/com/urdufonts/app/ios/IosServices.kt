@@ -28,3 +28,17 @@ class IosPushTokenSource(private val bridge: PushBridge) : PushTokenSource {
         bridge.currentToken { cont.resume(it?.takeIf { token -> token.isNotBlank() }) }
     }
 }
+
+/** Sign in with Apple on iOS (AuthenticationServices), called from Swift through [AppleSignInBridge]. */
+class IosAppleSignIn(private val bridge: AppleSignInBridge) : com.urdufonts.app.domain.repo.AppleSignInProvider {
+    override suspend fun signIn(): com.urdufonts.app.domain.repo.AppleUser = suspendCancellableCoroutine { cont ->
+        com.urdufonts.app.ads.suppressNextReturnAppOpen()
+        bridge.signInWithApple { account, error ->
+            if (account != null) {
+                cont.resume(com.urdufonts.app.domain.repo.AppleUser(idToken = account.idToken, email = account.email, name = account.name))
+            } else {
+                cont.resumeWithException(Exception(error ?: "Sign in with Apple was cancelled"))
+            }
+        }
+    }
+}

@@ -68,6 +68,6 @@ val sharedDataModule = module {
 
     // ── Accounts (Google's account picker comes from the platform: GoogleSignInProvider) ──
     single<com.urdufonts.app.domain.repo.AuthRepository> {
-        com.urdufonts.app.data.repository.AuthRepositoryImpl(api = get(), caller = get(), userPreferences = get(), push = get(), googleSignIn = get(), entitlementLocalDataSource = get())
+        com.urdufonts.app.data.repository.AuthRepositoryImpl(api = get(), caller = get(), userPreferences = get(), push = get(), googleSignIn = get(), appleSignIn = getOrNull(), entitlementLocalDataSource = get())
     }
 }
