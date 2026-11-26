@@ -48,11 +48,11 @@ targets:
       path: iosApp/iosApp.entitlements
       properties:
         com.apple.developer.applesignin: [Default]
-        # TEMP (local only): push needs a paid team; re-enable with GoogleService-Info.plist
-        # aps-environment: development
+        aps-environment: development
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(UF_BUNDLE_ID)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         MARKETING_VERSION: "1.1.1"
         CURRENT_PROJECT_VERSION: "11"
         TARGETED_DEVICE_FAMILY: "1"

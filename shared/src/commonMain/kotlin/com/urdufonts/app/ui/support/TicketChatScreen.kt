@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -107,7 +112,7 @@ fun TicketChatScreen(ticketId: Int, onBack: () -> Unit) {
                                 DoneNote()
                             }
                         }
-                        else -> Column(Modifier.navigationBarsPadding().padding(Dimens.Space16)) {
+                        else -> Column(Modifier.windowInsetsPadding(WindowInsets.navigationBars.exclude(WindowInsets.ime)).padding(Dimens.Space16)) {
                             ReplyBar(
                                 text = state.reply,
                                 attachment = state.attachment,
@@ -189,7 +194,7 @@ private fun DoneNote() {
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).navigationBarsPadding().padding(Dimens.Space16),
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).windowInsetsPadding(WindowInsets.navigationBars.exclude(WindowInsets.ime)).padding(Dimens.Space16),
     )
 }
 

@@ -76,6 +76,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         guard FirebaseApp.app() != nil else { return }
         Messaging.messaging().apnsToken = deviceToken
+        // The FCM token can only exist once APNs answers; register it with the backend now instead of on the next start
+        Messaging.messaging().token { token, _ in
+            if token != nil { IosAppKt.onPushTokenRefreshed() }
+        }
     }
 
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
@@ -98,5 +102,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     ) {
         IosAppKt.onNotificationTapped(userInfo: response.notification.request.content.userInfo)
         completionHandler()
+    }
+}
+
+extension AppDelegate {
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("APNs registration failed: \(error)")
     }
 }

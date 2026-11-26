@@ -26,6 +26,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -382,7 +384,9 @@ fun FontDetailScreen(
                 }
                 "content" -> {
                     FontDetailContent(
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.padding(innerPadding)
+                            // The top bar and banner already take the bottom space, so imePadding adds only the rest of the keyboard
+                            .consumeWindowInsets(innerPadding),
                         uiState = uiState,
                         fontFamily = fontFamily,
                         fontWeights = fontWeights,
@@ -504,7 +508,9 @@ private fun FontDetailContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .springOverscroll()
+                        // Keeps the content above the keyboard while the user types the preview text
+                    .imePadding()
+                .springOverscroll()
                     .verticalScroll(scrollState)
             ) {
             // ── FONT section ─────────────────────────────────────────
@@ -533,14 +539,18 @@ private fun FontDetailContent(
                 )
             }
 
+            // Promo card: below the Preview field, so the text card and the
+            // field stay together on screen while the user types
+            val promoAndMetadata: @Composable () -> Unit = {
+                UrduCanvasPromoCard(
+                    onOpenApp = onOpenUrduCanvas,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
-
-            UrduCanvasPromoCard(
-                onOpenApp = onOpenUrduCanvas,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
+            if (uiState.fontFileUnavailable) promoAndMetadata()
 
             // No font file (premium / missing link): there's nothing to type-preview or pick weights from
             if (!uiState.fontFileUnavailable) {
@@ -564,11 +574,20 @@ private fun FontDetailContent(
                     isUnderlineEnabled = uiState.isUnderlineEnabled,
                     onFontSizeChange = onPreviewFontSizeChange,
                     onBoldToggle = onBoldToggle,
-                    onUnderlineToggle = onUnderlineToggle
+                    onUnderlineToggle = onUnderlineToggle,
+                    // Scroll the preview card and the field above the keyboard, so the user sees what they type
+                    onFocused = {
+                        coroutineScope.launch {
+                            delay(350) // let the keyboard open first
+                            scrollState.animateScrollTo(fontSectionY.toInt().coerceAtLeast(0))
+                        }
+                    }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            promoAndMetadata()
 
             // ── WEIGHTS section ──────────────────────────────────────
             Column(
@@ -849,7 +868,8 @@ private fun PreviewControlsSection(
     onFontSizeChange: (Float) -> Unit,
     onBoldToggle: () -> Unit,
     onUnderlineToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onFocused: () -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
@@ -885,10 +905,22 @@ private fun PreviewControlsSection(
 
         // ── Editable text field ──────────────────────────────────────
         val focusManager = LocalFocusManager.current
+        // TextFieldValue so the cursor can be put at the end when the field is tapped
+        var fieldValue by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(previewText)) }
+        if (fieldValue.text != previewText) fieldValue = fieldValue.copy(text = previewText)
+        LaunchedEffect(isFocused) {
+            if (isFocused) {
+                delay(60) // after the tap has placed its own cursor
+                fieldValue = fieldValue.copy(selection = androidx.compose.ui.text.TextRange(fieldValue.text.length))
+            }
+        }
 
         BasicTextField(
-            value = previewText,
-            onValueChange = onPreviewTextChange,
+            value = fieldValue,
+            onValueChange = {
+                fieldValue = it
+                if (it.text != previewText) onPreviewTextChange(it.text)
+            },
             textStyle = TextStyle(
                 fontSize = 16.sp,
                 fontFamily = NunitoFontFamily,
@@ -918,7 +950,10 @@ private fun PreviewControlsSection(
                 )
                 .padding(horizontal = 12.dp, vertical = 8.dp)
                 .focusRequester(focusRequester)
-                .onFocusChanged { isFocused = it.isFocused },
+                .onFocusChanged {
+                    if (it.isFocused && !isFocused) onFocused()
+                    isFocused = it.isFocused
+                },
             decorationBox = { innerTextField ->
                 Box(contentAlignment = Alignment.CenterEnd) {
                     if (previewText.isEmpty()) {
