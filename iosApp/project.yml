@@ -53,8 +53,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(UF_BUNDLE_ID)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        MARKETING_VERSION: "1.1.1"
-        CURRENT_PROJECT_VERSION: "11"
+        MARKETING_VERSION: "1.0.1"
+        CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1"
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         # -ObjC: required by WebsCareAds / Google Mobile Ads (also set by the WebsCareAds podspec)
