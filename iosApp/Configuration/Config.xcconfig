@@ -9,7 +9,7 @@ GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.403532354068-g3ogtbp6glsu
 
 // iOS AdMob APPLICATION id for Urdu Fonts from the WebsCare policy owner (format ca-app-pub-XXXX~YYYY).
 // Until then: Google's demo iOS app id, which WebsCare uses with demo inventory only.
-ADMOB_APP_ID = ca-app-pub-3940256099942544~1458002511
+ADMOB_APP_ID = ca-app-pub-5182121902128639~5999695772
 
 UF_API_KEY =
 UF_IAP_APP_TOKEN =
