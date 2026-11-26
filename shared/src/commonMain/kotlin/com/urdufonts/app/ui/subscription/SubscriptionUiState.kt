@@ -33,7 +33,10 @@ data class SubscriptionUiState(
 
     /** True when the selected plan is the one a scheduled change moves to. */
     fun isPendingTarget(optionId: String): Boolean =
-        pendingChange?.productSku?.equals(optionId, ignoreCase = true) == true
+        pendingChange?.productSku?.let { sku ->
+            sku.equals(optionId, ignoreCase = true) ||
+                (SubscriptionType.fromSku(sku) != null && SubscriptionType.fromSku(sku) == SubscriptionType.fromSku(optionId))
+        } == true
 
     val actionType: SubscriptionActionType
         get() {

@@ -146,7 +146,7 @@ class AuthRepositoryImpl(
         userPreferences.clearUserSession()
         userPreferences.saveSubscriptionStatus(isPro = false, planId = null, purchaseToken = null)
         entitlementLocalDataSource?.clearEntitlements()
-        background.launch { push.register() }
+        background.launch { push.register(force = true) }
         Result.success(Unit)
     }
 
@@ -166,7 +166,7 @@ class AuthRepositoryImpl(
         if (session.token.isBlank()) throw PremiumException(PremiumProblem.SIGN_IN_REJECTED)
         userPreferences.saveUserSession(session)
         // Notifications now go to this member on this phone
-        background.launch { push.register() }
+        background.launch { push.register(force = true) }
         return session
     }
 

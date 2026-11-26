@@ -39,6 +39,8 @@ class PlanExpiryWatcher(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun start() {
         if (job != null) return
+        // Ask once at start: a plan that renewed (or ended) while the app was closed shows its new state
+        scope.launch { refresh(force = true) }
         job = scope.launch {
             entitlementRepository.entitlementsFlow
                 .map { nextChangeTime(it) }
@@ -53,9 +55,10 @@ class PlanExpiryWatcher(
 
     /** The app came back to the front: a time that passed meanwhile gets one check. */
     fun onAppResumed() {
-        val target = currentTarget ?: return
-        if (currentTimeMillis() < target) return
-        scope.launch { refresh(force = false) }
+        // Always ask (at most once a minute, the repository's cooldown): a plan that already looks ended may
+        // have renewed on the server since, and with no time left to watch nothing else would ask again
+        val target = currentTarget
+        scope.launch { refresh(force = target != null && currentTimeMillis() >= target) }
     }
 
     private suspend fun runChecks(target: Long) {
@@ -85,7 +88,6 @@ class PlanExpiryWatcher(
 
     /** The earliest time at which the plan ends or a scheduled change takes effect. */
     private fun nextChangeTime(e: UserEntitlements): Long? {
-        if (!e.unlocked) return null
         val times = e.entitlements.filter { it.granted }.mapNotNull { parseTime(it.expiresAt) } +
             listOfNotNull(parseTime(e.pendingChange?.effectiveAt))
         return times.minOrNull()
@@ -93,7 +95,9 @@ class PlanExpiryWatcher(
 
     companion object {
         private const val TAG = "PlanExpiryWatcher"
-        private val CHECK_OFFSETS_MS = listOf(10_000L, 20_000L, 40_000L)
+        // The store tells the backend about a renewal a little after the old time ends (often over a minute in
+        // the App Store sandbox), so keep asking for a few minutes
+        private val CHECK_OFFSETS_MS = listOf(10_000L, 30_000L, 60_000L, 120_000L, 240_000L)
 
         /** Reads ISO-8601 times like 2026-11-16T10:00:00Z, with or without fractions or an offset. */
         internal fun parseTime(raw: String?): Long? {

@@ -125,7 +125,9 @@ class IosBillingRepository(
         }
         return when (result.status) {
             "success" -> {
-                result.transaction?.let { confirm(it) }
+                // A downgrade or plan switch comes back as the current transaction with new renewal info:
+                // send it again even if this session already confirmed it, so the backend sees the pending change
+                result.transaction?.let { confirm(it, force = true) }
                 Result.success(Unit)
             }
             // Ask to Buy or extra verification: it arrives later through observeTransactionUpdates
@@ -152,8 +154,8 @@ class IosBillingRepository(
     }
 
     /** Sends a transaction to the backend once; premium follows only from the backend's answer. */
-    private suspend fun confirm(transaction: StoreTransaction) = confirming.withLock {
-        if (transaction.transactionId in confirmedIds) return@withLock
+    private suspend fun confirm(transaction: StoreTransaction, force: Boolean = false) = confirming.withLock {
+        if (!force && transaction.transactionId in confirmedIds) return@withLock
         val externalUserId = userPreferences.userSession.firstOrNull()?.email
         if (externalUserId.isNullOrBlank()) return@withLock
         // The iOS catalog's sku is the App Store product id itself (the backend keeps a separate iOS catalog)

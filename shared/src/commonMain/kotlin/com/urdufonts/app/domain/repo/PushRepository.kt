@@ -14,7 +14,8 @@ interface PushRepository {
     suspend fun setNotificationsEnabled(on: Boolean): Result<Unit>
 
     /** Tells the backend which phone to send this customer's notifications to. */
-    suspend fun register(): Result<Unit>
+    /** [force]: send even when this token is already registered (a new sign-in moves it to that account). */
+    suspend fun register(force: Boolean = false): Result<Unit>
 
     /** The last registration has not reached the backend yet. */
     suspend fun isRegistrationPending(): Boolean

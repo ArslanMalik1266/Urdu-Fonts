@@ -30,19 +30,30 @@ class PushRepositoryImpl(
         preferences.setPushEnabled(on)
         if (on) {
             // A registration that does not get through now is sent again when the app next comes to the front
-            register()
+            register(force = true)
             return Result.success(Unit)
         }
         return unregister().onFailure { preferences.setPushEnabled(before) }
     }
 
-    override suspend fun register(): Result<Unit> = registering.withLock {
+    /** No new registration before this time (after a failure), unless forced. */
+    private var notBefore = 0L
+
+    override suspend fun register(force: Boolean): Result<Unit> = registering.withLock {
         // Switched off in Settings: this phone stays unregistered
         if (!preferences.isPushEnabled()) return@withLock Result.success(Unit)
         val token = tokens.token()
         if (token == null) {
             Log.w(TAG, "No FCM token yet; registration waits for the next start or onNewToken")
             return@withLock Result.failure(PremiumException(PremiumProblem.UNKNOWN))
+        }
+        // Already on the backend: app start, the FCM token callback and the APNs callback all ask for a
+        // registration, and sending the same token each time ran into the backend's rate limit (429)
+        if (!force && token == preferences.lastPushToken() && !preferences.isPushPending()) return@withLock Result.success(Unit)
+        // A failed registration waits a while: every start asks up to three times, and repeating at once is
+        // what kept the backend answering 429 (it is sent again at the next start after the pause)
+        if (!force && com.urdufonts.app.platform.currentTimeMillis() < notBefore) {
+            return@withLock Result.failure(PremiumException(PremiumProblem.STORE_BUSY))
         }
         // Kept as "still to send" until the backend says it has it
         preferences.markPushPending(token)
@@ -66,11 +77,16 @@ class PushRepositoryImpl(
             // Only "no answer" and "busy" are worth trying again now. A refused identity is not:
             // it is sorted out at the next sign-in or app start, and the registration stays pending
             val problem = last.exceptionOrNull() as? PremiumException
-            val worthRetrying = problem?.problem == PremiumProblem.OFFLINE || problem?.problem == PremiumProblem.STORE_BUSY
+            // A rate limit (429) is not retried here: more calls only extend it
+            val worthRetrying = problem?.problem == PremiumProblem.OFFLINE ||
+                (problem?.problem == PremiumProblem.STORE_BUSY && problem.code != null && // store_unavailable / purchase_ingestion_paused; a bare 429 has no code
+                   
+                    problem.retryAfterSeconds <= MAX_INLINE_RETRY_SECONDS)
             if (!worthRetrying || attempt == ATTEMPTS) break
             delay(maxOf(wait, problem.retryAfterSeconds * MILLIS_IN_SECOND))
             wait *= WAIT_GROWTH
         }
+        notBefore = if (last.isSuccess) 0L else com.urdufonts.app.platform.currentTimeMillis() + PAUSE_AFTER_FAILURE_MILLIS
         if (last.isSuccess) Log.d(TAG, "Push token registered") else Log.w(TAG, "Push registration failed", last.exceptionOrNull())
         last
     }
@@ -101,6 +117,8 @@ class PushRepositoryImpl(
     private companion object {
         const val TAG = "IapPush"
         const val ATTEMPTS = 3
+        const val PAUSE_AFTER_FAILURE_MILLIS = 10 * 60 * 1000L
+        const val MAX_INLINE_RETRY_SECONDS = 30
         const val FIRST_WAIT_MILLIS = 2_000L
         const val WAIT_GROWTH = 4
         const val MILLIS_IN_SECOND = 1_000L

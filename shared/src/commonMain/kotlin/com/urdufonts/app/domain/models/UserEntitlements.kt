@@ -76,6 +76,15 @@ enum class SubscriptionType(val sku: String?, val rank: Int, val displayName: St
     companion object {
         const val FREE_DAILY_FONTS = 10
 
-        fun fromSku(sku: String?): SubscriptionType? = entries.firstOrNull { it.sku != null && it.sku.equals(sku, ignoreCase = true) }
+        /** App Store product ids (iOS), which the backend reports instead of the Play skus for iOS purchases. */
+        private val APP_STORE_IDS = mapOf(
+            "urdu_fonts_basic_monthly" to BASIC,
+            "urdu_fonts_pro_monthly" to PRO,
+            "urdu_fonts_business_monthly" to BUSINESS,
+        )
+
+        fun fromSku(sku: String?): SubscriptionType? =
+            entries.firstOrNull { it.sku != null && it.sku.equals(sku, ignoreCase = true) }
+                ?: APP_STORE_IDS[sku?.lowercase()]
     }
 }

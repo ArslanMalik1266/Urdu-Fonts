@@ -11,12 +11,16 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
     private var products: [String: Product] = [:]
     private var unfinished: [String: Transaction] = [:]
     private var updatesTask: Task<Void, Never>?
+    /// products/unfinished are touched from several StoreKit tasks at once (restore on launch, Transaction.updates,
+    /// purchases); unguarded concurrent writes corrupted the dictionaries and crashed the app on open
+    private let lock = NSLock()
+    private func withLock<T>(_ body: () -> T) -> T { lock.lock(); defer { lock.unlock() }; return body() }
 
     func loadProducts(productIds: [String], completion: @escaping ([StoreProduct]) -> Void) {
         Task {
             do {
                 let loaded = try await Product.products(for: productIds)
-                loaded.forEach { products[$0.id] = $0 }
+                withLock { loaded.forEach { products[$0.id] = $0 } }
                 completion(loaded.map {
                     StoreProduct(id: $0.id, displayName: $0.displayName, displayPrice: $0.displayPrice,
                                  isSubscription: $0.type == .autoRenewable)
@@ -30,10 +34,11 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
     func purchase(productId: String, appAccountToken: String?, completion: @escaping (StorePurchaseResult) -> Void) {
         Task {
             do {
-                if products[productId] == nil {
-                    try await Product.products(for: [productId]).forEach { products[$0.id] = $0 }
+                if withLock({ products[productId] }) == nil {
+                    let fetched = try await Product.products(for: [productId])
+                    withLock { fetched.forEach { products[$0.id] = $0 } }
                 }
-                guard let product = products[productId] else {
+                guard let product = withLock({ products[productId] }) else {
                     completion(StorePurchaseResult(status: "failed", transaction: nil, error: "This plan is not available in the App Store."))
                     return
                 }
@@ -86,7 +91,7 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
     }
 
     func finish(transactionId: String) {
-        guard let transaction = unfinished.removeValue(forKey: transactionId) else { return }
+        guard let transaction = withLock({ unfinished.removeValue(forKey: transactionId) }) else { return }
         Task { await transaction.finish() }
     }
 
@@ -102,7 +107,7 @@ final class StoreKitBridgeImpl: NSObject, StoreKitBridge {
 
     /// The transaction for Kotlin, with the subscription's renewal-info JWS (the backend reads pending downgrades from it).
     private func storeTransaction(_ transaction: Transaction, jws: String) async -> StoreTransaction {
-        unfinished[String(transaction.id)] = transaction
+        withLock { unfinished[String(transaction.id)] = transaction }
         var renewalJws: String? = nil
         if #available(iOS 16.4, *), transaction.productType == .autoRenewable,
            let status = try? await transaction.subscriptionStatus, case .verified = status.renewalInfo {
