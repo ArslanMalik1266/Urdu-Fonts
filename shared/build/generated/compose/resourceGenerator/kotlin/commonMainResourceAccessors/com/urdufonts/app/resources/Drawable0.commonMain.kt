@@ -68,6 +68,13 @@ public val Res.drawable.ic_app_bar_cart: DrawableResource by lazy {
       ))
     }
 
+@delegate:ResourceContentHash(961_481_004)
+public val Res.drawable.ic_apple: DrawableResource by lazy {
+      DrawableResource("drawable:ic_apple", setOf(
+        ResourceItem(setOf(), "${MD}drawable/ic_apple.xml", -1, -1),
+      ))
+    }
+
 @delegate:ResourceContentHash(-1_269_581_124)
 public val Res.drawable.ic_arrow_down: DrawableResource by lazy {
       DrawableResource("drawable:ic_arrow_down", setOf(
@@ -680,6 +687,7 @@ internal fun _collectCommonMainDrawable0Resources(map: MutableMap<String, Drawab
   map.put("drawar_bg", Res.drawable.drawar_bg)
   map.put("home_logo", Res.drawable.home_logo)
   map.put("ic_app_bar_cart", Res.drawable.ic_app_bar_cart)
+  map.put("ic_apple", Res.drawable.ic_apple)
   map.put("ic_arrow_down", Res.drawable.ic_arrow_down)
   map.put("ic_arrow_up", Res.drawable.ic_arrow_up)
   map.put("ic_back", Res.drawable.ic_back)

@@ -23,6 +23,8 @@ targets:
         CFBundleDisplayName: Urdu Fonts
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Only standard HTTPS/OS encryption: no export-compliance question on every App Store Connect upload
+        ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIRequiresFullScreen: true

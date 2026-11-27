@@ -671,14 +671,21 @@ private fun LoggedOutContent(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Same layout as the Google button: icon (or spinner), gap, text
                         if (uiState.isAppleLoading) {
                             CircularProgressIndicator(
                                 color = Color.White,
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
+                        } else {
+                            Image(
+                                painter = painterResource(Res.drawable.ic_apple),
+                                contentDescription = "Apple Logo",
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = if (uiState.isAppleLoading) "Signing in..." else "Sign in with Apple",
                             fontSize = 15.sp,

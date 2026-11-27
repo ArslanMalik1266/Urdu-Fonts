@@ -35,6 +35,8 @@
 	<string>$(ADMOB_APP_ID)</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>itms-apps</string>

@@ -5,7 +5,7 @@ Build settings from command line:
     CODE_SIGN_STYLE = Automatic
     DEVELOPMENT_TEAM = 6344BW5R7X
 
-2026-11-26 15:22:32.181 xcodebuild[33985:2581162] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+2026-11-27 09:26:08.888 xcodebuild[2045:33143] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
 ComputePackagePrebuildTargetDependencyGraph
 
 Prepare packages
@@ -170,6 +170,24 @@ GatherProvisioningInputs
 
 CreateBuildDescription
 
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk -x objective-c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/libtool -V
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: d6bce55888451cbee46184cc6475cc77
+Build description path: /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/XCBuildData/d6bce55888451cbee46184cc6475cc77.xcbuilddata
 ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/SDKStatCaches.noindex/iphoneos26.4-23E252-688ef53f1462e2c8f657fdc38a81448f68a138bb55de9ba35ce6c8c40d12849e.sdkstatcache
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/SDKStatCaches.noindex/iphoneos26.4-23E252-688ef53f1462e2c8f657fdc38a81448f68a138bb55de9ba35ce6c8c40d12849e.sdkstatcache
@@ -244,87 +262,130 @@ ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/Google-Mobile-Ads-SDK/ResourceBundle-GoogleMobileAdsResources-Google-Mobile-Ads-SDK-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK/GoogleMobileAdsResources.bundle/Info.plist
 
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/InputFileList-66F8561BA77B8F95DB2931B2-Pods-iosApp-frameworks-Debug-input-files-147ed3e9e7a8a248bd32e40f4b528987-resolved.xcfilelist'
+
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/InputFileList-D7665BAB1EE3C3B0CD7F08E1-Pods-iosApp-resources-Debug-input-files-468f037d6371efed10ed97ec771f0b71-resolved.xcfilelist'
+
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/OutputFileList-66F8561BA77B8F95DB2931B2-Pods-iosApp-frameworks-Debug-output-files-01730458fcdbbee84ea08deff1af16fc-resolved.xcfilelist'
+
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/OutputFileList-D7665BAB1EE3C3B0CD7F08E1-Pods-iosApp-resources-Debug-output-files-a2820ef20fdc5b9bfd862506792f4238-resolved.xcfilelist'
+
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-2AC4A982ACC57D43ACDB8190.sh'
+
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-66F8561BA77B8F95DB2931B2.sh'
+
+note: Removed stale file '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-D7665BAB1EE3C3B0CD7F08E1.sh'
+
+note: Run script build phase 'Compile Kotlin Framework' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'iosApp' from project 'iosApp')
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-C401C5C48DD081F02CA5FD54.sh (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-C401C5C48DD081F02CA5FD54.sh
+
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-DF6CBFEF67EA064CCCAFA2AA.sh (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-DF6CBFEF67EA064CCCAFA2AA.sh
+
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/OutputFileList-C401C5C48DD081F02CA5FD54-Pods-iosApp-frameworks-Debug-output-files-01730458fcdbbee84ea08deff1af16fc-resolved.xcfilelist (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/OutputFileList-C401C5C48DD081F02CA5FD54-Pods-iosApp-frameworks-Debug-output-files-01730458fcdbbee84ea08deff1af16fc-resolved.xcfilelist
+
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-34F352AC4AAF334FDD531E21.sh (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-34F352AC4AAF334FDD531E21.sh
+
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/InputFileList-C401C5C48DD081F02CA5FD54-Pods-iosApp-frameworks-Debug-input-files-147ed3e9e7a8a248bd32e40f4b528987-resolved.xcfilelist (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/InputFileList-C401C5C48DD081F02CA5FD54-Pods-iosApp-frameworks-Debug-input-files-147ed3e9e7a8a248bd32e40f4b528987-resolved.xcfilelist
+
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/OutputFileList-34F352AC4AAF334FDD531E21-Pods-iosApp-resources-Debug-output-files-a2820ef20fdc5b9bfd862506792f4238-resolved.xcfilelist (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/OutputFileList-34F352AC4AAF334FDD531E21-Pods-iosApp-resources-Debug-output-files-a2820ef20fdc5b9bfd862506792f4238-resolved.xcfilelist
+
+WriteAuxiliaryFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/InputFileList-34F352AC4AAF334FDD531E21-Pods-iosApp-resources-Debug-input-files-468f037d6371efed10ed97ec771f0b71-resolved.xcfilelist (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    write-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/InputFileList-34F352AC4AAF334FDD531E21-Pods-iosApp-resources-Debug-input-files-468f037d6371efed10ed97ec771f0b71-resolved.xcfilelist
+
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfig/FirebaseRemoteConfig.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseRemoteConfig/FirebaseRemoteConfig-Info.plist (in target 'FirebaseRemoteConfig' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseRemoteConfig/FirebaseRemoteConfig-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfig/FirebaseRemoteConfig.framework/Info.plist
 
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleDataTransport/ResourceBundle-GoogleDataTransport_Privacy-GoogleDataTransport-Info.plist (in target 'GoogleDataTransport-GoogleDataTransport_Privacy' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 11.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'RecaptchaInterop' from project 'Pods')
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop/RecaptchaInterop.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/RecaptchaInterop/RecaptchaInterop-Info.plist (in target 'RecaptchaInterop' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleDataTransport/ResourceBundle-GoogleDataTransport_Privacy-GoogleDataTransport-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport_Privacy.bundle/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseMessaging/ResourceBundle-FirebaseMessaging_Privacy-FirebaseMessaging-Info.plist (in target 'FirebaseMessaging-FirebaseMessaging_Privacy' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseMessaging/ResourceBundle-FirebaseMessaging_Privacy-FirebaseMessaging-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging_Privacy.bundle/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/ResourceBundle-GTMSessionFetcher_Core_Privacy-GTMSessionFetcher-Info.plist (in target 'GTMSessionFetcher-GTMSessionFetcher_Core_Privacy' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/ResourceBundle-GTMSessionFetcher_Core_Privacy-GTMSessionFetcher-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/ResourceBundle-Promises_Privacy-PromisesSwift-Info.plist (in target 'PromisesSwift-Promises_Privacy' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/ResourceBundle-Promises_Privacy-PromisesSwift-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises_Privacy.bundle/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/ResourceBundle-nanopb_Privacy-nanopb-Info.plist (in target 'nanopb-nanopb_Privacy' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/ResourceBundle-nanopb_Privacy-nanopb-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb_Privacy.bundle/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuthCore_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/ResourceBundle-AppAuthCore_Privacy-AppAuth-Info.plist (in target 'AppAuth-AppAuthCore_Privacy' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/ResourceBundle-AppAuthCore_Privacy-AppAuth-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuthCore_Privacy.bundle/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FBAudienceNetwork/FBAudienceNetwork.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FBAudienceNetwork/ResourceBundle-FBAudienceNetwork-FBAudienceNetwork-Info.plist (in target 'FBAudienceNetwork-FBAudienceNetwork' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FBAudienceNetwork/ResourceBundle-FBAudienceNetwork-FBAudienceNetwork-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FBAudienceNetwork/FBAudienceNetwork.bundle/Info.plist
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/RecaptchaInterop/RecaptchaInterop-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop/RecaptchaInterop.framework/Info.plist
 
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK/Google_Mobile_Ads_SDK.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/Google-Mobile-Ads-SDK/Google-Mobile-Ads-SDK-Info.plist (in target 'Google-Mobile-Ads-SDK' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/Google-Mobile-Ads-SDK/Google-Mobile-Ads-SDK-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK/Google_Mobile_Ads_SDK.framework/Info.plist
 
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/nanopb-Info.plist (in target 'nanopb' from project 'Pods')
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseMessaging/ResourceBundle-FirebaseMessaging_Privacy-FirebaseMessaging-Info.plist (in target 'FirebaseMessaging-FirebaseMessaging_Privacy' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/nanopb-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb.framework/Info.plist
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseMessaging/ResourceBundle-FirebaseMessaging_Privacy-FirebaseMessaging-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging_Privacy.bundle/Info.plist
 
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/PromisesSwift-Info.plist (in target 'PromisesSwift' from project 'Pods')
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleDataTransport/ResourceBundle-GoogleDataTransport_Privacy-GoogleDataTransport-Info.plist (in target 'GoogleDataTransport-GoogleDataTransport_Privacy' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/PromisesSwift-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises.framework/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop/RecaptchaInterop.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/RecaptchaInterop/RecaptchaInterop-Info.plist (in target 'RecaptchaInterop' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/RecaptchaInterop/RecaptchaInterop-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop/RecaptchaInterop.framework/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuth.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/AppAuth-Info.plist (in target 'AppAuth' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/AppAuth-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuth.framework/Info.plist
-
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMSessionFetcher' from project 'Pods')
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/GTMSessionFetcher-Info.plist (in target 'GTMSessionFetcher' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/GTMSessionFetcher-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher.framework/Info.plist
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleDataTransport/ResourceBundle-GoogleDataTransport_Privacy-GoogleDataTransport-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport_Privacy.bundle/Info.plist
 
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMAppAuth/ResourceBundle-GTMAppAuth_Privacy-GTMAppAuth-Info.plist (in target 'GTMAppAuth-GTMAppAuth_Privacy' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMAppAuth/ResourceBundle-GTMAppAuth_Privacy-GTMAppAuth-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth_Privacy.bundle/Info.plist
 
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleSignIn/ResourceBundle-GoogleSignIn-GoogleSignIn-Info.plist (in target 'GoogleSignIn-GoogleSignIn' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleSignIn/ResourceBundle-GoogleSignIn-GoogleSignIn-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.bundle/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuthCore_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/ResourceBundle-AppAuthCore_Privacy-AppAuth-Info.plist (in target 'AppAuth-AppAuthCore_Privacy' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/ResourceBundle-AppAuthCore_Privacy-AppAuth-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuthCore_Privacy.bundle/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/ResourceBundle-Promises_Privacy-PromisesSwift-Info.plist (in target 'PromisesSwift-Promises_Privacy' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/ResourceBundle-Promises_Privacy-PromisesSwift-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises_Privacy.bundle/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/ResourceBundle-GTMSessionFetcher_Core_Privacy-GTMSessionFetcher-Info.plist (in target 'GTMSessionFetcher-GTMSessionFetcher_Core_Privacy' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/ResourceBundle-GTMSessionFetcher_Core_Privacy-GTMSessionFetcher-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FBAudienceNetwork/FBAudienceNetwork.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FBAudienceNetwork/ResourceBundle-FBAudienceNetwork-FBAudienceNetwork-Info.plist (in target 'FBAudienceNetwork-FBAudienceNetwork' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FBAudienceNetwork/ResourceBundle-FBAudienceNetwork-FBAudienceNetwork-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FBAudienceNetwork/FBAudienceNetwork.bundle/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb_Privacy.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/ResourceBundle-nanopb_Privacy-nanopb-Info.plist (in target 'nanopb-nanopb_Privacy' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/ResourceBundle-nanopb_Privacy-nanopb-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb_Privacy.bundle/Info.plist
+
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'PromisesSwift' from project 'Pods')
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/PromisesSwift-Info.plist (in target 'PromisesSwift' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/PromisesSwift/PromisesSwift-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises.framework/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/nanopb-Info.plist (in target 'nanopb' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/nanopb/nanopb-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb.framework/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuth.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/AppAuth-Info.plist (in target 'AppAuth' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppAuth/AppAuth-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuth.framework/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/GTMSessionFetcher-Info.plist (in target 'GTMSessionFetcher' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMSessionFetcher/GTMSessionFetcher-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher.framework/Info.plist
+
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleDataTransport/GoogleDataTransport-Info.plist (in target 'GoogleDataTransport' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleDataTransport/GoogleDataTransport-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport.framework/Info.plist
+
+ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMAppAuth/GTMAppAuth-Info.plist (in target 'GTMAppAuth' from project 'Pods')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
+    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMAppAuth/GTMAppAuth-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth.framework/Info.plist
 
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppCheckCore/AppCheckCore.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppCheckCore/AppCheckCore-Info.plist (in target 'AppCheckCore' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/AppCheckCore/AppCheckCore-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppCheckCore/AppCheckCore.framework/Info.plist
 
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMAppAuth' from project 'Pods')
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMAppAuth/GTMAppAuth-Info.plist (in target 'GTMAppAuth' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GTMAppAuth/GTMAppAuth-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth.framework/Info.plist
-
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseMessaging/FirebaseMessaging-Info.plist (in target 'FirebaseMessaging' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/FirebaseMessaging/FirebaseMessaging-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging.framework/Info.plist
-
-ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.bundle/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleSignIn/ResourceBundle-GoogleSignIn-GoogleSignIn-Info.plist (in target 'GoogleSignIn-GoogleSignIn' from project 'Pods')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
-    builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleSignIn/ResourceBundle-GoogleSignIn-GoogleSignIn-Info.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.bundle/Info.plist
 
 ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.framework/Info.plist /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/GoogleSignIn/GoogleSignIn-Info.plist (in target 'GoogleSignIn' from project 'Pods')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
@@ -334,11 +395,14 @@ ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods
     builtin-infoPlistUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Target\ Support\ Files/Pods-iosApp/Pods-iosApp-Info.plist -producttype com.apple.product-type.framework -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Pods_iosApp.framework/Info.plist
 
-note: Run script build phase 'Compile Kotlin Framework' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'iosApp' from project 'iosApp')
+PhaseScriptExecution [CP]\ Check\ Pods\ Manifest.lock /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-DF6CBFEF67EA064CCCAFA2AA.sh (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    /bin/sh -c /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-DF6CBFEF67EA064CCCAFA2AA.sh
+
 PhaseScriptExecution Compile\ Kotlin\ Framework /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-4B44A75E2FD10EFE3C97FCF5.sh (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     export ACTION\=build
-    export ADMOB_APP_ID\=ca-app-pub-3940256099942544\~1458002511
+    export ADMOB_APP_ID\=ca-app-pub-5182121902128639\~5999695772
     export AD_HOC_CODE_SIGNING_ALLOWED\=NO
     export AGGREGATE_TRACKED_DOMAINS\=YES
     export ALLOW_BUILD_REQUEST_OVERRIDES\=NO
@@ -458,7 +522,7 @@ PhaseScriptExecution Compile\ Kotlin\ Framework /Users/ghaz-webscare/Desktop/ars
     export CP\=/bin/cp
     export CREATE_INFOPLIST_SECTION_IN_BINARY\=NO
     export CURRENT_ARCH\=undefined_arch
-    export CURRENT_PROJECT_VERSION\=11
+    export CURRENT_PROJECT_VERSION\=1
     export CURRENT_VARIANT\=normal
     export DEAD_CODE_STRIPPING\=YES
     export DEBUGGING_SYMBOLS\=YES
@@ -689,7 +753,7 @@ PhaseScriptExecution Compile\ Kotlin\ Framework /Users/ghaz-webscare/Desktop/ars
     export MAC_OS_X_VERSION_MAJOR\=260000
     export MAC_OS_X_VERSION_MINOR\=260600
     export MAKE_MERGEABLE\=NO
-    export MARKETING_VERSION\=1.1.1
+    export MARKETING_VERSION\=1.0.1
     export MERGEABLE_LIBRARY\=NO
     export MERGED_BINARY_TYPE\=none
     export MERGE_LINKED_LIBRARIES\=NO
@@ -927,7 +991,7 @@ PhaseScriptExecution Compile\ Kotlin\ Framework /Users/ghaz-webscare/Desktop/ars
     export VERSIONPLIST_PATH\=iosApp.app/version.plist
     export VERSION_INFO_BUILDER\=ghaz-webscare
     export VERSION_INFO_FILE\=iosApp_vers.c
-    export VERSION_INFO_STRING\=\"@\(\#\)PROGRAM:iosApp\ \ PROJECT:iosApp-11\"
+    export VERSION_INFO_STRING\=\"@\(\#\)PROGRAM:iosApp\ \ PROJECT:iosApp-1\"
     export WORKSPACE_DIR\=/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     export WRAPPER_EXTENSION\=app
     export WRAPPER_NAME\=iosApp.app
@@ -955,7 +1019,6 @@ PhaseScriptExecution Compile\ Kotlin\ Framework /Users/ghaz-webscare/Desktop/ars
     export arch\=undefined_arch
     export variant\=normal
     /bin/sh -c /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-4B44A75E2FD10EFE3C97FCF5.sh
-Starting a Gradle Daemon (subsequent builds will be faster)
 
 > Configure project :shared
 w: ⚠️ Native task 'iosSimulatorArm64Test' is disabled
@@ -998,10 +1061,10 @@ Please align Skiko dependencies to the same version. If possible, avoid direct S
 > Task :shared:copyNonXmlValueResourcesForAppleMain NO-SOURCE
 > Task :shared:prepareComposeResourcesTaskForAppleMain NO-SOURCE
 > Task :shared:generateResourceAccessorsForAppleMain NO-SOURCE
-> Task :shared:convertXmlValueResourcesForCommonMain UP-TO-DATE
-> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
-> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
-> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForCommonMain
+> Task :shared:copyNonXmlValueResourcesForCommonMain
+> Task :shared:prepareComposeResourcesTaskForCommonMain
+> Task :shared:generateResourceAccessorsForCommonMain
 > Task :shared:convertXmlValueResourcesForIosArm64Main NO-SOURCE
 > Task :shared:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
 > Task :shared:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
@@ -1014,9 +1077,9 @@ Please align Skiko dependencies to the same version. If possible, avoid direct S
 > Task :shared:copyNonXmlValueResourcesForNativeMain NO-SOURCE
 > Task :shared:prepareComposeResourcesTaskForNativeMain NO-SOURCE
 > Task :shared:generateResourceAccessorsForNativeMain NO-SOURCE
-> Task :shared:generateActualResourceCollectorsForIosArm64Main UP-TO-DATE
-> Task :shared:generateComposeResClass UP-TO-DATE
-> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :shared:generateActualResourceCollectorsForIosArm64Main
+> Task :shared:generateComposeResClass
+> Task :shared:generateExpectResourceCollectorsForCommonMain
 > Task :shared:validateLocalSwiftPMDependencies
 > Task :shared:computeLocalPackageDependencyInputFiles UP-TO-DATE
 > Task :shared:fingerprintSyntheticPackage UP-TO-DATE
@@ -1033,19 +1096,20 @@ Please align Skiko dependencies to the same version. If possible, avoid direct S
 > Task :shared:symbolicLinkToAssembleDebugAppleFrameworkForXcodeIosArm64 UP-TO-DATE
 > Task :shared:checkCanSyncComposeResourcesForIos
 > Task :shared:iosArm64ResolveResourcesFromDependencies UP-TO-DATE
-> Task :shared:assembleIosArm64MainResources UP-TO-DATE
-> Task :shared:iosArm64ResolveSelfResourcesCopyHierarchicalMultiplatformResources UP-TO-DATE
-> Task :shared:iosArm64AggregateResources UP-TO-DATE
+> Task :shared:assembleIosArm64MainResources
+> Task :shared:iosArm64ResolveSelfResourcesCopyHierarchicalMultiplatformResources
+> Task :shared:iosArm64AggregateResources
 > Task :shared:iosSimulatorArm64ResolveResourcesFromDependencies UP-TO-DATE
 > Task :shared:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
 > Task :shared:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
 > Task :shared:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
-> Task :shared:assembleIosSimulatorArm64MainResources UP-TO-DATE
-> Task :shared:iosSimulatorArm64ResolveSelfResourcesCopyHierarchicalMultiplatformResources UP-TO-DATE
-> Task :shared:iosSimulatorArm64AggregateResources UP-TO-DATE
-> Task :shared:syncComposeResourcesForIos UP-TO-DATE
+> Task :shared:assembleIosSimulatorArm64MainResources
+> Task :shared:iosSimulatorArm64ResolveSelfResourcesCopyHierarchicalMultiplatformResources
+> Task :shared:iosSimulatorArm64AggregateResources
+> Task :shared:syncComposeResourcesForIos
 > Task :shared:validateArchitecturesForEmbedAndSignAppleFrameworkForXcode
 > Task :shared:kspKotlinIosArm64
+
 > Task :shared:compileKotlinIosArm64
 /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/src/commonMain/kotlin/com/urdufonts/app/ui/baseScreen/BaseScreen.kt:112:47: warning: 'fun SemanticsPropertyReceiver.invisibleToUser(): Unit' is deprecated. Use `hideFromAccessibility()` instead.
 /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/src/commonMain/kotlin/com/urdufonts/app/ui/components/SimpleTopAppBar.kt:33:36: warning: 'fun centerAlignedTopAppBarColors(containerColor: Color = ..., scrolledContainerColor: Color = ..., navigationIconContentColor: Color = ..., titleContentColor: Color = ..., actionIconContentColor: Color = ...): TopAppBarColors' is deprecated. Use topAppBarColors instead.
@@ -1068,8 +1132,8 @@ Please align Skiko dependencies to the same version. If possible, avoid direct S
 
 [Incubating] Problems report is available at: file:///Users/ghaz-webscare/Desktop/arslan/urdufonts/build/reports/problems/problems-report.html
 
-BUILD SUCCESSFUL in 3m 47s
-35 actionable tasks: 12 executed, 23 up-to-date
+BUILD SUCCESSFUL in 1m 39s
+35 actionable tasks: 26 executed, 9 up-to-date
 
 SwiftDriver iosApp normal arm64 com.apple.xcode.tools.swift.compiler (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
@@ -1081,44 +1145,34 @@ ProcessInfoPlistFile /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/
 
 SwiftExplicitDependencyGeneratePcm arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/Shared-3VAWRXU8BD5KSOB4I49QGVIGP.pcm
 
-SwiftCompile normal arm64 Compiling\ GeneratedAssetSymbols.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
-
-SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
-    
-
-SwiftCompile normal arm64 Compiling\ iOSApp.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/iOSApp.swift (in target 'iosApp' from project 'iosApp')
-SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/iOSApp.swift (in target 'iosApp' from project 'iosApp')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
-    
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/iOSApp.swift:80:31: warning: 'token(completion:)' is deprecated: Use register(completion:) instead.
-        Messaging.messaging().token { token, _ in
-                              ^
-
 SwiftEmitModule normal arm64 Emitting\ module\ for\ iosApp (in target 'iosApp' from project 'iosApp')
 
 EmitSwiftModule normal arm64 (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     
 
+SwiftCompile normal arm64 Compiling\ StoreKitBridgeImpl.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/StoreKitBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/StoreKitBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/StoreKitBridgeImpl.swift:113:25: warning: no calls to throwing functions occur within 'try' expression
+           let status = try? await transaction.subscriptionStatus, case .verified = status.renewalInfo {
+                        ^
+
+SwiftCompile normal arm64 Compiling\ GeneratedAssetSymbols.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
+
+SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    
+
+SwiftCompile normal arm64 Compiling\ AdsBridgeImpl.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/AdsBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/AdsBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    
+
 SwiftCompile normal arm64 Compiling\ ContentView.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/ContentView.swift (in target 'iosApp' from project 'iosApp')
 
 SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/ContentView.swift (in target 'iosApp' from project 'iosApp')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
-    
-
-SwiftCompile normal arm64 Compiling\ PushBridgeImpl.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/PushBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
-
-SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/PushBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
-    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
-    
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/PushBridgeImpl.swift:15:31: warning: 'token(completion:)' is deprecated: Use register(completion:) instead.
-        Messaging.messaging().token { token, _ in completion(token) }
-                              ^
-
-SwiftCompile normal arm64 Compiling\ AdsBridgeImpl.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/AdsBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
-
-SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/AdsBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     
 
@@ -1134,20 +1188,28 @@ SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/i
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     
 
-SwiftCompile normal arm64 Compiling\ StoreKitBridgeImpl.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/StoreKitBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 Compiling\ PushBridgeImpl.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/PushBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
 
-SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/StoreKitBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/PushBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/StoreKitBridgeImpl.swift:113:25: warning: no calls to throwing functions occur within 'try' expression
-           let status = try? await transaction.subscriptionStatus, case .verified = status.renewalInfo {
-                        ^
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/Bridges/PushBridgeImpl.swift:15:31: warning: 'token(completion:)' is deprecated: Use register(completion:) instead.
+        Messaging.messaging().token { token, _ in completion(token) }
+                              ^
 
-SwiftDriverJobDiscovery normal arm64 Compiling PushBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 Compiling\ iOSApp.swift /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/iOSApp.swift (in target 'iosApp' from project 'iosApp')
+SwiftCompile normal arm64 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/iOSApp.swift (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp/iOSApp.swift:80:31: warning: 'token(completion:)' is deprecated: Use register(completion:) instead.
+        Messaging.messaging().token { token, _ in
+                              ^
+
+SwiftDriverJobDiscovery normal arm64 Compiling GoogleSignInBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
 
 SwiftDriverJobDiscovery normal arm64 Compiling ContentView.swift (in target 'iosApp' from project 'iosApp')
 
-SwiftDriverJobDiscovery normal arm64 Compiling GoogleSignInBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
+SwiftDriverJobDiscovery normal arm64 Compiling PushBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
 
 SwiftDriverJobDiscovery normal arm64 Compiling GeneratedAssetSymbols.swift (in target 'iosApp' from project 'iosApp')
 
@@ -1157,11 +1219,11 @@ SwiftDriver\ Compilation\ Requirements iosApp normal arm64 com.apple.xcode.tools
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name iosApp -Onone @/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp.SwiftFileList -DDEBUG -D COCOAPODS -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk -target arm64-apple-ios16.0 -g -module-cache-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppCheckCore -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseABTesting -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCore -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCoreInternal -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseInstallations -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfig -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfigInterop -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseSharedSwift -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleUtilities -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesObjC -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Vendor/WebsCareAds-iOS-4.2.5 -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/FBAudienceNetwork/Dynamic -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Google-Mobile-Ads-SDK/Frameworks/GoogleMobileAdsFramework -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/GoogleMobileAdsMediationFacebook/MetaAdapter-6.22.1.0 -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/GoogleUserMessagingPlatform/Frameworks/Release -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/FBAudienceNetwork -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/Google-Mobile-Ads-SDK -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/GoogleMobileAdsMediationFacebook -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/GoogleUserMessagingPlatform -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/WebsCareAds -F /Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/build/xcode-frameworks/Debug/iphoneos26.4 -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/SDKStatCaches.noindex/iphoneos26.4-23E252-688ef53f1462e2c8f657fdc38a81448f68a138bb55de9ba35ce6c8c40d12849e.sdkstatcache -output-file-map /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/ModuleCache.noindex -sdk-module-cache-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp_const_extract_protocols.json -Xcc -iquote -Xcc /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-generated-files.hmap -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-own-target-headers.hmap -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp-7b79493a8b7fc1f2fff3c51cd12ba024-VFS-iphoneos/all-product-headers.yaml -Xcc -iquote -Xcc /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-project-headers.hmap -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/include -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuth.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppCheckCore/AppCheckCore.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseABTesting/FirebaseABTesting.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCore/FirebaseCore.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCoreInternal/FirebaseCoreInternal.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseInstallations/FirebaseInstallations.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfig/FirebaseRemoteConfig.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfigInterop/FirebaseRemoteConfigInterop.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseSharedSwift/FirebaseSharedSwift.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK/Google_Mobile_Ads_SDK.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleUtilities/GoogleUtilities.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesObjC/FBLPromises.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop/RecaptchaInterop.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb.framework/Headers -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources-normal/arm64 -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources/arm64 -Xcc -I/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/DerivedSources -Xcc -DDEBUG\=1 -Xcc -DCOCOAPODS\=1 -Xcc -DDEBUG\=1 -Xcc -DPB_FIELD_32BIT\=1 -Xcc -DPB_NO_PACKED_STRUCTS\=1 -Xcc -DPB_ENABLE_MALLOC\=1 -emit-objc-header -emit-objc-header-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp-Swift.h -working-directory /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp -experimental-emit-module-separately -disable-cmo
 
-SwiftDriverJobDiscovery normal arm64 Compiling AppleSignInBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
-
 Copy /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.swiftmodule/arm64-apple-ios.abi.json /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp.abi.json (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp.abi.json /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.swiftmodule/arm64-apple-ios.abi.json
+
+SwiftDriverJobDiscovery normal arm64 Compiling AppleSignInBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
 
 SwiftDriverJobDiscovery normal arm64 Compiling StoreKitBridgeImpl.swift (in target 'iosApp' from project 'iosApp')
 
@@ -1188,15 +1250,65 @@ Ld /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/
     /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios16.0 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk -O0 -L/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos -L/Users/ghaz-webscare/Library/Developer/DVTDownloads/MetalToolchain/mounts/ae6c58470d7c9cd49b7857ebad1f170cf0fa102e/Metal.xctoolchain/usr/lib/swift/iphoneos -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk/usr/lib/swift -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppCheckCore -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseABTesting -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCore -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCoreInternal -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseInstallations -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfig -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfigInterop -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseSharedSwift -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleUtilities -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesObjC -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/RecaptchaInterop -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Vendor/WebsCareAds-iOS-4.2.5 -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/FBAudienceNetwork/Dynamic -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Google-Mobile-Ads-SDK/Frameworks/GoogleMobileAdsFramework -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/GoogleMobileAdsMediationFacebook/MetaAdapter-6.22.1.0 -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/GoogleUserMessagingPlatform/Frameworks/Release -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/FBAudienceNetwork -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/Google-Mobile-Ads-SDK -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/GoogleMobileAdsMediationFacebook -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/GoogleUserMessagingPlatform -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/WebsCareAds -F/Users/ghaz-webscare/Desktop/arslan/urdufonts/shared/build/xcode-frameworks/Debug/iphoneos26.4 -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -rdynamic -Xlinker -no_deduplicate -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp-ExecutorLinkFileList-normal-arm64.txt /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp
 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/iosApp.xcodeproj: iosApp: ld: warning: search path '/Users/ghaz-webscare/Library/Developer/DVTDownloads/MetalToolchain/mounts/ae6c58470d7c9cd49b7857ebad1f170cf0fa102e/Metal.xctoolchain/usr/lib/swift/iphoneos' not found
 
-CopySwiftLibs /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app (in target 'iosApp' from project 'iosApp')
+PhaseScriptExecution [CP]\ Embed\ Pods\ Frameworks /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-C401C5C48DD081F02CA5FD54.sh (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
-    builtin-swiftStdLibTool --copy --verbose --sign D3D64F093A0993D422B1ACBEED27347839B95B8E --scan-executable /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp.debug.dylib --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/PlugIns --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/SystemExtensions --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Extensions --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Pods_iosApp.framework --platform iphoneos --toolchain /Users/ghaz-webscare/Library/Developer/DVTDownloads/MetalToolchain/mounts/ae6c58470d7c9cd49b7857ebad1f170cf0fa102e/Metal.xctoolchain --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+    /bin/sh -c /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-C401C5C48DD081F02CA5FD54.sh
+mkdir -p /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks
+rsync --delete -av --filter P .*.?????? --links --filter "- CVS/" --filter "- .svn/" --filter "- .git/" --filter "- .hg/" --filter "- Headers" --filter "- PrivateHeaders" --filter "- Modules" "/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/XCFrameworkIntermediates/FBAudienceNetwork/FBAudienceNetwork.framework" "/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks"
+Transfer starting: 7 files
+FBAudienceNetwork.framework/
+FBAudienceNetwork.framework/FBAudienceNetwork
+FBAudienceNetwork.framework/_CodeSignature/CodeResources
+
+sent 8729800 bytes  received 70 bytes  136191419 bytes/sec
+total size is 8731424  speedup is 1.00
+Code Signing /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks/FBAudienceNetwork.framework with Identity Apple Development: Shabbir Hussain (3Q62PFL26S)
+/usr/bin/codesign --force --sign D3D64F093A0993D422B1ACBEED27347839B95B8E  --preserve-metadata=identifier,entitlements '/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks/FBAudienceNetwork.framework'
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks/FBAudienceNetwork.framework: replacing existing signature
+
+PhaseScriptExecution [CP]\ Copy\ Pods\ Resources /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-34F352AC4AAF334FDD531E21.sh (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    /bin/sh -c /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Script-34F352AC4AAF334FDD531E21.sh
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/AppAuth/AppAuthCore_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FBAudienceNetwork/FBAudienceNetwork.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseABTesting/FirebaseABTesting_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCore/FirebaseCore_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseCoreInternal/FirebaseCoreInternal_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseInstallations/FirebaseInstallations_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseMessaging/FirebaseMessaging_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/FirebaseRemoteConfig/FirebaseRemoteConfig_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMAppAuth/GTMAppAuth_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Google-Mobile-Ads-SDK/GoogleMobileAdsResources.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleDataTransport/GoogleDataTransport_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleSignIn/GoogleSignIn.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleUserMessagingPlatform/UserMessagingPlatformResources.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/GoogleUtilities/GoogleUtilities_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesObjC/FBLPromises_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/PromisesSwift/Promises_Privacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/../Vendor/WebsCareAds-iOS-4.2.5/WebsCareAdsPrivacy.bundle
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/nanopb/nanopb_Privacy.bundle
+Transfer starting: 137 files
+
+sent 8873 bytes  received 20 bytes  442437 bytes/sec
+total size is 235016  speedup is 26.43
 
 ExtractAppIntentsMetadata (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Users/ghaz-webscare/Library/Developer/DVTDownloads/MetalToolchain/mounts/ae6c58470d7c9cd49b7857ebad1f170cf0fa102e/Metal.xctoolchain --module-name iosApp --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk --xcode-version 17E202 --platform-family iOS --deployment-target 16.0 --bundle-identifier com.urdufonts.app --output /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app --target-triple arm64-apple-ios16.0 --binary-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp --dependency-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp_dependency_info.dat --stringsdata-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp.SwiftFileList --metadata-file-list /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp.DependencyMetadataFileList --static-metadata-file-list /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp.DependencyStaticMetadataFileList --swift-const-vals-list /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/Objects-normal/arm64/iosApp.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
-2026-11-26 15:26:35.190 appintentsmetadataprocessor[34462:2587621] Starting appintentsmetadataprocessor export
-2026-11-26 15:26:35.215 appintentsmetadataprocessor[34462:2587621] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+2026-11-27 09:28:05.764 appintentsmetadataprocessor[2399:36922] Starting appintentsmetadataprocessor export
+2026-11-27 09:28:05.780 appintentsmetadataprocessor[2399:36922] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CopySwiftLibs /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    builtin-swiftStdLibTool --copy --verbose --sign D3D64F093A0993D422B1ACBEED27347839B95B8E --scan-executable /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp.debug.dylib --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/PlugIns --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/SystemExtensions --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Extensions --scan-folder /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/Pods_iosApp.framework --platform iphoneos --toolchain /Users/ghaz-webscare/Library/Developer/DVTDownloads/MetalToolchain/mounts/ae6c58470d7c9cd49b7857ebad1f170cf0fa102e/Metal.xctoolchain --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+AppIntentsSSUTraining (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Info.plist --temp-dir-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/ssu --bundle-id com.urdufonts.app --product-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app --extracted-metadata-path /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Metadata.appintents --metadata-file-list /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Intermediates.noindex/iosApp.build/Debug-iphoneos/iosApp.build/iosApp.DependencyMetadataFileList --source-file /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/Info.plist --archive-ssu-assets
+2026-11-27 09:28:05.819 appintentsnltrainingprocessor[2400:36923] Parsing options for appintentsnltrainingprocessor
+2026-11-27 09:28:05.819 appintentsnltrainingprocessor[2400:36923] Starting AppIntents SSU YAML Generation
+2026-11-27 09:28:05.824 appintentsnltrainingprocessor[2400:36923] No AppShortcuts found - Skipping.
 
 CodeSign /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp.debug.dylib (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
@@ -1206,6 +1318,16 @@ CodeSign /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Pro
                           (0638da37-3a4d-428a-997b-4d656b0eb7aa)
     
     /usr/bin/codesign --force --sign D3D64F093A0993D422B1ACBEED27347839B95B8E --timestamp\=none --generate-entitlement-der /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/iosApp.debug.dylib
+
+CodeSign /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/__preview.dylib (in target 'iosApp' from project 'iosApp')
+    cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
+    
+    Signing Identity:     "Apple Development: Shabbir Hussain (3Q62PFL26S)"
+    Provisioning Profile: "iOS Team Provisioning Profile: com.urdufonts.app"
+                          (0638da37-3a4d-428a-997b-4d656b0eb7aa)
+    
+    /usr/bin/codesign --force --sign D3D64F093A0993D422B1ACBEED27347839B95B8E --timestamp\=none --generate-entitlement-der /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/__preview.dylib
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app/__preview.dylib: replacing existing signature
 
 CodeSign /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app (in target 'iosApp' from project 'iosApp')
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
@@ -1220,12 +1342,12 @@ Validate /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Pro
     cd /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp
     builtin-validationUtility /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/build/dd/Build/Products/Debug-iphoneos/iosApp.app -shallow-bundle -infoplist-subpath Info.plist
 
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMSessionFetcher-GTMSessionFetcher_Core_Privacy' from project 'Pods')
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'PromisesSwift-Promises_Privacy' from project 'Pods')
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'AppAuth-AppAuthCore_Privacy' from project 'Pods')
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'PromisesSwift' from project 'Pods')
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 11.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'RecaptchaInterop' from project 'Pods')
-/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'AppAuth' from project 'Pods')
 /Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMAppAuth-GTMAppAuth_Privacy' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'AppAuth-AppAuthCore_Privacy' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'PromisesSwift-Promises_Privacy' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMSessionFetcher-GTMSessionFetcher_Core_Privacy' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 9.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'AppAuth' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMSessionFetcher' from project 'Pods')
+/Users/ghaz-webscare/Desktop/arslan/urdufonts/iosApp/Pods/Pods.xcodeproj: warning: The iOS deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 10.0, but the range of supported deployment target versions is 12.0 to 26.4.99. (in target 'GTMAppAuth' from project 'Pods')
 ** BUILD SUCCEEDED **
 
